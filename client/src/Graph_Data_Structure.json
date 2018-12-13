@@ -1,0 +1,250 @@
+{
+  "vertex": [
+    {
+      "vertexType": "BGM",
+      "name": "BGM",
+      "description": "Beginning of message",
+      "data": [
+        {
+          "usage": "M",
+          "key": "[C002]1001",
+          "value": "AN3",
+          "mount": "10",
+          "description": "Document/message name, coded",
+          "flag": true,
+          "description01": "Document/message name, coded",
+          "quality": "+1234"
+        },
+        {
+          "usage": "O",
+          "key": "[C002]1131",
+          "value": "AN3",
+          "mount": "101",
+          "description": "Code list qualifier",
+          "flag": false,
+          "description01": "Document/message name, coded",
+          "quality": "-13.423"
+        },
+        {
+          "usage": "C",
+          "key": "[C002]3055",
+          "value": "AN3",
+          "mount": "10",
+          "description": "Code list responsible agency, coded",
+          "flag": true,
+          "description01": "Document/message name, coded",
+          "quality": "234"
+        },
+        {
+          "usage": "M",
+          "key": "[C002]1000",
+          "value": "AN35",
+          "mount": "101",
+          "description": "Document/message name",
+          "flag": false,
+          "description01": "Document/message name, coded",
+          "quality": "234"
+        },
+        {
+          "usage": "O",
+          "key": "1004",
+          "value": "AN35",
+          "mount": "10",
+          "description": "DOCUMENT/MESSAGE NUMBER",
+          "flag": true,
+          "description01": "Document/message name, coded",
+          "quality": "234"
+        },
+        {
+          "usage": "C",
+          "key": "1225",
+          "value": "AN3",
+          "mount": "101",
+          "description": "MESSAGE FUNCTION, CODED",
+          "flag": false,
+          "description01": "Document/message name, coded",
+          "quality": "234"
+        },
+        {
+          "usage": "M",
+          "key": "4343",
+          "value": "AN3",
+          "mount": "10",
+          "description": "RESPONSE TYPE, CODED",
+          "flag": true,
+          "description01": "Document/message name, coded",
+          "quality": "234"
+        }
+      ],
+      "id": "V1526623981934",
+      "parent": null,
+      "mandatory": false,
+      "repeat": "1"
+    }
+  ],
+  "edge": [],
+  "boundary": [],
+  "position": [
+    {
+      "id": "V1526623981934",
+      "x": 537,
+      "y": 308
+    }
+  ],
+  "vertexTypes": {
+    "VERTEX_GROUP": [
+      {
+        "groupType": "OPERATION",
+        "option": [
+          "SHOW_FULL_ALWAYS"
+        ]
+      }
+    ],
+    "VERTEX": [
+      {
+        "groupType": "OPERATION",
+        "vertexType": "CONCAT",
+        "description": "concat requested strings with connector",
+        "data": [
+          {
+            "usage": "O",
+            "key": "CONNECTOR",
+            "value": "_",
+            "mount": 100,
+            "description": "connector between strings"
+          }
+        ]
+      },
+      {
+        "vertexType": "BGM",
+        "description": "Beginning of message",
+        "data": [
+          {
+            "usage": "O",
+            "key": "[C002]1001",
+            "value": "AN3",
+            "mount": 10,
+            "description": "Document/message name, coded"
+          },
+          {
+            "usage": "O",
+            "key": "[C002]1131",
+            "value": "AN3",
+            "mount": 10,
+            "description": "Code list qualifier"
+          },
+          {
+            "usage": "O",
+            "key": "[C002]3055",
+            "value": "AN3",
+            "mount": 10,
+            "description": "Code list responsible agency, coded"
+          },
+          {
+            "usage": "O",
+            "key": "[C002]1000",
+            "value": "AN35",
+            "mount": 10,
+            "description": "Document/message name"
+          },
+          {
+            "usage": "O",
+            "key": "1004",
+            "value": "AN35",
+            "mount": 10,
+            "description": "DOCUMENT/MESSAGE NUMBER"
+          },
+          {
+            "usage": "O",
+            "key": "1225",
+            "value": "AN3",
+            "mount": 10,
+            "description": "MESSAGE FUNCTION, CODED"
+          },
+          {
+            "usage": "O",
+            "key": "4343",
+            "value": "AN3",
+            "mount": 10,
+            "description": "RESPONSE TYPE, CODED"
+          }
+        ]
+      },
+      {
+        "vertexType": "DTM",
+        "description": "Beginning of message",
+        "data": [
+          {
+            "usage": "O",
+            "key": "[C002]1001",
+            "value": "AN3",
+            "mount": 10,
+            "description": "Document/message name, coded"
+          },
+          {
+            "usage": "O",
+            "key": "[C002]1131",
+            "value": "AN3",
+            "mount": 10,
+            "description": "Code list qualifier"
+          },
+          {
+            "usage": "O",
+            "key": "[C002]3055",
+            "value": "AN3",
+            "mount": 10,
+            "description": "Code list responsible agency, coded"
+          },
+          {
+            "usage": "O",
+            "key": "[C002]1000",
+            "value": "AN35",
+            "mount": 10,
+            "description": "Document/message name"
+          },
+          {
+            "usage": "O",
+            "key": "1004",
+            "value": "AN35",
+            "mount": 10,
+            "description": "DOCUMENT/MESSAGE NUMBER"
+          },
+          {
+            "usage": "O",
+            "key": "1225",
+            "value": "AN3",
+            "mount": 10,
+            "description": "MESSAGE FUNCTION, CODED"
+          },
+          {
+            "usage": "O",
+            "key": "4343",
+            "value": "AN3",
+            "mount": 10,
+            "description": "RESPONSE TYPE, CODED"
+          }
+        ]
+      }
+    ],
+    "VERTEX_DATA_ELEMENT_FORMAT": {
+      "usage": [
+        "M",
+        "O",
+        "C"
+      ],
+      "key": "text",
+      "value": "text",
+      "flag": false,
+      "mount": "number",
+      "description": "text",
+      "description01": "text",
+      "quality": "number"
+    },
+    "VERTEX_PRESENTATION": {
+      "key": "key",
+      "value": "value",
+      "keyTooltip": "description",
+      "valueTooltip": "usage"
+    }
+  }
+}

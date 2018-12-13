@@ -1,0 +1,214 @@
+{
+  "VERTEX_GROUP": [
+    {
+      "groupType": "OPERATION",
+      "option": ["SHOW_FULL_ALWAYS", "DYNAMIC_DATASET"],
+      "dataElementFormat": {
+        "mandatory": false,
+        "type": [
+          "SIMPLE",
+          "COMPOSITE",
+          "COMPONENT"
+        ],
+        "name": "",
+        "format": "AN",
+        "repeat": 1,
+        "description": ""
+      },
+      "vertexPresentation": {
+        "key": "name",
+        "value": "format",
+        "keyTooltip": "description",
+        "valueTooltip": "usage"
+      }
+    },
+    {
+      "groupType": "SEGMENT",
+      "option": [],
+      "dataElementFormat": {
+        "name": "",
+        "value": "",
+        "description": ""
+      },
+      "vertexPresentation": {
+        "key": "name",
+        "value": "value",
+        "keyTooltip": "description",
+        "valueTooltip": "value"
+      }
+    }
+  ],
+  "VERTEX": [
+    {
+      "groupType": "OPERATION",
+      "vertexType": "CONCAT",
+      "description": "concat requested strings with connector",
+      "data": [
+        {
+          "name": "CONNECTOR",
+          "description": "connector between strings"
+        },
+        {
+          "name": "item#1",
+          "description": "first string"
+        },
+        {
+          "name": "item#2",
+          "description": "second string"
+        }
+      ]
+    },
+    {
+      "groupType": "OPERATION",
+      "vertexType": "SUBSTRING",
+      "description": "concat requested strings with connector",
+      "data": [
+      ]
+    },
+    {
+      "groupType": "SEGMENT",
+      "vertexType": "BGM",
+      "description": "Beginning of message",
+      "data": [
+        {
+          "name": "C002",
+          "format": "",
+          "type": "COMPOSITE",
+          "description": "Document/message name, coded"
+        },
+        {
+          "name": "1001",
+          "format": "AN3",
+          "type": "COMPONENT",
+          "description": "Code list qualifier"
+        },
+        {
+          "mandatory": true,
+          "name": "1131",
+          "format": "AN17",
+          "type": "COMPONENT",
+          "description": "Code list responsible agency, coded"
+        },
+        {
+          "mandatory": true,
+          "name": "3055",
+          "format": "AN3",
+          "type": "COMPONENT",
+          "description": "Code list responsible agency, coded"
+        },
+        {
+          "mandatory": true,
+          "name": "1000",
+          "format": "AN35",
+          "type": "COMPONENT",
+          "description": "Document/message name"
+        },
+        {
+          "mandatory": true,
+          "name": "C106",
+          "format": "",
+          "type": "COMPOSITE",
+          "description": "DOCUMENT/MESSAGE IDENTIFICATION"
+        },
+        {
+          "mandatory": true,
+          "name": "1004",
+          "format": "AN35",
+          "type": "COMPONENT",
+          "description": "DOCUMENT/MESSAGE identifier"
+        },
+        {
+          "mandatory": true,
+          "name": "1056",
+          "format": "AN9",
+          "type": "COMPONENT",
+          "description": "Version identifier"
+        },
+        {
+          "mandatory": true,
+          "name": "1060",
+          "format": "AN6",
+          "type": "COMPONENT",
+          "description": "Revision identifier"
+        },
+        {
+          "mandatory": true,
+          "name": "1225",
+          "format": "AN3",
+          "type": "SIMPLE",
+          "description": "MESSAGE FUNCTION, CODED"
+        },
+        {
+          "name": "4343",
+          "format": "AN3",
+          "type": "SIMPLE",
+          "description": "RESPONSE TYPE, CODED"
+        }
+      ]
+    },
+    {
+      "groupType": "SEGMENT",
+      "vertexType": "DTM",
+      "description": "DATE/TIME",
+      "data": [
+        {
+
+          "name": "C002",
+          "format": "",
+          "type":  "COMPOSITE",
+          "description": "Document/message name, coded"
+        },
+        {
+
+          "name": "1001",
+          "format": "AN3",
+          "type":  "COMPONENT",
+          "mandatory": false,
+          "description": "Document/message name, coded"
+        },
+        {
+
+          "name": "1131",
+          "format": "AN3",
+          "type":  "COMPONENT",
+          "description": "Code list qualifier"
+        },
+        {
+
+          "name": "3055",
+          "format": "AN3",
+          "type": "COMPONENT",
+          "description": "Code list responsible agency, coded"
+        },
+        {
+
+          "name": "1000",
+          "format": "AN35",
+          "type": "COMPONENT",
+          "description": "Document/message name"
+        },
+        {
+
+          "name": "1004",
+          "format": "AN35",
+          "type": "SIMPLE",
+          "description": "DOCUMENT/MESSAGE NUMBER"
+        },
+        {
+
+          "name": "1225",
+          "format": "AN3",
+          "type": "SIMPLE",
+          "description": "MESSAGE FUNCTION, CODED"
+        },
+        {
+
+          "name": "4343",
+          "format": "AN3",
+          "type": "SIMPLE",
+          "description": "RESPONSE TYPE, CODED"
+        }
+      ]
+    }
+  ]
+}
