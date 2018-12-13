@@ -203,24 +203,26 @@ class cltSampleMessageViewer {
 						&& eachMessageDataElement.spec.id === eachDataElement.id
 					) {
 						eachMessageDataElement.whiteSpace = eachMessageDataElement.value.length - eachMessageDataElement.value.trim().length;
+
+						const inputId = `editValue${eachDataElement.name + seqTextBox}`
+
 						$('#detailBody').append('<tr>')
 							.append(`<td>${eachDataElement.name}</td>`)
 							.append(`<td>${eachDataElement.type}</td>`)
 							.append(`<td>${eachDataElement.mandatory}</td>`)
 							.append(`<td>${eachDataElement.format}</td>`)
 							.append(`<td>${eachDataElement.description}</td>`)
-							.append(`<td ><input type="text" class="form-control" id="editValue${eachDataElement.name + seqTextBox}" value="${eachMessageDataElement.value.trim()}"></td>`)
+							.append(`<td ><input type="text" class="form-control" id="${inputId}" value="${eachMessageDataElement.value.trim()}"></td>`)
 							.append('</tr>');
 
-						let main = this;
-						$(`#editValue${eachDataElement.name + seqTextBox}`).change(function(event) {
-							if (!main.validateByFormat($(this).val(), eachDataElement.format)) {
-								$(this).css('background-color', '#fb2d2d')
-								$(this).css('color', 'white')
-							} else {
-								$(this).css('background-color', '')
-								$(this).css('color', '')
-							}
+						const $el = $(`#${inputId}`)
+
+						// validate when loading segment info
+						this.doValidateByFormat(inputId, $el.val(), eachDataElement.format)
+
+						// validate on change event
+						$el.change( event => {
+							this.doValidateByFormat(inputId, $el.val(), eachDataElement.format)
 						})
 						
 						elementDataExist = true;
@@ -268,6 +270,10 @@ class cltSampleMessageViewer {
 	}
 
 	validateByFormat(string='', format='AN999') { 
+		if (string === '') {
+			return true;
+		}
+
     if (!format) { 
       return true; 
     } 
@@ -295,7 +301,18 @@ class cltSampleMessageViewer {
     } 
  
     return true; 
-  }
+	}
+	
+	doValidateByFormat(elementId, string, format) {
+		const $el = $(`#${elementId}`)
+		if (!this.validateByFormat(string, format)) {
+			$el.css('background-color', '#fb2d2d')
+			$el.css('color', 'white')
+		} else {
+			$el.css('background-color', '')
+			$el.css('color', '')
+		}
+	}
 }
 
 export default cltSampleMessageViewer

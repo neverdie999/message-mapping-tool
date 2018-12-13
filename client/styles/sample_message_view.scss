@@ -65,7 +65,27 @@ mark {
 
 .file-name {
 	position: absolute !important;
-	left: 109px !important;
-	width: calc(100% - 109px) !important;
+	left: 105px !important;
+	width: calc(100% - 105px) !important;
 	background-color: white !important;
+}
+
+input[type="file"] {
+	display: none;
+}
+
+.custom-file-upload {
+	float: left;
+	height: 34px;
+	border: 1px solid #ccc;
+	padding: 6px 12px;
+	font-weight: normal;
+	color: #292929;
+  background-color: #DDDDDD;
+	cursor: pointer;
+	transition: all 0.2s
+}
+
+.custom-file-upload:hover {
+	color:#636363!important;
 }

@@ -38,7 +38,7 @@
   <div class="content">
 				<div class="dialog-wrapper">
 					<!-- Error desc (S) -->
-					<div id="desc"></div>
+					<div id="desc" style="word-wrap: break-word;"></div>
 					<!-- Error desc (E) -->
 
 					<!-- Top button (S) -->
@@ -76,7 +76,8 @@
 						<label class="control-label font-weight-700 col-sm-3">Spec File</label>
 						<div class="col-sm-6">
 							<div class="input-group" style="width: 100%">
-								<input type="file" class="form-control" id="specFile" style="width: 110px">
+								<label for="specFile" class="custom-file-upload">Choose file</label>
+								<input id="specFile" type="file"/>
 								<input type="text" class="file-name form-control" id="specFileName" readonly>
 							</div>
 						</div>
@@ -86,7 +87,8 @@
 							<label class="control-label font-weight-700 col-sm-3">Sample File</label>
 							<div class="col-sm-6">
 								<div class="input-group" style="width: 100%">
-									<input type="file" class="form-control" id="sampleFile" style="width: 110px">
+									<label for="sampleFile" class="custom-file-upload">Choose file</label>
+									<input id="sampleFile" type="file"/>
 									<input type="text" class="file-name form-control" id="sampleFileName" readonly>
 								</div>
 							</div>
