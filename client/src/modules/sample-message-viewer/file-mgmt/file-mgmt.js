@@ -56,6 +56,10 @@ class FileMgmt {
 			this.parent.viewFullText()
 		})
 	}
+
+	slideToggle() {
+		$(`#${ID_CONTAINER_FILE_MGMT}`).slideToggle()
+	}
 }
 
 export default FileMgmt

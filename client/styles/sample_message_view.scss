@@ -64,9 +64,8 @@ mark {
 }
 
 .file-name {
-	position: absolute !important;
-	left: 105px !important;
-	width: calc(100% - 105px) !important;
+	margin-left: -1px;
+  width: calc(100% - 106px) !important;
 	background-color: white !important;
 }
 
@@ -83,9 +82,15 @@ input[type="file"] {
 	color: #292929;
   background-color: #DDDDDD;
 	cursor: pointer;
-	transition: all 0.2s
+	transition: all 0.2s;
+	border-radius: 4px 0px 0px 4px;
 }
 
 .custom-file-upload:hover {
 	color:#636363!important;
+}
+
+.form-group .control-label:after { 
+	content:"*";
+	color:red;
 }

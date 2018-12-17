@@ -74,7 +74,7 @@
         font-weight: normal;
       }
       th {
-        padding: 0 10px;
+				padding: 0 10px;
       }
 
       .checkbox_center, .col_header {
@@ -99,7 +99,7 @@
     }
   }
 
-  input[type="text"], input[type="email"] , input[type="password"], input[type="number"], select, textarea {
+  input[type="text"], input[type="email"] , input[type="password"], input[type="number"], select, textarea{
     height: 29px;
     //margin: 0 4px 0 0;
     border-color: #b8d6f6;
@@ -107,13 +107,16 @@
     line-height: 17px;
     outline: none;
     border-radius: 0px;
-    width: 100% !important;
     font-size: 12px;
     padding: 0 5px;
     &:hover, :focus {
       border-color: #6db3fe;
     }
-  }
+	}
+	
+	input[type="text"]:not(.file-name), input[type="email"], input[type="password"], input[type="number"], select, textarea {
+		width: 100% !important;
+	}
 
   textarea {
     height: 100%;
@@ -131,5 +134,26 @@
   .input-group-addon{
     font-size: 12px;
     border-radius: 0px;
-  }
+	}
+	
+	.custom-file-upload {
+		float: left;
+		height: 29px;
+		border: 1px solid #ccc;
+		padding: 6px 12px;
+		font-weight: normal;
+		color: #292929;
+		background-color: #DDDDDD;
+		cursor: pointer;
+		transition: all 0.2s
+	}
+	
+	.custom-file-upload:hover {
+		color:#636363!important;
+	}
+
+	.file-name {
+		margin-left: -1px;
+    width: calc(100% - 92px);
+	}
 }

@@ -24,7 +24,135 @@
   </head>
   <body>
     <div class="wrap-container-area">
-    </div>
+		</div>
+		
+		<!-- Generate Dialog (S) -->
+		<div id="dlgGenerate" class="modal fade" role="dialog" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="web-dialog modal-content">
+          <div class="dialog-title">
+            <span class="title">Generate</span>
+          </div>
+
+          <div class="dialog-wrapper">
+            <form action="#" method="post">
+              <div class="dialog-search form-inline">
+								<div class="panel-group">
+										<div class="panel panel-default">
+											<div class="panel-heading">Scanner generate</div>
+											<div class="panel-body">
+												<table>
+														<colgroup>
+															<col width="150"/>
+															<col width="*"/>
+														</colgroup>
+														<tbody>
+															<tr>
+																<th>Message Spec</th>
+																<td>
+																	<label for="messageSpec" class="custom-file-upload">Choose file</label>
+																	<input id="messageSpec" type="file" style="display: none"/>
+																	<input type="text" class="file-name form-control" id="messageSpecFileName" raedonly>
+																</td>
+															</tr>
+															<tr>
+																<th>Message Group Type</th>
+																<td>
+																	<select id="scannerMesasgeGroupType" class="form-control">
+																		<option value="FIXED_LENGTH_BY_LINE" selected>FIXED LENGTH BY LINE</option>
+																		<option value="FIXED_LENGTH_WITH_INDEXED_ITEM">FIXED LENGTH WITH INDEXED ITEM</option>
+																		<option value="FIXED_LENGTH_WITH_NAMED_ITEM">FIXED LENGTH WITH NAMED ITEM</option>
+																		<option value="DELIMITER_WITH_INDEXED_ITEM">DELIMITER WITH INDEXED ITEM</option>
+																		<option value="DELIMITER_WITH_NAMED_ITEM">DELIMITER WITH NAMED ITEM</option>
+																		<option value="DICTIONARY">DICTIONARY</option>
+																	</select>
+																</td>
+																</tr>
+														</tbody>
+													</table>
+
+													<div class="dialog-button-top">
+														<div class="row text-right">
+															<button id="btnScannerGenerate" class="btn-etc">Generate</button>
+														</div>
+													</div>
+											</div>
+											
+										</div>
+										<div class="panel panel-default">
+												<div class="panel-heading">Mapper generate</div>
+												<div class="panel-body">
+													<table>
+															<colgroup>
+																<col width="150"/>
+																<col width="*"/>
+															</colgroup>
+															<tbody>
+																<tr>
+																	<th>Message Mapping Definition</th>
+																	<td>
+																		<label for="messageMappingDefinition" class="custom-file-upload">Choose file</label>
+																		<input id="messageMappingDefinition" type="file" style="display: none"/>
+																		<input type="text" class="file-name form-control" id="messageMappingDefinitionFileName" readonly>
+																	</td>
+																</tr>
+																<tr>
+																	<th>Input Message Group Type</th>
+																	<td>
+																		<select id="inputMessageGroupType" class="form-control">
+																			<option value="FIXED_LENGTH" selected>FIXED LENGTH</option>
+																			<option value="FIXED_LENGTH_BY_INDEX">FIXED LENGTH BY INDEX</option>
+																			<option value="FIXED_LENGTH_BY_NAME">VFIXED LENGTH BY NAME</option>
+																			<option value="DELIMITER">DELIMITER</option>
+																			<option value="DELIMITER_BY_INDEX">DELIMITER BY INDEX</option>
+																			<option value="DELIMITER_BY_NAME">DELIMITER BY NAME</option>
+																			<option value="DICTIONARY">DICTIONARY</option>
+																			<option value="EDIFACT">EDIFACT</option>
+																		</select>
+																	</td>
+																</tr>
+																	<tr>
+																		<th>Output Message Group Type</th>
+																		<td>
+																			<select id="outputMessageGroupType" class="form-control">
+																				<option value="FIXED_LENGTH" selected>FIXED LENGTH</option>
+																				<option value="FIXED_LENGTH_BY_INDEX">FIXED LENGTH BY INDEX</option>
+																				<option value="FIXED_LENGTH_BY_NAME">VFIXED LENGTH BY NAME</option>
+																				<option value="DELIMITER">DELIMITER</option>
+																				<option value="DELIMITER_BY_INDEX">DELIMITER BY INDEX</option>
+																				<option value="DELIMITER_BY_NAME">DELIMITER BY NAME</option>
+																				<option value="DICTIONARY">DICTIONARY</option>
+																				<option value="EDIFACT">EDIFACT</option>
+																			</select>
+																		</td>
+																	</tr>
+															</tbody>
+														</table>
+
+														<div class="dialog-button-top">
+															<div class="row text-right">
+																<button id="btnMapperGenerate" class="btn-etc">Generate</button>
+															</div>
+														</div>
+												</div>
+										</div>
+									</div>
+
+                
+              </div>
+						</form>
+						
+            <div class="dialog-button-top">
+              <div class="row text-right">
+                <button id="btnGenerateClose" class="btn-etc">Close</button>
+              </div>
+						</div>
+						
+          </div>
+        </div>
+      </div>
+		</div>
+		<!-- Generate Dialog (E) -->
 
     <!-- File Management (S) -->
     <div class="container-file">
@@ -52,7 +180,8 @@
                 <div class="input-group">
                   <input class="form-control" name="outFile" id="outputFileName" placeholder="Enter file name">
                   <span class="input-group-btn">
-                    <button class="btn btn-secondary" type="button" id="btnDownloadFile">Download</button>
+										<button class="btn btn-secondary" type="button" id="btnDownloadFile">Download</button>
+										<button class="btn btn-secondary" type="button" id="btnGenerate" style="margin-left: 2px">Generate</button>
                   </span>
                 </div>
               </div>

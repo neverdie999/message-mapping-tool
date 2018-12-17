@@ -6,6 +6,7 @@ class cltSampleMessageViewer {
 		this.sampleFile = ''
 		this.messageElement = null
 		this.main = new SampleMessageViewer();
+		this.parent = props.parent
 
 		this.bindMainEvent()
 
@@ -125,6 +126,8 @@ class cltSampleMessageViewer {
 		});
 
 		this.treeNodeClickEvent();
+
+		this.parent.fileMgmt.slideToggle()
 	}
 
 	viewFullText() {

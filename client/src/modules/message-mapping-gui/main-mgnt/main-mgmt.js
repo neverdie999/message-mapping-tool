@@ -21,7 +21,7 @@ class MainMgmt {
 
 		this.cltMessageMapping = new CltMessageMapping(options)
 
-		new FileMgmt({
+		this.fileMgmt = new FileMgmt({
 			parent: this
 		})
 	}
@@ -44,10 +44,24 @@ class MainMgmt {
 		}else if (option === 'DATA_MESSAGE_MAPPING_DEFINITION') {
 			await this.cltMessageMapping.LoadMesseageMapping(data)
 		}
+
+		if (this.cltMessageMapping.storeInputMessage.boundary.length > 0
+				&& this.cltMessageMapping.storeOutputMessage.boundary.length > 0
+				&& this.cltMessageMapping.operationsMgmt.vertexMgmt.vertexDefinition.vertex.length > 0) {
+			this.fileMgmt.slideToggle()
+		}
 	}
 
 	save(fileName) {
 		this.cltMessageMapping.save(fileName)
+	}
+
+	generateScannerCode(messageSpec, messageGroupType) {
+		this.cltMessageMapping.generateScannerCode(messageSpec, messageGroupType)
+	}
+
+	generateMapperWriterCode (messageMapping, inputMessageGroupType, outputMessageGroupType) {
+		this.cltMessageMapping.generateMapperWriterCode(messageMapping, inputMessageGroupType, outputMessageGroupType)
 	}
 }
 export default MainMgmt

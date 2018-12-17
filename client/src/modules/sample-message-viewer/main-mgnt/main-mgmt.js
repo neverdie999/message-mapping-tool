@@ -4,9 +4,11 @@ import cltSampleMessageViewer from '../../../components/clt-sample-message-viewe
 class MainMgmt {
 	constructor(props) {
 
-		this.cltSampleMessageViewer = new cltSampleMessageViewer()
+		this.cltSampleMessageViewer = new cltSampleMessageViewer({
+			parent: this
+		})
 
-		new FileMgmt({
+		this.fileMgmt = new FileMgmt({
 			parent: this
 		})
 	}

@@ -5,6 +5,9 @@ import OutputMgmt from './output-mgmt/output-mgmt'
 import OperationsMgmt from './operations-mgmt/operations-mgmt'
 import ConnectMgmt from './connect-mgmt/connect-mgmt'
 import ObjectUtils from '../../common/utilities/object.util'
+const ScannerWriterFactory = require('./generation-lib/scanner_writer/scanner_writer_factory')
+const MessageSpecReader = require('./generation-lib/message_spec/message_spec_reader')
+const MapperWriter = require('./generation-lib/mapper_writer/mapper_writer');
 
 import {
 	comShowMessage,
@@ -14,6 +17,7 @@ import {
 import { 
 	VERTEX_ATTR_SIZE, BOUNDARY_ATTR_SIZE, TYPE_CONNECT
 } from '../../common/const/index'
+import { __await } from 'tslib';
 
 class CltMessageMapping {
 	constructor(props) {
@@ -1675,6 +1679,90 @@ class CltMessageMapping {
 		}
 
 		return cnt == arrObj2.length
+	}
+
+	/**
+	 * Generate scanner code
+	 * @param {*} messageSpec 
+	 * @param {*} messageGroupType 
+	 */
+	async generateScannerCode(messageSpec, messageGroupType) {
+
+		//Validate Input data
+		let resMessage = await this.validateGraphDataStructure(messageSpec)
+
+		if(resMessage === 'error') {
+			comShowMessage('Message Spec is corrupted. You should check it!')
+			return
+		}
+
+	
+		const messageSpecTree = MessageSpecReader.read(messageSpec);
+
+		let scannerWriter = null;
+		switch(messageGroupType) {
+			case 'FIXED_LENGTH_BY_LINE':
+				scannerWriter = ScannerWriterFactory.createFixedLengthByLine();
+				break
+			case 'FIXED_LENGTH_WITH_INDEXED_ITEM':
+				scannerWriter = ScannerWriterFactory.createFixedLengthWithIndexedItem();
+				break
+			case 'FIXED_LENGTH_WITH_NAMED_ITEM':
+				scannerWriter = ScannerWriterFactory.createFixedLengthWithNamedItem();
+				break
+			case 'DELIMITER_WITH_INDEXED_ITEM':
+				scannerWriter = ScannerWriterFactory.createDelimiterWithIndexedItem();
+				break
+			case 'DELIMITER_WITH_NAMED_ITEM':
+				scannerWriter = ScannerWriterFactory.createDelimiterWithNamedItem();
+				break
+			case 'DICTIONARY':
+				scannerWriter = ScannerWriterFactory.createDictionary();
+				break
+		}
+		
+		const result = scannerWriter.write(messageSpecTree.rootSegmentGroup);
+		console.log(result)
+	}
+
+
+	/**
+	 * Generate Mapper Writer code
+	 * @param {*} messageMapping 
+	 * @param {*} inputMessageGroupType 
+	 * @param {*} outputMessageGroupType 
+	 */
+	async generateMapperWriterCode(messageMapping, inputMessageGroupType, outputMessageGroupType) {
+		const {inputMessage, outputMessage, operations, edges} = messageMapping
+
+		//Validate Input data
+		let resMessage = await this.validateGraphDataStructure(inputMessage)
+
+		if(resMessage === 'error') {
+			comShowMessage('[Mesasge Mapping Definition] Input Message data is corrupted. You should check it!')
+			return
+		}
+
+		//Validate Output data
+		resMessage = await this.validateGraphDataStructure(outputMessage)
+
+		if(resMessage === 'error') {
+			comShowMessage('[Mesasge Mapping Definition] Output Message data is corrupted. You should check it!')
+			return
+		}
+
+		//Validate Operations data
+		resMessage = await this.validateGraphDataStructure(operations)
+
+		if(resMessage === 'error') {
+			comShowMessage('[Mesasge Mapping Definition] Operations data is corrupted. You should check it!')
+			return
+		}
+
+		const mapperWriter = new MapperWriter(inputMessageGroupType, outputMessageGroupType);
+		const result = mapperWriter.write(inputMessage, outputMessage, operations, edges);
+		
+		console.log(result)
 	}
 }
   
