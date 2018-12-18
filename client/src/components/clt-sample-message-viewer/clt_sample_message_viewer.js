@@ -129,20 +129,24 @@ class cltSampleMessageViewer {
 			},{
 				type: "danger",
 			});
-
-			this.printError(result._desc);
-
-			return
 		}
 
-		// Success -> load tree view
-		this.printError('');
+		// Clear screen
+		$('#editSample').hide()
+		$('#btnViewFullText').hide()
+		$('#detailHead').html('');
+		$('#detailBody').html('');
 
+		// Print error message if existed
+		this.printError(result._desc);
+
+		// reload tree view
 		$('#jstree').jstree({
 			'core': {
 				'data': this.main.jsTree
 			}
 		});
+		$('#jstree').jstree('close_all')
 
 		this.treeNodeClickEvent();
 
