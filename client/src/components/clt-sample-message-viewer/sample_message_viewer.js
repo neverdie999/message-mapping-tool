@@ -42,7 +42,7 @@ class SampleMessageViewer {
     // const messageParser = new MessageParser(delimiter, 'FIXEDLENGTH', this.specGroupList[0]);
     const parseResult = messageParser.parseMessage(sampleFile, this.specGroupList);
     // console.log(parseResult);
-    if (parseResult.constructor.name === 'ValidationResult') {
+    if (parseResult.constructor.name === 'ValidationResult' || parseResult.constructor.name === 'MatchResult') {
       return parseResult;
     }
 

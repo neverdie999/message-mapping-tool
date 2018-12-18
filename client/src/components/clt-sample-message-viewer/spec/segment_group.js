@@ -32,7 +32,6 @@ class SegmentGroup {
     this._maxRepeat = Number(maxRepeat);
     this._mandatory = mandatory;
     this._description = description;
-
     this._id = id;
     this._parent = parent;
     this._segmentCounter = segmentCounter;
@@ -54,7 +53,6 @@ class SegmentGroup {
     const init = (this.lastMatchedIndex === -1) ? 0 : this.lastMatchedIndex;
     for (let i = init; i < this.children.length; i += 1) {
       const currentChild = this.children[i];
-      
       if (SpecElementType.isSegmentGroup(currentChild.elementType)) {
         if (matchChildrenSegmentOnly) {
           continue;
@@ -66,7 +64,6 @@ class SegmentGroup {
 
         if (matchResult.resultType === true) {
           this.lastMatchedIndex = i;
-          // this._lastMatchedSegment = currentChild.name;
         }
 
         return matchResult;
@@ -81,18 +78,18 @@ class SegmentGroup {
         if (matchResult.resultType === ResultType.FAIL_VALIDATION_SEGMENT) {
           return matchResult;
         }
+
         // matched
         if (this._instances.length === 0) {
-          this._registerNewSegmentCounter();
+          this.registerNewSegmentCounter();
         }
         this._instances[this._instances.length - 1][currentChild.name] += 1;
-
         if (currentChild.maxRepeat < this._instances[this._instances.length - 1][currentChild.name]) {
           if (!this._updateInstanceWhenViolateSegmentMaxRepeat(currentChild.name)) {
             return new MatchResult(ResultType.FAIL_VALIDATION_GROUP, `[GROUP][${this.name}][${currentChild.name}]MAX_REPEAT_VIOLATION`);
           }
         } else {
-          if (!this._updateInstanceWhenObserveSegmentMaxRepeat(i)) {
+          if (!this._observeSegmentMaxRepeat(i)) {
             return new MatchResult(ResultType.FAIL_VALIDATION_GROUP, `[GROUP][${this.name}][${currentChild.name}]MAX_REPEAT_VIOLATION`);
           } 
         }
@@ -149,7 +146,7 @@ class SegmentGroup {
     }
     this._instances.length = 0;
     this._lastMatchedSegment = '';
-    return new MatchResult(ResultType.FAIL_FIND_TARGET_GROUP, `[GROUP]"${segmentGroupName}" MATCH FAILED`);
+    return new MatchResult(ResultType.FAIL_FIND_TARGET_GROUP, `[GROUP] ${segmentGroupName} MATCH FAILED`);
   }
 
   _satisfyMandatoryCondition(targetIndex) {
@@ -185,18 +182,18 @@ class SegmentGroup {
     }
 
     this._instances[this._instances.length - 1][segmentName] -= 1;
-    this._registerNewSegmentCounter();
+    this.registerNewSegmentCounter();
     this._instances[this._instances.length - 1][segmentName] += 1;
     return true;
   }
 
-  _registerNewSegmentCounter() {
+  registerNewSegmentCounter() {
     const template = this._segmentCounter || {};
     const cloned = JSON.parse(JSON.stringify(template));
     this._instances.push(cloned);
   }
 
-  _updateInstanceWhenObserveSegmentMaxRepeat(segmentIndex) {
+  _observeSegmentMaxRepeat(segmentIndex) {
     return this.lastMatchedIndex <= segmentIndex;
   }
 

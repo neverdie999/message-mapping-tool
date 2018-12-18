@@ -117,8 +117,27 @@ class cltSampleMessageViewer {
 
 	loadData() {
 		if (this.specFile === '' || this.sampleFile === '') return
+		
+		const result = this.main.makeTree(this.specFile, this.sampleFile)
 
-		this.printError(this.main.makeTree(this.specFile, this.sampleFile));
+		// Load data failed
+		if (!result.isValid()) {
+			let regex = /(Symbol\()(.*)(\))/
+			let errorType = regex.exec(result.resultType.toString())
+			$.notify({
+				message: `[Failed] ${errorType[2]}!`
+			},{
+				type: "danger",
+			});
+
+			this.printError(result._desc);
+
+			return
+		}
+
+		// Success -> load tree view
+		this.printError('');
+
 		$('#jstree').jstree({
 			'core': {
 				'data': this.main.jsTree
@@ -173,7 +192,7 @@ class cltSampleMessageViewer {
 	editSampleClickEvent() {
 		this.setMessageElement();
 		let result = this.main.reMatch(this.main.messageStructure)
-		this.printError(result);
+		this.printError(result._desc);
 
 		if (result) {
 			if (result.resultType === Symbol.for('SUCCESS')) {
@@ -267,8 +286,8 @@ class cltSampleMessageViewer {
 		});
 	}
 
-	printError(result) {
-		const text = `ERROR MESSAGE: ${result._desc}`; 
+	printError(errorMessage) {
+		const text = `ERROR MESSAGE: ${errorMessage}`; 
 		$('#desc').html(text);
 	}
 

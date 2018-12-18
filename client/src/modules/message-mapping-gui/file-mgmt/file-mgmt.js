@@ -12,11 +12,7 @@ const ID_BUTTON_DOWNLOAD_FILE = 'btnDownloadFile'
 const ID_BUTTON_GENERATE = 'btnGenerate'
 const ID_GENERATE_DIALOG = 'dlgGenerate'
 
-const MESSAGE_SPEC_ID = 'messageSpec'
-const MESSAGE_SPEC_FILE_NAME_ID = 'messageSpecFileName'
 const SCANNER_MESSAGE_GROUP_TYPE_ID = 'scannerMesasgeGroupType'
-const MESSAGE_MAPPING_DEFINITION_ID = 'messageMappingDefinition'
-const MESSAGE_MAPPING_DEFINITION_FILE_NAME = 'messageMappingDefinitionFileName'
 const INPUT_MESSAGE_GROUP_TYPE_ID = 'inputMessageGroupType'
 const OUTPUT_MESSAGE_GROUP_TYPE_ID = 'outputMessageGroupType'
 const BUTTON_SCANNER_GENERATE = 'btnScannerGenerate'
@@ -66,64 +62,19 @@ class FileMgmt {
 			this.openGenerateDialog()
 		})
 
-		// Message Spec choosing file
-		$(`#${MESSAGE_SPEC_ID}`).change((event) => {
-			const file = event.target.files[0];
-			if (!file) {
-				$(`#${MESSAGE_SPEC_FILE_NAME_ID}`).val('')
-			} else {
-				$(`#${MESSAGE_SPEC_FILE_NAME_ID}`).val(file.name)
-			}
-		})
-
 		// Scanner generate button click
 		$(`#${BUTTON_SCANNER_GENERATE}`).click((event) => {
-
-			const file = $(`#${MESSAGE_SPEC_ID}`)[0].files[0]
-			if (!file) {
-				comShowMessage('Please choose Message Spec.')
-				return
-			}
-
-			const reader = new FileReader();
-			reader.readAsText(file);
-
-			reader.onload = (event) => {
-				const messageGroupType = $(`#${SCANNER_MESSAGE_GROUP_TYPE_ID}`).val()
-				const messageSpec = JSON.parse(event.target.result)
-				this.parent.generateScannerCode(messageSpec, messageGroupType)
-			}
-		})
-
-		// Message Mapping definition choosing file
-		$(`#${MESSAGE_MAPPING_DEFINITION_ID}`).change((event) => {
-			const file = event.target.files[0];
-			if (!file) {
-				$(`#${MESSAGE_MAPPING_DEFINITION_FILE_NAME}`).val('')
-			} else {
-				$(`#${MESSAGE_MAPPING_DEFINITION_FILE_NAME}`).val(file.name)
-			}
+			const messageGroupType = $(`#${SCANNER_MESSAGE_GROUP_TYPE_ID}`).val()
+			this.parent.generateScannerCode(messageGroupType)
 		})
 
 		// mapper generate button click
 		$(`#${BUTTON_MAPPER_GENERATE}`).click((event) => {
 
-			const file = $(`#${MESSAGE_MAPPING_DEFINITION_ID}`)[0].files[0]
-			if (!file) {
-				comShowMessage('Please choose Message Mapping Difinition.')
-				return
-			}
-
-			const reader = new FileReader();
-			reader.readAsText(file);
-
-			reader.onload = (event) => {
-				const messageMapping = JSON.parse(event.target.result)
-				const inputMessageGroupType = $(`#${INPUT_MESSAGE_GROUP_TYPE_ID}`).val()
-				const outputMessageGroupType = $(`#${OUTPUT_MESSAGE_GROUP_TYPE_ID}`).val()
-				
-				this.parent.generateMapperWriterCode(messageMapping, inputMessageGroupType, outputMessageGroupType)
-			}
+			const inputMessageGroupType = $(`#${INPUT_MESSAGE_GROUP_TYPE_ID}`).val()
+			const outputMessageGroupType = $(`#${OUTPUT_MESSAGE_GROUP_TYPE_ID}`).val()
+			
+			this.parent.generateMapperWriterCode(inputMessageGroupType, outputMessageGroupType)
 		})
 
 		// Close generate popup
@@ -174,7 +125,7 @@ class FileMgmt {
 		let options = {
 			popupId: `${ID_GENERATE_DIALOG}`,
 			position: 'center',
-			width: 600
+			width: 500
 		}
 		popupUtil.metSetShowPopup(options)
 	}

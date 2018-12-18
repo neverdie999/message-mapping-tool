@@ -56,12 +56,12 @@ class MainMgmt {
 		this.cltMessageMapping.save(fileName)
 	}
 
-	generateScannerCode(messageSpec, messageGroupType) {
-		this.cltMessageMapping.generateScannerCode(messageSpec, messageGroupType)
+	generateScannerCode(messageGroupType) {
+		this.cltMessageMapping.generateScannerCode(messageGroupType)
 	}
 
-	generateMapperWriterCode (messageMapping, inputMessageGroupType, outputMessageGroupType) {
-		this.cltMessageMapping.generateMapperWriterCode(messageMapping, inputMessageGroupType, outputMessageGroupType)
+	generateMapperWriterCode (inputMessageGroupType, outputMessageGroupType) {
+		this.cltMessageMapping.generateMapperWriterCode(inputMessageGroupType, outputMessageGroupType)
 	}
 }
 export default MainMgmt

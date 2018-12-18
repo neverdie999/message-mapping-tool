@@ -37,66 +37,69 @@ class MessageParser {
    * @param {String} spec
    * parse message
    */
-  parseMessage(message, spec) {
-    const removedCrlfMessage = this._removeCrlf(message, this.messageType);
+  parseMessage(message) {
+    const removedCrlfMessage = this._removeCrLf(message, this.messageType);
     const rootMessageSegmentGroup = new MessageSegmentGroup();
-    rootMessageSegmentGroup.name = spec[0].name;
-    rootMessageSegmentGroup.id = spec[0].id;
+    rootMessageSegmentGroup.name = this._lastMatchedSegmentGroup.name;
+    rootMessageSegmentGroup.id = 'ROOT';
     rootMessageSegmentGroup.order = 1;
     rootMessageSegmentGroup.parent = rootMessageSegmentGroup;
-    
+    this._currentMatchedMessageSegmentGroup = rootMessageSegmentGroup;
     this._lastMatchedMessageSegmentGroup = rootMessageSegmentGroup;
     return this._parseSegmentGroup(removedCrlfMessage, rootMessageSegmentGroup);
   }
 
-  _parseSegmentGroup(message, rootMessageSegmentGroup) {
-    const messageSampleSegments = this._splitMessageBySegmentDelimiter(message);
-    const root = rootMessageSegmentGroup;
+  _parseSegmentGroup(message, root) {
+    const messageSampleSegments = this._splitByDelimiter(message, this._delimiter.segmentTerminator, this._delimiter.releaseCharacter).filter(val => val.length > 0);
     root.spec = this._lastMatchedSegmentGroup;
-    for (const eachMessageSampleSegment of messageSampleSegments) {
-      if (this._delimiter.groupCloseDelimiter && eachMessageSampleSegment.startsWith(this._delimiter.groupCloseDelimiter)) {
-        const [, segmentGroupName] = eachMessageSampleSegment.split(this._delimiter.groupCloseDelimiter);
-        this.lastMatchedSegmentGroup = this._currentMessageSegmentGroupStack.pop();
-        if (!(this.lastMatchedSegmentGroup.name === segmentGroupName)) {
-          return new MatchResult(ResultType.FAIL_FIND_TARGET_GROUP, `[GROUP]"${segmentGroupName}" MATCH FAILED`);
+    for (let i = 0; i < messageSampleSegments.length; i += 1) {
+      if (this._delimiter.groupCloseDelimiter && messageSampleSegments[i].startsWith(this._delimiter.groupCloseDelimiter)) {
+        const [, segmentGroupName] = this._splitByDelimiter(messageSampleSegments[i], this._delimiter.groupCloseDelimiter, this._delimiter.releaseCharacter);
+        this._lastMatchedMessageSegmentGroup = this._currentMessageSegmentGroupStack.pop();
+        if (!(this._lastMatchedMessageSegmentGroup.name === segmentGroupName)) {
+          return new MatchResult(ResultType.FAIL_FIND_TARGET_GROUP, `[GROUP] ${segmentGroupName} MATCH FAILED`);
         }
         continue;
       }
 
-      if (this._delimiter.groupOpenDelimiter && eachMessageSampleSegment.startsWith(this._delimiter.groupOpenDelimiter)) {
-        const [, segmentGroupName] = eachMessageSampleSegment.split(this._delimiter.groupOpenDelimiter);
-        if (this._lastMatchedSegmentGroup.name === segmentGroupName) {
-          this._matchLastGroup(segmentGroupName);
-          continue;
-        } else {
-          const matchResult = this._lastMatchedSegmentGroup.matchGroup(segmentGroupName);
-          if (matchResult.resultType === ResultType.FAIL_FIND_TARGET_GROUP) {
+      if (this._delimiter.groupOpenDelimiter && messageSampleSegments[i].startsWith(this._delimiter.groupOpenDelimiter)) {
+        const [, segmentGroupName] = this._splitByDelimiter(messageSampleSegments[i], this._delimiter.groupOpenDelimiter, this._delimiter.releaseCharacter);
+        // find proper segmentGroup
+        let matchResult = new MatchResult();
+        const currentSegmentGroup = this._lastMatchedSegmentGroup;
+        matchResult = this._matchGroupFromChildren(segmentGroupName, currentSegmentGroup);
+        if (!matchResult.isValid() && matchResult.resultType !== ResultType.FAIL_FIND_TARGET_GROUP) {
+          return matchResult;
+        }
+
+        if (!matchResult.isValid()) {
+          matchResult = this._matchGroupFromAncestors(segmentGroupName, currentSegmentGroup, matchResult);
+          if (!matchResult.isValid()) {
             return matchResult;
           }
-          this._currentMatchedSegmentGroup = matchResult.matchedSegmentGroup;
-          const newMessageSegmentGroup = new MessageSegmentGroup();
-          newMessageSegmentGroup.name = segmentGroupName;
-          newMessageSegmentGroup.order = 1;
-          newMessageSegmentGroup.id = `${this._currentMatchedSegmentGroup.id}-${newMessageSegmentGroup.order}`;
-          newMessageSegmentGroup.spec = this._currentMatchedSegmentGroup;
-          this._lastMatchedMessageSegmentGroup.children.push(newMessageSegmentGroup);
-          this._lastMatchedMessageSegmentGroup = newMessageSegmentGroup;
-          this._currentMessageSegmentGroupStack.push(this._lastMatchedMessageSegmentGroup);
-          this._lastMatchedSegmentGroup = this._currentMatchedSegmentGroup;
-          continue;
         }
-      }
+        
+        // proper segmentGroup spec!
+        this._currentMatchedSegmentGroup = matchResult.matchedSegmentGroup;
 
+        // create messageSegmentGroup dangle to parent.
+        const result = this._createDictionaryMessageSegmentGroup(segmentGroupName, matchResult);
+        if (result.ResultType) {
+          return result;
+        }
+        this._currentMessageSegmentGroupStack.push(this._lastMatchedMessageSegmentGroup);
+        continue;
+      }
+      
       let matchResult = new MatchResult();
       const currentSegmentGroup = this._lastMatchedSegmentGroup;
-      matchResult = this._matchStructureFromChildren(eachMessageSampleSegment, currentSegmentGroup);
-
-
+      matchResult = this._matchStructureFromChildren(messageSampleSegments[i], currentSegmentGroup);
       if (!matchResult.isValid() && matchResult.resultType !== ResultType.FAIL_FIND_TARGET_GROUP) {
         return matchResult;
       }
+
       if (!matchResult.isValid()) {
-        matchResult = this._matchStructureFromAncestors(eachMessageSampleSegment, currentSegmentGroup, matchResult);
+        matchResult = this._matchStructureFromAncestors(messageSampleSegments[i], currentSegmentGroup, matchResult);
         if (!matchResult.isValid()) {
           return matchResult;
         }
@@ -106,39 +109,35 @@ class MessageParser {
       this._currentMatchedSegmentGroup = matchResult.matchedSegment.parent;
       this._currentMatchedSegment = matchResult.matchedSegment;
       this._currentMatchedSegment.instanceIndex += 1;
-
-      if (this._currentMatchedSegment.instanceIndex >= this._currentMatchedSegment.maxRepeat || this._currentMatchedSegmentGroup.name !== this._lastMatchedSegmentGroup.name) {
-        const creationResult = this._createMessageSegmentGroup(matchResult);
+      if (this._needNewGroup(i) && this._messageType !== 'DICTIONARY') {
+        const creationResult = this._createMessageSegmentGroup(matchResult, messageSampleSegments[i]);
         if (creationResult.resultType) {
           return creationResult;
         }
-        const newMessageSegmentGroup = creationResult;
-        newMessageSegmentGroup.children.push(this._parseSegment(eachMessageSampleSegment, this._currentMatchedSegment.name, newMessageSegmentGroup));        
-        this._lastMatchedMessageSegmentGroup = newMessageSegmentGroup;
-      } else {        
-        this._lastMatchedMessageSegmentGroup.children.push(this._parseSegment(eachMessageSampleSegment, this._currentMatchedSegment.name, this._lastMatchedMessageSegmentGroup));
+      } else {
+        this._lastMatchedMessageSegmentGroup.children.push(this._parseSegment(messageSampleSegments[i], this._currentMatchedSegment.name, this._lastMatchedMessageSegmentGroup));
       }
       this._lastMatchedSegmentGroup = this._currentMatchedSegmentGroup;
       this._lastMatchedSegment = this._currentMatchedSegment;
     }
-
     return root;
   }
 
-  _createMessageSegmentGroup(matchResult) {    
+  _createMessageSegmentGroup(matchResult, eachMessageSampleSegment) {
     if (this._lastMatchedSegmentGroup.depth < this._currentMatchedSegmentGroup.depth) { // child case
       const depthDiff = this._currentMatchedSegmentGroup.depth - this._lastMatchedSegmentGroup.depth;
       if (depthDiff !== 1) {
-        return new MatchResult(ResultType.FAIL_FIND_TARGET_GROUP, 
+        return new MatchResult(ResultType.FAIL_FIND_TARGET_GROUP,
           `[${this._currentMatchedSegmentGroup.name} - ${this._currentMatchedSegmentGroup.depth}][${this._lastMatchedSegmentGroup.name} - ${this._lastMatchedSegmentGroup.depth}]DEPTH_DIFF_ERROR`);
       }
+
       const matchedSegmentGroup = this._currentMatchedSegment.parent;
       const newMessageSegmentGroup = new MessageSegmentGroup(matchedSegmentGroup.name);
-      
       newMessageSegmentGroup.spec = matchedSegmentGroup;
       newMessageSegmentGroup.parent = this._lastMatchedMessageSegmentGroup;
-      this._setMessageSegmentGroupOrder(newMessageSegmentGroup);
-      newMessageSegmentGroup.id = `${this._currentMatchedSegmentGroup.id}-${newMessageSegmentGroup.order}`;
+      newMessageSegmentGroup.order = this._currentMatchedSegmentGroup._instances.length;
+      newMessageSegmentGroup.id = `[${newMessageSegmentGroup.parent.id}[${newMessageSegmentGroup.name}#${newMessageSegmentGroup.order}]]`;
+      newMessageSegmentGroup.children.push(this._parseSegment(eachMessageSampleSegment, this._currentMatchedSegment.name, newMessageSegmentGroup));
       this._lastMatchedMessageSegmentGroup.children.push(newMessageSegmentGroup);
       this._lastMatchedMessageSegmentGroup = newMessageSegmentGroup;
       this._lastMatchedSegmentGroup = matchedSegmentGroup;
@@ -149,50 +148,165 @@ class MessageParser {
       const newMessageSegmentGroup = new MessageSegmentGroup(this._currentMatchedSegmentGroup.name);
       newMessageSegmentGroup.spec = this._currentMatchedSegmentGroup;
       newMessageSegmentGroup.parent = this._lastMatchedMessageSegmentGroup.parent;
-      this._setMessageSegmentGroupOrder(newMessageSegmentGroup);
-      newMessageSegmentGroup.id = `${this._currentMatchedSegmentGroup.id}-${newMessageSegmentGroup.order}`;
+      newMessageSegmentGroup.order = newMessageSegmentGroup.spec._instances.length;
+      newMessageSegmentGroup.id = `[${newMessageSegmentGroup.parent.id}[${newMessageSegmentGroup.name}#${newMessageSegmentGroup.order}]]`;
       if (newMessageSegmentGroup.order > newMessageSegmentGroup.spec.maxRepeat) {
         return new MatchResult(ResultType.FAIL_VALIDATION_GROUP, `[GROUP][${newMessageSegmentGroup.spec.name}][${this._currentMatchedSegment.name}]MAX_REPEAT_VIOLATION`);
       }
+
       if (this._lastMatchedMessageSegmentGroup.parent) {
         this._lastMatchedMessageSegmentGroup.parent.children.push(newMessageSegmentGroup);
       } else {
         return new MatchResult(ResultType.FAIL_VALIDATION_GROUP, `[${this._lastMatchedMessageSegmentGroup}]LAST_MATCH_HAS_NO_PARENT`);
       }
 
+      newMessageSegmentGroup.children.push(this._parseSegment(eachMessageSampleSegment, this._currentMatchedSegment.name, newMessageSegmentGroup));
+      this._lastMatchedMessageSegmentGroup = newMessageSegmentGroup;
       return newMessageSegmentGroup;
     }
 
-    if (this._lastMatchedSegmentGroup.depth > this._currentMatchedSegmentGroup.depth) { // ancestor, ancestor-sibling case      
-      const depthDiff = this._currentMatchedSegmentGroup.depth - this._lastMatchedSegmentGroup.depth;
+    if (this._lastMatchedSegmentGroup.depth > this._currentMatchedSegmentGroup.depth) { // ancestor, ancestor-sibling case
+      const depthDiff = this._lastMatchedSegmentGroup.depth - this._currentMatchedSegmentGroup.depth;
       let messageSegmentGroupParent;
-      if (this._lastMatchedMessageSegmentGroup.parent.length > 0) {
-        messageSegmentGroupParent = this._lastMatchedMessageSegmentGroup.parent;
-      } else {
-        messageSegmentGroupParent = this._lastMatchedMessageSegmentGroup;
-      }
       if (depthDiff > 1) {
+        messageSegmentGroupParent = this._lastMatchedMessageSegmentGroup;
         for (let i = 0; i < depthDiff; i += 1) {
+          if (messageSegmentGroupParent.parent === undefined) {
+            break;
+          }
           messageSegmentGroupParent = messageSegmentGroupParent.parent;
+        }
+      } else {
+        if (this._lastMatchedMessageSegmentGroup.parent.parent) {
+          messageSegmentGroupParent = this._lastMatchedMessageSegmentGroup.parent;
+        } else {
+          messageSegmentGroupParent = this._lastMatchedMessageSegmentGroup;
         }
       }
       
+      if (matchResult.matchedSegment.parent.name === messageSegmentGroupParent.parent.name) {
+        messageSegmentGroupParent.parent.children.push(this._parseSegment(eachMessageSampleSegment, this._currentMatchedSegment.name, messageSegmentGroupParent.parent));
+        this._lastMatchedMessageSegmentGroup = messageSegmentGroupParent.parent;
+        this._lastMatchedSegmentGroup = matchResult.matchedSegment.parent;
+        return messageSegmentGroupParent.parent;
+      }
       const matchedSegmentGroup = matchResult.matchedSegment.parent;
-      const messageSegmentGroup = new MessageSegmentGroup(matchedSegmentGroup.name);
-      messageSegmentGroup.spec = matchedSegmentGroup;
-      messageSegmentGroup.parent = messageSegmentGroupParent;
-      messageSegmentGroup.id = matchedSegmentGroup.id;
-      messageSegmentGroup.order = matchedSegmentGroup._instances.length - 1;
-      messageSegmentGroupParent.children.push(messageSegmentGroup);
-      this._lastMatchedMessageSegmentGroup = messageSegmentGroupParent;
+      const newMessageSegmentGroup = new MessageSegmentGroup(matchedSegmentGroup.name);
+      newMessageSegmentGroup.spec = matchedSegmentGroup;
+      newMessageSegmentGroup.parent = messageSegmentGroupParent.parent;
+      newMessageSegmentGroup.order = matchedSegmentGroup._instances.length;
+      newMessageSegmentGroup.id = `[${newMessageSegmentGroup.parent.id}[${newMessageSegmentGroup.name}#${newMessageSegmentGroup.order}]]`;
+      newMessageSegmentGroup.children.push(this._parseSegment(eachMessageSampleSegment, this._currentMatchedSegment.name, newMessageSegmentGroup, newMessageSegmentGroup));
+      messageSegmentGroupParent.parent.children.push(newMessageSegmentGroup);
+      this._lastMatchedMessageSegmentGroup = newMessageSegmentGroup;
       this._lastMatchedSegmentGroup = matchedSegmentGroup;
-      return messageSegmentGroup;
+
+      return newMessageSegmentGroup;
+    }
+
+    return new MatchResult(ResultType.FAIL_FIND_TARGET_GROUP, `[${this._currentMatchedSegmentGroup.name}]INVALID GROUP`);
+  }
+
+  _createDictionaryMessageSegmentGroup(eachMessageSampleSegment, matchResult) {
+    if (this._lastMatchedSegmentGroup.depth < this._currentMatchedSegmentGroup.depth) { // child case
+      const depthDiff = this._currentMatchedSegmentGroup.depth - this._lastMatchedSegmentGroup.depth;
+      if (depthDiff !== 1) {
+        return new MatchResult(ResultType.FAIL_FIND_TARGET_GROUP,
+          `[${this._currentMatchedSegmentGroup.name} - ${this._currentMatchedSegmentGroup.depth}][${this._lastMatchedSegmentGroup.name} - ${this._lastMatchedSegmentGroup.depth}]DEPTH_DIFF_ERROR`);
+      }
+
+      const newMessageSegmentGroup = new MessageSegmentGroup(eachMessageSampleSegment);
+      newMessageSegmentGroup.spec = this._currentMatchedSegmentGroup;
+      newMessageSegmentGroup.parent = this._lastMatchedMessageSegmentGroup;
+      newMessageSegmentGroup.order = this._currentMatchedSegmentGroup._instances.length + 1;
+      if (newMessageSegmentGroup.order > newMessageSegmentGroup.spec.maxRepeat) {
+        return ResultType.FAIL_VALIDATION_GROUP;
+      }
+
+      this._currentMatchedSegmentGroup.registerNewSegmentCounter();
+      newMessageSegmentGroup.id = `[${newMessageSegmentGroup.parent.id}[${newMessageSegmentGroup.name}#${newMessageSegmentGroup.order}]]`;
+      this._lastMatchedMessageSegmentGroup.children.push(newMessageSegmentGroup);
+      this._lastMatchedMessageSegmentGroup = newMessageSegmentGroup;
+      this._lastMatchedSegmentGroup = this._currentMatchedSegmentGroup;
+ 
+      return newMessageSegmentGroup;
+    }
+
+    if (this._lastMatchedSegmentGroup.depth === this._currentMatchedSegmentGroup.depth) { // sibling case
+      const newMessageSegmentGroup = new MessageSegmentGroup(this._currentMatchedSegmentGroup.name);
+      newMessageSegmentGroup.spec = this._currentMatchedSegmentGroup;
+      newMessageSegmentGroup.parent = this._lastMatchedMessageSegmentGroup.parent;
+      newMessageSegmentGroup.order = this._currentMatchedSegmentGroup._instances.length + 1;
+      if (newMessageSegmentGroup.order > newMessageSegmentGroup.spec.maxRepeat) {
+        return ResultType.FAIL_VALIDATION_GROUP;
+      }
+      this._currentMatchedSegmentGroup.registerNewSegmentCounter();
+      newMessageSegmentGroup.id = `[${newMessageSegmentGroup.parent.id}[${newMessageSegmentGroup.name}#${newMessageSegmentGroup.order}]]`;
+      if (newMessageSegmentGroup.order > newMessageSegmentGroup.spec.maxRepeat) {
+        return new MatchResult(ResultType.FAIL_VALIDATION_GROUP, `[GROUP][${newMessageSegmentGroup.spec.name}][${this._currentMatchedSegment.name}]MAX_REPEAT_VIOLATION`);
+      }
+
+      if (this._lastMatchedMessageSegmentGroup.parent) {
+        this._lastMatchedMessageSegmentGroup.parent.children.push(newMessageSegmentGroup);
+      } else {
+        return new MatchResult(ResultType.FAIL_VALIDATION_GROUP, `[${this._lastMatchedMessageSegmentGroup}]LAST_MATCH_HAS_NO_PARENT`);
+      }
+
+      newMessageSegmentGroup.children.push(this._parseSegment(eachMessageSampleSegment, this._currentMatchedSegment.name, newMessageSegmentGroup));
+      this._lastMatchedMessageSegmentGroup = newMessageSegmentGroup;
+      return newMessageSegmentGroup;
+    }
+
+    if (this._lastMatchedSegmentGroup.depth > this._currentMatchedSegmentGroup.depth) { // ancestor, ancestor-sibling case
+      const depthDiff = this._lastMatchedSegmentGroup.depth - this._currentMatchedSegmentGroup.depth;
+      let messageAncestor;
+      if (depthDiff > 1) {
+        messageAncestor = this._lastMatchedMessageSegmentGroup;
+        for (let i = 0; i < depthDiff; i += 1) {
+          if (messageAncestor.parent === undefined) {
+            break;
+          }
+          messageAncestor = messageAncestor.parent;
+        }
+      } else {
+        if (this._lastMatchedMessageSegmentGroup.parent.parent) {
+          messageAncestor = this._lastMatchedMessageSegmentGroup.parent;
+        } else {
+          messageAncestor = this._lastMatchedMessageSegmentGroup;
+        }
+      }
+
+      if (matchResult.matchedSegmentGroup.name === messageAncestor.parent.name) {
+        this._lastMatchedMessageSegmentGroup = messageAncestor.parent;
+        this._lastMatchedSegmentGroup = matchResult.matchedSegment.parent;
+        return messageAncestor.parent;
+      }
+      const matchedSegmentGroup = this._currentMatchedSegmentGroup;
+      const newMessageSegmentGroup = new MessageSegmentGroup(matchedSegmentGroup.name);
+      newMessageSegmentGroup.spec = matchedSegmentGroup;
+      newMessageSegmentGroup.parent = messageAncestor.parent;
+      newMessageSegmentGroup.order = matchedSegmentGroup._instances.length + 1;
+      if (newMessageSegmentGroup.order > newMessageSegmentGroup.spec.maxRepeat) {
+        return ResultType.FAIL_VALIDATION_GROUP;
+      }
+
+      matchedSegmentGroup.registerNewSegmentCounter();
+      newMessageSegmentGroup.id = `[${newMessageSegmentGroup.parent.id}[${newMessageSegmentGroup.name}#${newMessageSegmentGroup.order}]]`;
+      messageAncestor.parent.children.push(newMessageSegmentGroup);
+      this._lastMatchedMessageSegmentGroup = newMessageSegmentGroup;
+      this._lastMatchedSegmentGroup = matchedSegmentGroup;
+      return newMessageSegmentGroup;
     }
 
     return new MatchResult(ResultType.FAIL_FIND_TARGET_GROUP, `[${this._currentMatchedSegmentGroup.name}]INVALID GROUP`);
   }
 
   _parseSegment(messageSampleSegment, messageSampleSegmentName='', parent) {
+    const newMessageSegment = new MessageSegment(messageSampleSegmentName);
+    newMessageSegment.parent = parent;
+    this._setMessageSegmentOrder(newMessageSegment);
+    newMessageSegment.id = `[${newMessageSegment.parent.id}]{${newMessageSegment.name}#${newMessageSegment.order}}`;
+    this._currentMatchedMessageSegment = newMessageSegment;
     const newMessageDataElements = [];
     if (this.messageType === 'DICTIONARY') {
       if (!this._delimiter.dataElementSeparator) {
@@ -201,9 +315,8 @@ class MessageParser {
 
       let messageSampleDataElements = messageSampleSegment;
       if (this._delimiter.dataElementSeparator) {
-        messageSampleDataElements = messageSampleSegment.split(this._delimiter.dataElementSeparator);
+        messageSampleDataElements = this._splitByDelimiter(messageSampleSegment, this._delimiter.dataElementSeparator, this._delimiter.releaseCharacter);
       }
-
       const messageDataElement = messageSampleDataElements.slice(1).join(this._delimiter.dataElementSeparator);
       newMessageDataElements.push(this._parseDataElement(messageDataElement, this._currentMatchedSegment._dataElements));
     } else if (this.messageType === 'FIXEDLENGTH') {
@@ -222,7 +335,7 @@ class MessageParser {
 
       let messageSampleDataElements = messageSampleSegment;
       if (this._delimiter.dataElementSeparator) {
-        messageSampleDataElements = messageSampleSegment.split(this._delimiter.dataElementSeparator);
+        messageSampleDataElements = this._splitByDelimiter(messageSampleSegment, this._delimiter.dataElementSeparator, this._delimiter.releaseCharacter);
       }
       let j = 0;
       messageSampleDataElements.forEach((messageDataElement, i) => {
@@ -247,10 +360,7 @@ class MessageParser {
       });
     }
 
-    const newMessageSegment = new MessageSegment(messageSampleSegmentName, newMessageDataElements);    
-    newMessageSegment.parent = parent;
-    this._setMessageSegmentOrder(newMessageSegment);
-    newMessageSegment.id = `${this._currentMatchedSegment.id}-${newMessageSegment.parent.order}-${newMessageSegment.order}`;
+    newMessageSegment.children = newMessageDataElements;
     const segments = this._currentMatchedSegmentGroup.children;
     segments.forEach((segment) => {
       if (segment.name === newMessageSegment.name) {
@@ -264,28 +374,31 @@ class MessageParser {
   _parseDataElement(messageDataElement, dataElements) {
     let dataSpecs = [messageDataElement];
     if (this._delimiter.componentDataSeparator) {
-      dataSpecs = messageDataElement.split(this._delimiter.componentDataSeparator);
+      dataSpecs = this._splitByDelimiter(messageDataElement, this._delimiter.componentDataSeparator, this._delimiter.releaseCharacter, true);
     }
     const messageDataElements = [];
     if (dataSpecs.length > 1) {
       dataSpecs.forEach((dataSpec, index) => {
-        messageDataElements.push(new MessageDataElement('MULTI', dataElements[index].name, dataSpec, dataElements[index], dataElements[index].id));
+        const id = `${this._currentMatchedMessageSegment.id}(${dataElements[index].name})`;
+        messageDataElements.push(new MessageDataElement('MULTI', dataElements[index].name, dataSpec, dataElements[index], id));
         dataElements[index].value = dataSpec;
       });
       return messageDataElements;
     }
 
     if (Array.isArray(dataElements)) {
-      messageDataElements.push(new MessageDataElement('SINGLE', dataElements[0].name, dataSpecs[0], dataElements[0], dataElements[0].id));
+      const id = `${this._currentMatchedMessageSegment.id}(${dataElements[0].name})`;
+      messageDataElements.push(new MessageDataElement('SINGLE', dataElements[0].name, dataSpecs[0], dataElements[0], id));
       dataElements[0].value = dataSpecs[0];
     } else {
-      messageDataElements.push(new MessageDataElement('SINGLE', dataElements.name, dataSpecs[0], dataElements, dataElements.id));
+      const id = `${this._currentMatchedMessageSegment.id}(${dataElements.name})`;
+      messageDataElements.push(new MessageDataElement('SINGLE', dataElements.name, dataSpecs[0], dataElements, id));
       dataElements.value = dataSpecs[0];
     }
     return messageDataElements;
   }
 
-  _removeCrlf(message, messageType) {
+  _removeCrLf(message, messageType) {
     const delimiterTypeStreamingRegex = new RegExp(/\n|\r/, 'g');
     let removedMessage = message;
     if (messageType === 'DELIMITER') {
@@ -345,15 +458,31 @@ class MessageParser {
     return new MatchResult(ResultType.FAIL_FIND_TARGET_GROUP, `${this.currentMatchedSegmentGroup}MATCH FAILED`);
   }
 
+  _matchGroupFromChildren(eachMessageSampleSegment, currentSegmentGroup) {
+    const matchResult = currentSegmentGroup.matchGroup(eachMessageSampleSegment);
+    if (matchResult.resultType !== ResultType.FAIL_FIND_TARGET_GROUP) {
+      return matchResult;
+    }
+
+    return this._matchGroupFromAncestors(eachMessageSampleSegment, currentSegmentGroup, matchResult);
+  }
+
+  _matchGroupFromAncestors(eachMessageSampleSegment, currentSegmentGroup, matchResult) {
+    while (matchResult.resultType === ResultType.FAIL_FIND_TARGET_GROUP) {
+      currentSegmentGroup = currentSegmentGroup.parent;
+      if (!currentSegmentGroup) {
+        matchResult._resultType = ResultType.FAIL_FIND_TARGET_GROUP;
+        matchResult._desc = 'PARENT IS NULL';
+        return matchResult;
+      }      
+      return this._matchGroupFromChildren(eachMessageSampleSegment, currentSegmentGroup);
+    }
+
+    return new MatchResult(ResultType.FAIL_FIND_TARGET_GROUP, `${this.currentMatchedSegmentGroup.name} MATCH FAILED`);
+  }
+
   _setMessageSegmentGroupOrder(messageSegmentGroup) {
-    if (
-      this._lastMatchedSegmentGroup._name === messageSegmentGroup.name
-      && this._lastMatchedMessageSegmentGroup.id !== messageSegmentGroup.id
-    ) {
-      messageSegmentGroup.order = this._lastMatchedMessageSegmentGroup.order + 1;
-    } else {
-      messageSegmentGroup.order = 1;
-    }    
+    messageSegmentGroup.order = messageSegmentGroup.spec._instances[messageSegmentGroup.spec._instances.length - 1];
   }
 
   _setMessageSegmentOrder(messageSegment) {
@@ -370,11 +499,11 @@ class MessageParser {
   _matchLastGroup(segmentGroupName) {
     this._currentMatchedSegmentGroup = this._lastMatchedSegmentGroup;
     const newMessageSegmentGroup = new MessageSegmentGroup();
-    this._setMessageSegmentGroupOrder(newMessageSegmentGroup);
     newMessageSegmentGroup.name = segmentGroupName;
-    newMessageSegmentGroup.order += 1;
-    newMessageSegmentGroup.id = `${this._currentMatchedSegmentGroup.id}-${newMessageSegmentGroup.order}`;
-    newMessageSegmentGroup.spec = this._lastMatchedMessageSegmentGroup;
+    newMessageSegmentGroup.spec = this._lastMatchedSegmentGroup;
+    newMessageSegmentGroup.order = newMessageSegmentGroup.spec._instances.length;
+    newMessageSegmentGroup.parent = this._lastMatchedMessaSegmentGroup.parent.parent;
+    newMessageSegmentGroup.id = `[${newMessageSegmentGroup.parent.id}[${newMessageSegmentGroup.name}#${newMessageSegmentGroup.order}]]`;
     this._lastMatchedMessageSegmentGroup.children.push(newMessageSegmentGroup);
     this._lastMatchedMessageSegmentGroup = newMessageSegmentGroup;
     this._currentMessageSegmentGroupStack.push(this._lastMatchedMessageSegmentGroup);
@@ -385,6 +514,71 @@ class MessageParser {
     console.log(this._currentMatchedSegmentGroup.name);
     console.log(this._lastMatchedSegmentGroup.name);
     console.log(this._currentMatchedSegment.maxRepeat);
+  }
+
+  _splitByDelimiter(string, delimiter, releaseChar, removeReleaseChar=false) {
+    const tokens = [];
+    const buffer = [];
+    let processingRelease = false;
+    for (let i = 0; i < string.length; i += 1) {
+      const letter = string.charAt(i);
+      if (processingRelease) {
+        if (!removeReleaseChar) {
+          buffer.push(releaseChar);
+        }
+        buffer.push(letter);
+        processingRelease = false;
+        continue;
+      }
+      if (letter === releaseChar) {
+        processingRelease = true;
+        continue;
+      }
+
+      if (letter === delimiter) {
+        tokens.push(buffer.join(''));
+        buffer.length = 0;
+        continue;
+      }
+
+      buffer.push(letter);
+    }
+    tokens.push(buffer.join(''));
+    return tokens;
+  }
+
+  _needNewGroup(eachSampleSegmentIndex) {
+    const values = Object.values(this._currentMatchedSegmentGroup._instances[this._currentMatchedSegmentGroup._instances.length -1]);
+    let segmentAppearanceOneCounter = 0;
+    let segmentAppearanceZeroCounter = 0;
+    values.forEach((value) => {
+      if (value === 1) {
+        segmentAppearanceOneCounter += 1;
+      }
+      if (value === 0) {
+        segmentAppearanceZeroCounter += 1;
+      }
+    });
+    if (segmentAppearanceOneCounter === 1 && (eachSampleSegmentIndex === 0)) { // first segment case
+      if (this._currentMatchedSegmentGroup.id !== this._lastMatchedSegmentGroup.id) {
+        return true;
+      }
+      return false;
+    }
+
+    if (segmentAppearanceOneCounter === 1 && segmentAppearanceZeroCounter === values.length - 1) {
+      return true;
+    }
+
+    if (this._lastMatchedSegmentGroup.depth > this._currentMatchedSegmentGroup.depth) {
+      return true;
+    }
+
+    if (segmentAppearanceOneCounter === 0) {
+      return false;
+    }
+
+    return false;
   }
 
   get messageType() {

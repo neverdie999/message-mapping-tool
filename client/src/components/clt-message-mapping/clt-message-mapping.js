@@ -1683,21 +1683,16 @@ class CltMessageMapping {
 
 	/**
 	 * Generate scanner code
-	 * @param {*} messageSpec 
 	 * @param {*} messageGroupType 
 	 */
-	async generateScannerCode(messageSpec, messageGroupType) {
+	generateScannerCode(messageGroupType) {
 
-		//Validate Input data
-		let resMessage = await this.validateGraphDataStructure(messageSpec)
-
-		if(resMessage === 'error') {
-			comShowMessage('Message Spec is corrupted. You should check it!')
+		if (this.storeInputMessage.boundary.length === 0) {
+			comShowMessage('There is no input message data')
 			return
 		}
 
-	
-		const messageSpecTree = MessageSpecReader.read(messageSpec);
+		const messageSpecTree = MessageSpecReader.read(this.storeInputMessage);
 
 		let scannerWriter = null;
 		switch(messageGroupType) {
@@ -1723,46 +1718,86 @@ class CltMessageMapping {
 		
 		const result = scannerWriter.write(messageSpecTree.rootSegmentGroup);
 		console.log(result)
+
+		// Create download dialog
+		if (!result) {
+			comShowMessage('No content to export')
+			return
+		}
+
+		// stringify with tabs inserted at each level
+		let blob = new Blob([result], {type: 'application/text', charset: 'utf-8'})
+
+		const fileName = 'scanner'
+
+		if (navigator.msSaveBlob) {
+			navigator.msSaveBlob(blob, fileName)
+			return
+		}
+
+		let fileUrl = window.URL.createObjectURL(blob)
+		let downLink = $('<a>')
+		downLink.attr('download', `${fileName}.cpp`)
+		downLink.attr('href', fileUrl)
+		downLink.css('display', 'none')
+		$('body').append(downLink)
+		downLink[0].click()
+		downLink.remove()
 	}
 
 
 	/**
 	 * Generate Mapper Writer code
-	 * @param {*} messageMapping 
 	 * @param {*} inputMessageGroupType 
 	 * @param {*} outputMessageGroupType 
 	 */
-	async generateMapperWriterCode(messageMapping, inputMessageGroupType, outputMessageGroupType) {
-		const {inputMessage, outputMessage, operations, edges} = messageMapping
+	generateMapperWriterCode(inputMessageGroupType, outputMessageGroupType) {
 
-		//Validate Input data
-		let resMessage = await this.validateGraphDataStructure(inputMessage)
-
-		if(resMessage === 'error') {
-			comShowMessage('[Mesasge Mapping Definition] Input Message data is corrupted. You should check it!')
+		if (this.storeInputMessage.vertex.length === 0 && this.storeInputMessage.boundary.length === 0) {
+			comShowMessage('There is no input message data')
 			return
 		}
 
-		//Validate Output data
-		resMessage = await this.validateGraphDataStructure(outputMessage)
-
-		if(resMessage === 'error') {
-			comShowMessage('[Mesasge Mapping Definition] Output Message data is corrupted. You should check it!')
+		if (this.storeOutputMessage.vertex.length === 0 && this.storeOutputMessage.boundary.length === 0) {
+			comShowMessage('There is no output message data')
 			return
 		}
 
-		//Validate Operations data
-		resMessage = await this.validateGraphDataStructure(operations)
-
-		if(resMessage === 'error') {
-			comShowMessage('[Mesasge Mapping Definition] Operations data is corrupted. You should check it!')
+		if (this.storeOperations.vertex.length === 0 && this.storeOperations.boundary.length === 0) {
+			comShowMessage('There is no operations data')
 			return
 		}
 
 		const mapperWriter = new MapperWriter(inputMessageGroupType, outputMessageGroupType);
-		const result = mapperWriter.write(inputMessage, outputMessage, operations, edges);
-		
+		const result = mapperWriter.write(this.storeInputMessage, this.storeOutputMessage, this.storeOperations, this.storeConnect.edge);
 		console.log(result)
+		
+		// Create download dialog
+		if (!result) {
+			comShowMessage('No content to export')
+			return
+		}
+
+		const fileName = 'mapper'
+
+		// stringify with tabs inserted at each level
+		let blob = new Blob([result], {type: 'application/text', charset: 'utf-8'})
+
+		if (navigator.msSaveBlob) {
+			navigator.msSaveBlob(blob, fileName)
+			return
+		}
+
+		let fileUrl = window.URL.createObjectURL(blob)
+		let downLink = $('<a>')
+		downLink.attr('download', `${fileName}.cpp`)
+		downLink.attr('href', fileUrl)
+		downLink.css('display', 'none')
+		$('body').append(downLink)
+		downLink[0].click()
+		downLink.remove()
+
+		
 	}
 }
   
