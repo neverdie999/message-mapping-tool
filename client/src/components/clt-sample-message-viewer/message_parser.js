@@ -14,18 +14,18 @@ class MessageParser {
    * @param {String} messageType
    * @param {Object} lastMatchedSegmentGroup
    * @param {Object} lastMatchedMessageSegmentGroup
-   * @param {Object} currentMessageSegmentGroupStack
+   * @param {Object} currentSegmentGroupStack
    * @param {Object} lastMatchedSegment
    * @param {Object} lastMatchedMessageSegment
    * @param {Object} currentMatchedSegmentGroup
    * @param {Object} currentMatchedSegment
    */
-  constructor(delimiter, messageType='', lastMatchedSegmentGroup, lastMatchedMessageSegmentGroup=null, currentMessageSegmentGroupStack=[], lastMatchedSegment='', lastMatchedMessageSegment='', currentMatchedSegmentGroup='', currentMatchedSegment='') {
+  constructor(delimiter, messageType='', lastMatchedSegmentGroup, lastMatchedMessageSegmentGroup=null, currentSegmentGroupStack=[], lastMatchedSegment='', lastMatchedMessageSegment='', currentMatchedSegmentGroup='', currentMatchedSegment='') {
     this._delimiter = delimiter;
     this._messageType = messageType;
     this._lastMatchedSegmentGroup = lastMatchedSegmentGroup;
     this._lastMatchedMessageSegmentGroup = lastMatchedMessageSegmentGroup;
-    this._currentMessageSegmentGroupStack = currentMessageSegmentGroupStack;
+    this._currentSegmentGroupStack = currentSegmentGroupStack;
     this._lastMatchedSegment = lastMatchedSegment;
     this._lastMatchedMessageSegment = lastMatchedMessageSegment;
     this._currentMatchedSegmentGroup = currentMatchedSegmentGroup;
@@ -55,39 +55,17 @@ class MessageParser {
     for (let i = 0; i < messageSampleSegments.length; i += 1) {
       if (this._delimiter.groupCloseDelimiter && messageSampleSegments[i].startsWith(this._delimiter.groupCloseDelimiter)) {
         const [, segmentGroupName] = this._splitByDelimiter(messageSampleSegments[i], this._delimiter.groupCloseDelimiter, this._delimiter.releaseCharacter);
-        this._lastMatchedMessageSegmentGroup = this._currentMessageSegmentGroupStack.pop();
-        if (!(this._lastMatchedMessageSegmentGroup.name === segmentGroupName)) {
-          return new MatchResult(ResultType.FAIL_FIND_TARGET_GROUP, `[GROUP] ${segmentGroupName} MATCH FAILED`);
+        const popGroupName = this._currentSegmentGroupStack.pop();
+        // console.log(`pop: ${popGroupName}`);
+        if (!(popGroupName === segmentGroupName)) {
+          return new MatchResult(ResultType.FAIL_FIND_TARGET_GROUP, `[GROUP] ${popGroupName} MATCH FAILED`);
         }
         continue;
       }
 
       if (this._delimiter.groupOpenDelimiter && messageSampleSegments[i].startsWith(this._delimiter.groupOpenDelimiter)) {
         const [, segmentGroupName] = this._splitByDelimiter(messageSampleSegments[i], this._delimiter.groupOpenDelimiter, this._delimiter.releaseCharacter);
-        // find proper segmentGroup
-        let matchResult = new MatchResult();
-        const currentSegmentGroup = this._lastMatchedSegmentGroup;
-        matchResult = this._matchGroupFromChildren(segmentGroupName, currentSegmentGroup);
-        if (!matchResult.isValid() && matchResult.resultType !== ResultType.FAIL_FIND_TARGET_GROUP) {
-          return matchResult;
-        }
-
-        if (!matchResult.isValid()) {
-          matchResult = this._matchGroupFromAncestors(segmentGroupName, currentSegmentGroup, matchResult);
-          if (!matchResult.isValid()) {
-            return matchResult;
-          }
-        }
-        
-        // proper segmentGroup spec!
-        this._currentMatchedSegmentGroup = matchResult.matchedSegmentGroup;
-
-        // create messageSegmentGroup dangle to parent.
-        const result = this._createDictionaryMessageSegmentGroup(segmentGroupName, matchResult);
-        if (result.ResultType) {
-          return result;
-        }
-        this._currentMessageSegmentGroupStack.push(this._lastMatchedMessageSegmentGroup);
+        this._currentSegmentGroupStack.push(segmentGroupName);
         continue;
       }
       
@@ -109,7 +87,8 @@ class MessageParser {
       this._currentMatchedSegmentGroup = matchResult.matchedSegment.parent;
       this._currentMatchedSegment = matchResult.matchedSegment;
       this._currentMatchedSegment.instanceIndex += 1;
-      if (this._needNewGroup(i) && this._messageType !== 'DICTIONARY') {
+      // console.log(`   ${this._currentMatchedSegment.name}`);
+      if (this._needNewGroup(i)) {
         const creationResult = this._createMessageSegmentGroup(matchResult, messageSampleSegments[i]);
         if (creationResult.resultType) {
           return creationResult;
@@ -137,8 +116,8 @@ class MessageParser {
       newMessageSegmentGroup.parent = this._lastMatchedMessageSegmentGroup;
       newMessageSegmentGroup.order = this._currentMatchedSegmentGroup._instances.length;
       newMessageSegmentGroup.id = `[${newMessageSegmentGroup.parent.id}[${newMessageSegmentGroup.name}#${newMessageSegmentGroup.order}]]`;
-      newMessageSegmentGroup.children.push(this._parseSegment(eachMessageSampleSegment, this._currentMatchedSegment.name, newMessageSegmentGroup));
       this._lastMatchedMessageSegmentGroup.children.push(newMessageSegmentGroup);
+      newMessageSegmentGroup.children.push(this._parseSegment(eachMessageSampleSegment, this._currentMatchedSegment.name, newMessageSegmentGroup));
       this._lastMatchedMessageSegmentGroup = newMessageSegmentGroup;
       this._lastMatchedSegmentGroup = matchedSegmentGroup;
       return newMessageSegmentGroup;
@@ -148,7 +127,7 @@ class MessageParser {
       const newMessageSegmentGroup = new MessageSegmentGroup(this._currentMatchedSegmentGroup.name);
       newMessageSegmentGroup.spec = this._currentMatchedSegmentGroup;
       newMessageSegmentGroup.parent = this._lastMatchedMessageSegmentGroup.parent;
-      newMessageSegmentGroup.order = newMessageSegmentGroup.spec._instances.length;
+      newMessageSegmentGroup.order = this._currentMatchedSegmentGroup._instances.length;
       newMessageSegmentGroup.id = `[${newMessageSegmentGroup.parent.id}[${newMessageSegmentGroup.name}#${newMessageSegmentGroup.order}]]`;
       if (newMessageSegmentGroup.order > newMessageSegmentGroup.spec.maxRepeat) {
         return new MatchResult(ResultType.FAIL_VALIDATION_GROUP, `[GROUP][${newMessageSegmentGroup.spec.name}][${this._currentMatchedSegment.name}]MAX_REPEAT_VIOLATION`);
@@ -194,107 +173,13 @@ class MessageParser {
       const newMessageSegmentGroup = new MessageSegmentGroup(matchedSegmentGroup.name);
       newMessageSegmentGroup.spec = matchedSegmentGroup;
       newMessageSegmentGroup.parent = messageSegmentGroupParent.parent;
-      newMessageSegmentGroup.order = matchedSegmentGroup._instances.length;
+      newMessageSegmentGroup.order = this._currentMatchedSegmentGroup._instances.length;
       newMessageSegmentGroup.id = `[${newMessageSegmentGroup.parent.id}[${newMessageSegmentGroup.name}#${newMessageSegmentGroup.order}]]`;
       newMessageSegmentGroup.children.push(this._parseSegment(eachMessageSampleSegment, this._currentMatchedSegment.name, newMessageSegmentGroup, newMessageSegmentGroup));
       messageSegmentGroupParent.parent.children.push(newMessageSegmentGroup);
       this._lastMatchedMessageSegmentGroup = newMessageSegmentGroup;
       this._lastMatchedSegmentGroup = matchedSegmentGroup;
 
-      return newMessageSegmentGroup;
-    }
-
-    return new MatchResult(ResultType.FAIL_FIND_TARGET_GROUP, `[${this._currentMatchedSegmentGroup.name}]INVALID GROUP`);
-  }
-
-  _createDictionaryMessageSegmentGroup(eachMessageSampleSegment, matchResult) {
-    if (this._lastMatchedSegmentGroup.depth < this._currentMatchedSegmentGroup.depth) { // child case
-      const depthDiff = this._currentMatchedSegmentGroup.depth - this._lastMatchedSegmentGroup.depth;
-      if (depthDiff !== 1) {
-        return new MatchResult(ResultType.FAIL_FIND_TARGET_GROUP,
-          `[${this._currentMatchedSegmentGroup.name} - ${this._currentMatchedSegmentGroup.depth}][${this._lastMatchedSegmentGroup.name} - ${this._lastMatchedSegmentGroup.depth}]DEPTH_DIFF_ERROR`);
-      }
-
-      const newMessageSegmentGroup = new MessageSegmentGroup(eachMessageSampleSegment);
-      newMessageSegmentGroup.spec = this._currentMatchedSegmentGroup;
-      newMessageSegmentGroup.parent = this._lastMatchedMessageSegmentGroup;
-      newMessageSegmentGroup.order = this._currentMatchedSegmentGroup._instances.length + 1;
-      if (newMessageSegmentGroup.order > newMessageSegmentGroup.spec.maxRepeat) {
-        return ResultType.FAIL_VALIDATION_GROUP;
-      }
-
-      this._currentMatchedSegmentGroup.registerNewSegmentCounter();
-      newMessageSegmentGroup.id = `[${newMessageSegmentGroup.parent.id}[${newMessageSegmentGroup.name}#${newMessageSegmentGroup.order}]]`;
-      this._lastMatchedMessageSegmentGroup.children.push(newMessageSegmentGroup);
-      this._lastMatchedMessageSegmentGroup = newMessageSegmentGroup;
-      this._lastMatchedSegmentGroup = this._currentMatchedSegmentGroup;
- 
-      return newMessageSegmentGroup;
-    }
-
-    if (this._lastMatchedSegmentGroup.depth === this._currentMatchedSegmentGroup.depth) { // sibling case
-      const newMessageSegmentGroup = new MessageSegmentGroup(this._currentMatchedSegmentGroup.name);
-      newMessageSegmentGroup.spec = this._currentMatchedSegmentGroup;
-      newMessageSegmentGroup.parent = this._lastMatchedMessageSegmentGroup.parent;
-      newMessageSegmentGroup.order = this._currentMatchedSegmentGroup._instances.length + 1;
-      if (newMessageSegmentGroup.order > newMessageSegmentGroup.spec.maxRepeat) {
-        return ResultType.FAIL_VALIDATION_GROUP;
-      }
-      this._currentMatchedSegmentGroup.registerNewSegmentCounter();
-      newMessageSegmentGroup.id = `[${newMessageSegmentGroup.parent.id}[${newMessageSegmentGroup.name}#${newMessageSegmentGroup.order}]]`;
-      if (newMessageSegmentGroup.order > newMessageSegmentGroup.spec.maxRepeat) {
-        return new MatchResult(ResultType.FAIL_VALIDATION_GROUP, `[GROUP][${newMessageSegmentGroup.spec.name}][${this._currentMatchedSegment.name}]MAX_REPEAT_VIOLATION`);
-      }
-
-      if (this._lastMatchedMessageSegmentGroup.parent) {
-        this._lastMatchedMessageSegmentGroup.parent.children.push(newMessageSegmentGroup);
-      } else {
-        return new MatchResult(ResultType.FAIL_VALIDATION_GROUP, `[${this._lastMatchedMessageSegmentGroup}]LAST_MATCH_HAS_NO_PARENT`);
-      }
-
-      newMessageSegmentGroup.children.push(this._parseSegment(eachMessageSampleSegment, this._currentMatchedSegment.name, newMessageSegmentGroup));
-      this._lastMatchedMessageSegmentGroup = newMessageSegmentGroup;
-      return newMessageSegmentGroup;
-    }
-
-    if (this._lastMatchedSegmentGroup.depth > this._currentMatchedSegmentGroup.depth) { // ancestor, ancestor-sibling case
-      const depthDiff = this._lastMatchedSegmentGroup.depth - this._currentMatchedSegmentGroup.depth;
-      let messageAncestor;
-      if (depthDiff > 1) {
-        messageAncestor = this._lastMatchedMessageSegmentGroup;
-        for (let i = 0; i < depthDiff; i += 1) {
-          if (messageAncestor.parent === undefined) {
-            break;
-          }
-          messageAncestor = messageAncestor.parent;
-        }
-      } else {
-        if (this._lastMatchedMessageSegmentGroup.parent.parent) {
-          messageAncestor = this._lastMatchedMessageSegmentGroup.parent;
-        } else {
-          messageAncestor = this._lastMatchedMessageSegmentGroup;
-        }
-      }
-
-      if (matchResult.matchedSegmentGroup.name === messageAncestor.parent.name) {
-        this._lastMatchedMessageSegmentGroup = messageAncestor.parent;
-        this._lastMatchedSegmentGroup = matchResult.matchedSegment.parent;
-        return messageAncestor.parent;
-      }
-      const matchedSegmentGroup = this._currentMatchedSegmentGroup;
-      const newMessageSegmentGroup = new MessageSegmentGroup(matchedSegmentGroup.name);
-      newMessageSegmentGroup.spec = matchedSegmentGroup;
-      newMessageSegmentGroup.parent = messageAncestor.parent;
-      newMessageSegmentGroup.order = matchedSegmentGroup._instances.length + 1;
-      if (newMessageSegmentGroup.order > newMessageSegmentGroup.spec.maxRepeat) {
-        return ResultType.FAIL_VALIDATION_GROUP;
-      }
-
-      matchedSegmentGroup.registerNewSegmentCounter();
-      newMessageSegmentGroup.id = `[${newMessageSegmentGroup.parent.id}[${newMessageSegmentGroup.name}#${newMessageSegmentGroup.order}]]`;
-      messageAncestor.parent.children.push(newMessageSegmentGroup);
-      this._lastMatchedMessageSegmentGroup = newMessageSegmentGroup;
-      this._lastMatchedSegmentGroup = matchedSegmentGroup;
       return newMessageSegmentGroup;
     }
 
@@ -455,6 +340,7 @@ class MessageParser {
 
       return this._matchStructureFromChildren(eachMessageSampleSegment, currentSegmentGroup);
     }
+
     return new MatchResult(ResultType.FAIL_FIND_TARGET_GROUP, `${this.currentMatchedSegmentGroup}MATCH FAILED`);
   }
 
@@ -474,7 +360,8 @@ class MessageParser {
         matchResult._resultType = ResultType.FAIL_FIND_TARGET_GROUP;
         matchResult._desc = 'PARENT IS NULL';
         return matchResult;
-      }      
+      }
+
       return this._matchGroupFromChildren(eachMessageSampleSegment, currentSegmentGroup);
     }
 
@@ -501,12 +388,12 @@ class MessageParser {
     const newMessageSegmentGroup = new MessageSegmentGroup();
     newMessageSegmentGroup.name = segmentGroupName;
     newMessageSegmentGroup.spec = this._lastMatchedSegmentGroup;
-    newMessageSegmentGroup.order = newMessageSegmentGroup.spec._instances.length;
+    newMessageSegmentGroup.order += 1;
     newMessageSegmentGroup.parent = this._lastMatchedMessaSegmentGroup.parent.parent;
     newMessageSegmentGroup.id = `[${newMessageSegmentGroup.parent.id}[${newMessageSegmentGroup.name}#${newMessageSegmentGroup.order}]]`;
     this._lastMatchedMessageSegmentGroup.children.push(newMessageSegmentGroup);
     this._lastMatchedMessageSegmentGroup = newMessageSegmentGroup;
-    this._currentMessageSegmentGroupStack.push(this._lastMatchedMessageSegmentGroup);
+    this._currentSegmentGroupStack.push(this._lastMatchedMessageSegmentGroup.name);
   }
 
   _printMatchInfo() {

@@ -28,7 +28,7 @@ class MessageSegmentGroup {
     this._id = id;
     this._elementType = MessageElementType.SegmentGroup;
   }
-
+  
   get name() {
     return this._name;
   }

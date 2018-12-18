@@ -4,7 +4,7 @@ const SpecParser = require('./spec_parser');
 const SpecTree = require('./spec_tree');
 const JsTreeItemConverter = require('./jstree_item_converter');
 const MessageAssembler = require('./message_assembler');
-const MockMessageSpec = require('./mock_message_spec');
+const MessageSpec = require('./message_spec');
 
 /**
  * @class
@@ -40,20 +40,26 @@ class SampleMessageViewer {
     const messageParser = new MessageParser(delimiter, 'DELIMITER', this.specGroupList[0]);
     // const delimiter = new Delimiter('\n');
     // const messageParser = new MessageParser(delimiter, 'FIXEDLENGTH', this.specGroupList[0]);
-    const parseResult = messageParser.parseMessage(sampleFile, this.specGroupList);
-    // console.log(parseResult);
-    if (parseResult.constructor.name === 'ValidationResult' || parseResult.constructor.name === 'MatchResult') {
+    const parseResult = messageParser.parseMessage(sampleFile);
+    if (parseResult.constructor.name === 'ValidationResult') {
       return parseResult;
+    }
+    
+    if (parseResult.constructor.name === 'MatchResult') {
+      const finalResult = [parseResult]
+      return finalResult;
     }
 
     this.messageStructure = parseResult;
-    const messageSpec = new MockMessageSpec(delimiter, this.messageStructure, this.specGroupList[0]);
-    const validationResult = messageSpec.match(this.messageStructure);  
+    const messageSpec = new MessageSpec(delimiter, this.messageStructure, this.specGroupList[0]);
+    messageSpec.match(this.messageStructure);
+    const validationResult = messageSpec._validationResult;
     this._setTreeData();
     if (validationResult) {
       return validationResult;
-    } 
-    return;
+    }
+
+    return false;
   }
 
   /**
@@ -66,7 +72,7 @@ class SampleMessageViewer {
 
   _setTreeData() {
     const converted = new JsTreeItemConverter().convert(this.messageStructure);
-    this.jsTree = converted.treeItems;
+    this.jsTree = converted.treeItems;    
     this.messageElementMap = converted.itemMap;
   }
 
@@ -91,10 +97,11 @@ class SampleMessageViewer {
     // const delimiter = new Delimiter('\n');
     // const delimiter = new Delimiter('\n', ':', '', '', '{', '}');
     const delimiter = new Delimiter("'", '+', ':', '?');
-    const messageSpec = new MockMessageSpec(delimiter, this.messageStructure, this.specGroupList[0]);        
-    const result = messageSpec.match(this.messageStructure);
-    if (result) {
-      return result;
+    const messageSpec = new MessageSpec(delimiter, this.messageStructure, this.specGroupList[0]);        
+    messageSpec.match(this.messageStructure);
+    
+    if (messageSpec._validationResult) {
+      return messageSpec._validationResult;
     }
     return true;
   }

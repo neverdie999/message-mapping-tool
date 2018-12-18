@@ -103,7 +103,7 @@ class SegmentGroup {
         return matchResult;
       }
     }
-    this._instances.length = 0;
+    // this._instances.length = 0;
     this._lastMatchedSegment = '';
     return new MatchResult(ResultType.FAIL_FIND_TARGET_SEGMENT, `[${this.name}]NOT_FOUND_IN_SEGMENT_LIST`);
   }
@@ -144,7 +144,7 @@ class SegmentGroup {
         return matchResult;
       }
     }
-    this._instances.length = 0;
+    // this._instances.length = 0;
     this._lastMatchedSegment = '';
     return new MatchResult(ResultType.FAIL_FIND_TARGET_GROUP, `[GROUP] ${segmentGroupName} MATCH FAILED`);
   }
@@ -180,10 +180,15 @@ class SegmentGroup {
     if (this._instances.length > this.maxRepeat) {
       return false;
     }
-
+    
     this._instances[this._instances.length - 1][segmentName] -= 1;
-    this.registerNewSegmentCounter();
+    // register current segment 
+    this.registerNewSegmentCounter();    
     this._instances[this._instances.length - 1][segmentName] += 1;
+    // register parent segmentGroup
+    // this.parent.registerNewSegmentCounter();
+    // console.log(this.parent._instances[this._instances.length - 1]);
+    // this.parent._instances[this._instances.length - 1][this.name] += 1;
     return true;
   }
 

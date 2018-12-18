@@ -22,7 +22,7 @@ class JsTreeItemConverter {
       MessageElementType.isNotSegmentGroup(messageStructure.elementType)
       && MessageElementType.isNotSegment(messageStructure.elementType)
       && MessageElementType.isNotDataElement(messageStructure.elementType)
-    ) {
+    ) {      
       return null;
     }
 
@@ -39,14 +39,13 @@ class JsTreeItemConverter {
         return;
       }
 
-      if (MessageElementType.isSegment(child.elementType)) {      
+      if (MessageElementType.isSegment(child.elementType)) {
         this._makeMessageSegmentBranch(child, messageStructure.id);
         return;
       }
 
       this._makeMessageDataElementBranch(child, messageStructure.id);
     });
-
     return {
       treeItems: this._treeItems,
       itemMap: this._messageElementMap,

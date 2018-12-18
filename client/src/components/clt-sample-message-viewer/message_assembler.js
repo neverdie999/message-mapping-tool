@@ -8,8 +8,7 @@ const ResultType = require('./message/result_type');
  */
 class MessageAssembler {
   /**
-   * 
-   * @param {String} messageType 
+   * @param {String} messageType
    */
   constructor(messageType) {
     this.messageType = messageType;
@@ -98,9 +97,9 @@ class MessageAssembler {
       return sampleDataElement;
     }
 
-    if (lastMessageDataElementFlag) {      
+    if (lastMessageDataElementFlag) {
       if (dataSpecs[0].matchResult.resultType !== ResultType.SUCCESS) {
-        sampleDataElement += `<mark>${dataSpecs[0].value}</mark>`;
+        sampleDataElement += `<mark title=${dataSpecs[0].spec.format}>${dataSpecs[0].value}</mark>`;
       } else {
         sampleDataElement += dataSpecs[0].value;
       }
@@ -108,7 +107,7 @@ class MessageAssembler {
     }
 
     if (dataSpecs[0].matchResult.resultType !== ResultType.SUCCESS) {
-      sampleDataElement += `<mark>${dataSpecs[0].value}</mark>${delimiter.dataElementSeparator}`;
+      sampleDataElement += `<mark title=${dataSpecs[0].spec.format}>${dataSpecs[0].value}</mark>${delimiter.dataElementSeparator}`;
     } else {
       sampleDataElement += (dataSpecs[0].value + delimiter.dataElementSeparator);
     }

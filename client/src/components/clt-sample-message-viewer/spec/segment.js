@@ -19,7 +19,7 @@ class Segment {
    * @param {Number} cursor
    * @param {Number} instanceIndex
    */
-  constructor(name, description='', dataElements, id, parent='', mandatory=false, maxRepeat=1, cursor=0, instanceIndex=-1) {
+  constructor(name, description='', dataElements, id, parent='', mandatory=false, maxRepeat=1, instanceIndex=-1) {
     this._name = name;
     this._description = description;
     this._dataElements = dataElements;
@@ -28,7 +28,6 @@ class Segment {
     this._mandatory = mandatory;
     this._maxRepeat = maxRepeat;
     this._instanceIndex = instanceIndex;
-    this._cursor = cursor;
     this._elementType= SpecElementType.Segment;
   }
 
@@ -41,9 +40,8 @@ class Segment {
     const messageSampleSegmentName = this._getMessageSampleSegmentName(messageSampleSegment, messageType, delimiterInfo);
     if (this._name === messageSampleSegmentName.trim()) {
       const matchResult = new MatchResult(ResultType.SUCCESS, '', this);
-      // matchResult.matchedSegment = this;
       return matchResult;
-    } 
+    }
     
     const matchResult = new MatchResult(ResultType.FAIL_FIND_TARGET_SEGMENT, `[${messageSampleSegment}] NOT FOUND IN SEGMENT LIST`, this);
     return matchResult;
@@ -66,24 +64,6 @@ class Segment {
   getCurrentDataElement() {
     return this.dataElements[this.cursor];
   }
-
-  // /**
-  //  * update cursor when compodite data is single.
-  //  * @param {DataElement} dataElements
-  //  * @param {Integer} cursor
-  //  * @returns {Integer}
-  //  */
-  // updateSingleCompositeCursor(dataElements, cursor) {
-  //   let currentCursor = cursor;
-  //   let increase = 0;
-  //   const currentDataElements = dataElements;
-  //   for (;currentCursor < currentDataElements.length; currentCursor += 1) {
-  //     if (currentDataElements[currentCursor].type === 'COMPONENT') {
-  //       increase += 1;
-  //     }
-  //   }
-  //   return increase;
-  // }
 
   get name() {
     return this._name;

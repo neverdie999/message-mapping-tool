@@ -45,9 +45,8 @@ class SpecParser {
     }
 
     const segmentGroupSpec = new SegmentGroup(boundary.name, 0, boundary.repeat, boundary.mandatory, boundary.description, boundary.id, boundary.parent);
-    segmentGroupSpec.children = this._getSegmentGroupChildren(boundary.member, boundaryDic);    
+    segmentGroupSpec.children = this._getSegmentGroupChildren(boundary.member, boundaryDic);
     segmentGroupSpec.segmentCounter = this._createSegmentCounter(segmentGroupSpec.children);
-    // console.log(segmentGroupSpec.segmentCounter);    
     usedGroup[boundary.id] = true;
     return segmentGroupSpec;
   }
@@ -82,7 +81,7 @@ class SpecParser {
   _createDataElementSpec(datas, parent) {
     const dataElement = [];
     datas.forEach((data, index) => {
-      const isMandatory = data.usage === 'M';
+      const isMandatory = (data.usage === 'M');
       const dataElementSpec = new DataElement(data.name, data.type, isMandatory, data.format, data.repeat, data.description, '', parent, 0, `${parent.id}-de-${index}`);
       dataElement.push(dataElementSpec);
     });
@@ -106,12 +105,14 @@ class SpecParser {
   }
 
   _createSegmentCounter(segmentIds) {
-    // console.log(segmentIds)
-    let segmentCounter = {};
+    const segmentCounter = {};
     segmentIds.forEach((segmentId) => {
       if (segmentId.startsWith('V')) {
         segmentCounter[this.vertexDic[segmentId].vertexType] = 0;
       }
+      // else {
+      //   segmentCounter[this.boundaryDic[segmentId].name] = 0;
+      // }
     });
     return segmentCounter;
   }

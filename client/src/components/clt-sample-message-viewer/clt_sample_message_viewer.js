@@ -1,5 +1,6 @@
 import SampleMessageViewer from './sample_message_viewer'
 import PopUtils from '../../common/utilities/popup.util'
+
 class cltSampleMessageViewer {
 	constructor(props){
 		this.specFile = ''
@@ -118,12 +119,13 @@ class cltSampleMessageViewer {
 	loadData() {
 		if (this.specFile === '' || this.sampleFile === '') return
 		
+		this.main.jsTree = null
 		const result = this.main.makeTree(this.specFile, this.sampleFile)
 
 		// Load data failed
-		if (!result.isValid()) {
+		if (result && result.length > 0 && !result[0].isValid()) {
 			let regex = /(Symbol\()(.*)(\))/
-			let errorType = regex.exec(result.resultType.toString())
+			let errorType = regex.exec(result[0].resultType.toString())
 			$.notify({
 				message: `[Failed] ${errorType[2]}!`
 			},{
@@ -136,9 +138,20 @@ class cltSampleMessageViewer {
 		$('#btnViewFullText').hide()
 		$('#detailHead').html('');
 		$('#detailBody').html('');
+		$('#jstree').empty()		
+
+		// for loading new jstree, need to clear all attributes
+		const attrs = $('#jstree')[0].attributes
+		const length = attrs.length
+		for (let i = length - 1; i >= 0; i--) {
+			const attr = attrs[i]
+			if (attr.name !== "id") {
+				$('#jstree').removeAttr(attr.name)
+			}
+		}
 
 		// Print error message if existed
-		this.printError(result._desc);
+		this.printError(result);
 
 		// reload tree view
 		$('#jstree').jstree({
@@ -196,24 +209,24 @@ class cltSampleMessageViewer {
 	editSampleClickEvent() {
 		this.setMessageElement();
 		let result = this.main.reMatch(this.main.messageStructure)
-		this.printError(result._desc);
+		this.printError(result);
 
 		if (result) {
-			if (result.resultType === Symbol.for('SUCCESS')) {
-				$.notify({
-					message: 'Applied!'
-				},{
-					type: "success"
-				});
-			} else {
+			if (result.length > 0 && !result[0].isValid()) {
 				let regex = /(Symbol\()(.*)(\))/
-				let errorType = regex.exec(result.resultType.toString())
+				let errorType = regex.exec(result[0].resultType.toString())
 
 				$.notify({
 					message: `[Failed] ${errorType[2]}!`
 				},{
 					type: "danger",
 				});
+			} else {
+				$.notify({
+					message: 'Applied!'
+				},{
+					type: "success"
+				})
 			}
 		}
 	}
@@ -269,7 +282,7 @@ class cltSampleMessageViewer {
 					.append('</tr>');
 			}
 			seqTextBox += 1;
-		});
+	});
 	}
 
 	setMessageElement(defaultValue=true) {
@@ -290,9 +303,18 @@ class cltSampleMessageViewer {
 		});
 	}
 
-	printError(errorMessage) {
-		const text = `ERROR MESSAGE: ${errorMessage}`; 
-		$('#desc').html(text);
+	printError(results) {
+		if (!results || results.length == 0){
+			$('#desc').html('');
+		}
+
+		if (results) {
+			$('#desc').html('');
+			results.forEach((result) => {
+				const text = `ERROR MESSAGE: ${result._desc}`;
+				$('#desc').append(text + '<br>');
+			});          
+		}             
 	}
 
 	validateByFormat(string='', format='AN999') { 

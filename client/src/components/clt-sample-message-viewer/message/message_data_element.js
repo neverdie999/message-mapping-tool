@@ -35,8 +35,7 @@ class MessageDataElement {
  */
   validate() {
     if (
-      this._validateUsage()
-      && this._validateRepeat()
+      this._validateRepeat()
       && this._validateDataLength()
       && this._validateDataType()
     ) {
@@ -46,28 +45,14 @@ class MessageDataElement {
     return this._matchResult;
   }
 
-  _validateUsage() {
-    // console.log(this.value);
-    // console.log(this.spec);
-    // console.log(this.spec.mandatory);
-    // console.log('---');
-    if (this.spec.mandatory === true && this.value === '') {
-      const desc = `[USAGE] ${this.spec.parent.name}-${this.spec.name}: ${this.spec.mandatory} | ${this.value}`;
-      this._matchResult = new ValidationResult(ResultType.FAIL_VALIDATION_DATA_ELEMENT, desc);
-      return false;
-    }
-
-    return true;
-  }
-
   _validateRepeat() {    
     this.spec.appearance += 1;
     // console.log(this.value);
     // console.log(this.spec.repeat);
     // console.log(this.spec.appearance);
     // console.log('---');
-    if (this.spec.repeat < this.spec.appearance) {      
-      const desc = `[REPEAT] ${this.spec.parent.name}-${this.spec.name}: ${this.spec.appearance} | ${this.spec.repeat}`;
+    if (this.spec.repeat < this.spec.appearance) {
+      const desc = `[REPEAT](${this.spec.parent.parent.name})${this.spec.parent.name}-${this.spec.name}: ${this.spec.appearance} | ${this.spec.repeat}`;
       this._matchResult = new ValidationResult(ResultType.FAIL_VALIDATION_DATA_ELEMENT, desc);
       return false;
     }
@@ -85,7 +70,7 @@ class MessageDataElement {
     // console.log(sampleLentgh);
     // console.log('==========================');
     if (sampleLentgh > specLength) {
-      const desc = `[LENGTH] ${this.spec.parent.name}-${this.spec.name}: ${sampleLentgh} | ${specLength}| value: ${this.value}`;
+      const desc = `[LENGTH](${this.spec.parent.parent.name})${this.spec.parent.name}-${this.spec.name}: ${sampleLentgh} | ${specLength}| value: ${this.value}`;
       this._matchResult = new ValidationResult(ResultType.FAIL_VALIDATION_DATA_ELEMENT, desc);
       return false;
     }
@@ -101,13 +86,13 @@ class MessageDataElement {
     // console.log(sampleFormat);
     // console.log();
     if (specFormat === 'A' && sampleFormat !== 'A') {
-      const desc = `[FORMAT] ${this.spec.parent.name}-${this.spec.name}: ${specFormat} | ${sampleFormat} | value: ${this.value}`;
+      const desc = `[FORMAT](${this.spec.parent.parent.name})${this.spec.parent.name}-${this.spec.name}: ${specFormat} | ${sampleFormat} | value: ${this.value}`;
       this._matchResult = new ValidationResult(ResultType.FAIL_VALIDATION_DATA_ELEMENT, desc);
       return false;
     }
 
     if (specFormat === 'N' && sampleFormat !== 'N') {
-      const desc = `[FORMAT] ${this.spec.parent.name}-${this.spec.name}: ${specFormat} | ${sampleFormat} | value: ${this.value}`;
+      const desc = `[FORMAT](${this.spec.parent.parent.name})${this.spec.parent.name}-${this.spec.name}: ${specFormat} | ${sampleFormat} | value: ${this.value}`;
       this._matchResult = new ValidationResult(ResultType.FAIL_VALIDATION_DATA_ELEMENT, desc);
       return false;
     }

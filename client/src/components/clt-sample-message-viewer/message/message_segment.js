@@ -1,7 +1,8 @@
 'use strict';
 
 const MessageElementType = require('./message_element_type');
-
+const ResultType = require('./result_type');
+const ValidationResult = require('./validation_result');
 /**
  * @class
  * A class that represents MessageSegment in the Message.
@@ -28,6 +29,80 @@ class MessageSegment {
     this._order = order;
     this._parent = parent;
     this._elementType = MessageElementType.Segment;
+  }
+
+  validateUsage() {
+    let isCompositeMandatory;
+    let isLastComponentMandatoryHasValue;
+    let lastElement = '';
+
+    for (const dataElement of this.spec.dataElements) {
+      isLastComponentMandatoryHasValue = undefined;
+      // COMPOSITE
+      if (dataElement.type === 'COMPOSITE') {
+        if (lastElement === 'COMPOSITE') {
+          return new ValidationResult(ResultType.FAIL_FIND_TARGET_DATA_ELEMENT, 'CONTINUOUS COMPOSITE DATA');
+        }
+
+        if (dataElement.mandatory === true) {
+          isCompositeMandatory = true;
+        } else {
+          isCompositeMandatory = false;
+        }
+        lastElement = 'COMPOSITE';
+        continue;
+      }
+      // COMPONENT
+      if (dataElement.type === 'COMPONENT') {
+        if (lastElement === 'SIMPLE') {
+          return new ValidationResult(ResultType.FAIL_FIND_TARGET_DATA_ELEMENT, `[${dataElement.name}]COMPONENT DATA AFTER SIMPLE DATA`);
+        }
+
+        lastElement = 'COMPONENT';
+        if (isCompositeMandatory) { // COMPOSITE ==> M
+          if (dataElement.mandatory === true && dataElement.value === '') {
+            return new ValidationResult(ResultType.FAIL_VALIDATION_DATA_ELEMENT, `[USAGE] ${dataElement.parent.name}-${dataElement.name}: ${dataElement.mandatory} | ${dataElement.value}`);
+          }
+
+          continue;
+        }
+
+        // COMPOSITE ==> C
+        if (isLastComponentMandatoryHasValue === undefined) {
+          if (dataElement.mandatory === true) {
+            if (dataElement.value === '') {
+              isLastComponentMandatoryHasValue = false;
+            } else {
+              isLastComponentMandatoryHasValue = true;
+            }
+          }
+          continue;
+        }
+
+        if (isLastComponentMandatoryHasValue === true) {
+          if (dataElement.mandatory === true && dataElement.value === '') {
+            return new ValidationResult(ResultType.FAIL_VALIDATION_DATA_ELEMENT, `[USAGE] ${dataElement.parent.name}-${dataElement.name}: ${dataElement.mandatory} | ${dataElement.value}`);
+          }
+          continue;
+        }
+
+        if (dataElement.mandatory === true && dataElement.value !== '') {
+          return new ValidationResult(ResultType.FAIL_VALIDATION_DATA_ELEMENT, `[USAGE] ${dataElement.parent.name}-${dataElement.name}: ${dataElement.mandatory} | ${dataElement.value}`);
+        }
+      }
+      if (dataElement.type === 'SIMPLE') {
+        if (lastElement === 'COMPOSITE') {
+          return new ValidationResult(ResultType.FAIL_FIND_TARGET_DATA_ELEMENT, 'SIMPLE DATA AFTER COMPSITE DATA');
+        }
+        if (dataElement.mandatory === true && dataElement.value === '') {
+          const desc = `[USAGE] ${dataElement.parent.name}-${dataElement.name}: ${dataElement.mandatory} | ${this.value}`;
+          this._matchResult = new ValidationResult(ResultType.FAIL_VALIDATION_DATA_ELEMENT, desc);
+          return this._matchResult;
+        }
+        lastElement = 'SIMPLE';
+      }
+    }
+    return new ValidationResult(ResultType.SUCCESS, '');
   }
 
   get MessageElementType() {
