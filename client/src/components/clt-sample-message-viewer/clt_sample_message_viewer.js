@@ -1,4 +1,4 @@
-import SampleMessageViewer from './sample_message_viewer'
+import SampleMessageViewer from './lib/sample_message_viewer'
 import PopUtils from '../../common/utilities/popup.util'
 import { comShowMessage } from '../../common/utilities/common.util';
 
