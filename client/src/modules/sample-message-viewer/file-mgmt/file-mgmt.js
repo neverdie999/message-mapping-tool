@@ -30,9 +30,12 @@ class FileMgmt {
 			reader.onload = (event) => {		
 				if ($(`#${ID_INPUT_SPEC_FILE_NAME}`).val() === file.name) return
 
-				$(`#${ID_INPUT_SPEC_FILE_NAME}`).val(file.name)
+				if (!this.parent.loadSpecFile(event.target.result)) {
+					$(`#${ID_INPUT_SPEC_FILE}`).val('')
+					return
+				}
 
-				this.parent.loadSpecFile(event.target.result)
+				$(`#${ID_INPUT_SPEC_FILE_NAME}`).val(file.name)
 			}
 		})
 

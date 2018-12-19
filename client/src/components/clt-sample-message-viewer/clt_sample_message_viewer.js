@@ -1,5 +1,6 @@
 import SampleMessageViewer from './sample_message_viewer'
 import PopUtils from '../../common/utilities/popup.util'
+import { comShowMessage } from '../../common/utilities/common.util';
 
 class cltSampleMessageViewer {
 	constructor(props){
@@ -101,11 +102,15 @@ class cltSampleMessageViewer {
 	}
 
 	loadSpecFile(data) {
+		if (!this.isSpecData(data)) return false
+
 		this.specFile = data;
 
 		if (this.sampleFile !== '') {
 			this.loadData()
 		}
+
+		return true
 	}
 
 	loadSampleFile(data) {
@@ -118,6 +123,9 @@ class cltSampleMessageViewer {
 
 	loadData() {
 		if (this.specFile === '' || this.sampleFile === '') return
+		if (!this.isSpecData(this.specFile)) {
+			return
+		}
 		
 		this.main.jsTree = null
 		const result = this.main.makeTree(this.specFile, this.sampleFile)
@@ -344,8 +352,8 @@ class cltSampleMessageViewer {
     } 
  
     if (dataFormat === 'N') { 
-      const regexNumeric = /^(\+|-)?\d+[.,]?\d*$/; 
-      return regexNumeric.test(string); 
+      const regexNumeric = /^(\+|-)?\d+[.,]?\d*$/;
+      return regexNumeric.test(string);
     } 
  
     return true; 
@@ -360,6 +368,26 @@ class cltSampleMessageViewer {
 			$el.css('background-color', '')
 			$el.css('color', '')
 		}
+	}
+
+	isSpecData(data) {
+		//Validate data exists
+		if(data === '') return false
+
+		try {
+			data = JSON.parse(data)
+		} catch (error) {
+			comShowMessage(`[Spec data] ${error}`)
+			return false
+		}
+
+		// Validate struct data
+		if (!data.vertex || !data.boundary || !data.position || !data.vertexTypes) {
+			comShowMessage('Spec structure is corrupted. You should check it!')
+			return false
+		}
+
+		return true
 	}
 }
 

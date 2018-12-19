@@ -14,7 +14,7 @@ class MainMgmt {
 	}
 
 	loadSpecFile(data) {
-		this.cltSampleMessageViewer.loadSpecFile(data)
+		return this.cltSampleMessageViewer.loadSpecFile(data)
 	}
 
 	loadSampleFile(data) {
