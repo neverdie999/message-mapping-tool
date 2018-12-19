@@ -86,12 +86,12 @@ class MessageAssembler {
       dataSpecs.forEach((each, index) => {
         if (index === dataSpecs.length - 1) {
           if (lastMessageDataElementFlag) {
-            sampleDataElement += each.value;
+            sampleDataElement += this._assembleLastDataSpec(each);
           } else {
-            sampleDataElement += (each.value + delimiter.dataElementSeparator);
+            sampleDataElement += this._assembleNotLastDataSpec(each);
           }
         } else {
-          sampleDataElement += (each.value + delimiter.componentDataSeparator);
+          sampleDataElement += this._assembleNotLastMessageDataElement(each, delimiter);
         }
       });
       return sampleDataElement;
@@ -111,8 +111,37 @@ class MessageAssembler {
     } else {
       sampleDataElement += (dataSpecs[0].value + delimiter.dataElementSeparator);
     }
-
     return sampleDataElement;
+  }
+
+  _assembleLastDataSpec(dataSpec) {    
+    let sampledataElement = '';
+    if (dataSpec.matchResult.resultType !== ResultType.SUCCESS) {
+      sampledataElement += `<mark title=${dataSpec.spec.format}>${dataSpec.value}</mark>`;
+    } else {
+      sampledataElement += dataSpec.value;
+    }
+    return sampledataElement;
+  }
+
+  _assembleNotLastDataSpec(dataSpec) {
+    let sampledataElement = '';
+    if (dataSpec.matchResult.resultType !== ResultType.SUCCESS) {
+      sampledataElement += `<mark title=${dataSpec.spec.format}>${dataSpec.value}</mark>`;
+    } else {
+      sampledataElement += dataSpec.value;
+    }
+    return sampledataElement;
+  }
+
+  _assembleNotLastMessageDataElement(dataElement, delimiter) {
+    let sampledataElement = '';
+    if (dataElement.matchResult.resultType !== ResultType.SUCCESS) {
+      sampledataElement += `<mark title=${dataElement.spec.format}>${dataElement.value}${delimiter.componentDataSeparator}</mark>`;
+    } else {
+      sampledataElement += dataElement.value + delimiter.componentDataSeparator;
+    }
+    return sampledataElement;
   }
 }
 

@@ -12,46 +12,24 @@ class cltSampleMessageViewer {
 
 		this.bindMainEvent()
 
-		this.initPopupHtml()
-
 		this.bindEventForPopup()
 	}
 
 	bindMainEvent() {
-		$('#editSample').click(event => {
+		$('#btnEditSample').click(event => {
 			this.editSampleClickEvent(event)
+		})
+
+		$(`#btnViewFullText`).click((event) => {
+			this.viewFullText()
 		})
 	}
 
-	initPopupHtml() {
-		let sHtml = `
-    
-    <div id="popupFullText" class="modal fade" role="dialog" tabindex="-1">
-      <div class="modal-dialog">
-        <div class="web-dialog modal-content">
-          <div class="dialog-title">
-            <span class="title">Full Text</span>
-          </div>
-
-          <div class="dialog-wrapper">
-						<div>
-							<pre id='popupContent'></pre>
-						</div>
-            
-            <div class="dialog-button-top">
-              <div class="row text-right">
-                <button id="btnPopupClose" class="btn-etc">Close</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-		</div>`
-		
-		$('body').append(sHtml)
-	}
-
 	bindEventForPopup() {
+
+		$(`#btnExport`).click(() => {
+			this.export()
+		})
 
 		$(`#btnPopupClose`).click(() => {
 			let options = {popupId: `popupFullText`}
@@ -142,7 +120,7 @@ class cltSampleMessageViewer {
 		}
 
 		// Clear screen
-		$('#editSample').hide()
+		$('#btnEditSample').hide()
 		$('#btnViewFullText').hide()
 		$('#detailHead').html('');
 		$('#detailBody').html('');
@@ -195,7 +173,7 @@ class cltSampleMessageViewer {
 			const id = (data.instance.get_node(data.selected).id);
 			this.messageElement = this.main.getDetail(id);
 			if (this.messageElement.constructor.name === "MessageSegment") {
-				$('#editSample').show()
+				$('#btnEditSample').show()
 				$('#btnViewFullText').show()
 
 				$('#detailBody').html('');
@@ -388,6 +366,28 @@ class cltSampleMessageViewer {
 		}
 
 		return true
+	}
+
+	export() {
+		const editedSampleText = $('#popupContent')[0].innerText
+
+		let blob = new Blob([editedSampleText], {type: 'application/text', charset: 'utf-8'})
+
+		const fileName = 'sample'
+
+		if (navigator.msSaveBlob) {
+			navigator.msSaveBlob(blob, fileName)
+			return
+		}
+
+		let fileUrl = window.URL.createObjectURL(blob)
+		let downLink = $('<a>')
+		downLink.attr('download', `${fileName}.txt`)
+		downLink.attr('href', fileUrl)
+		downLink.css('display', 'none')
+		$('body').append(downLink)
+		downLink[0].click()
+		downLink.remove()
 	}
 }
 

@@ -20,9 +20,5 @@ class MainMgmt {
 	loadSampleFile(data) {
 		this.cltSampleMessageViewer.loadSampleFile(data)
 	}
-
-	viewFullText() {
-		this.cltSampleMessageViewer.viewFullText()
-	}
 }
 export default MainMgmt

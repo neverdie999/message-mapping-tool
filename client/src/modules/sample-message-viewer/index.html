@@ -44,7 +44,7 @@
 					<!-- Top button (S) -->
 					<div class="dialog-button-top" id="${HTML_GROUP_BTN_DYNAMIC_DATASET}_${this.svgId}">
 						<div class="row text-right">
-							<button id="editSample" class="btn-etc" style="display: none; line-height: 20px">Edit sample</button>
+							<button id="btnEditSample" class="btn-etc" style="display: none; line-height: 20px">Edit sample</button>
 							<button id="btnViewFullText" class="btn-etc" style="display: none; line-height: 20px">View full text</button>
 						</div>
 					</div>
@@ -65,6 +65,31 @@
 			
 	</div>
 	<!-- PAGE CONTENT (E) -->
+
+	<!-- View full text popup (S) -->
+	<div id="popupFullText" class="modal fade" role="dialog" tabindex="-1">
+		<div class="modal-dialog">
+			<div class="web-dialog modal-content">
+				<div class="dialog-title">
+					<span class="title">Full Text</span>
+				</div>
+
+				<div class="dialog-wrapper">
+					<div>
+						<pre id='popupContent'></pre>
+					</div>
+					
+					<div class="dialog-button-top">
+						<div class="row text-right">
+							<button id="btnExport" class="btn-etc">Export</button>
+							<button id="btnPopupClose" class="btn-etc">Close</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- View full text popup (E) -->
 	
 	<!-- File Management (S) -->
 	<div class="container-file">

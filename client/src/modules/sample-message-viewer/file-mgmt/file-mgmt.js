@@ -4,7 +4,6 @@ const ID_INPUT_SPEC_FILE = 'specFile'
 const ID_INPUT_SPEC_FILE_NAME = 'specFileName'
 const ID_INPUT_SAMPLE_FILE = 'sampleFile'
 const ID_INPUT_SAMPLE_FILE_NAME = 'sampleFileName'
-const ID_BUTTON_VIEW_FULL_TEXT = 'btnViewFullText'
 
 class FileMgmt {
 	constructor(props) {
@@ -52,11 +51,6 @@ class FileMgmt {
 
 				this.parent.loadSampleFile(event.target.result)
 			}
-		})
-
-		// Handle event click on button Download
-		$(`#${ID_BUTTON_VIEW_FULL_TEXT}`).click((event) => {
-			this.parent.viewFullText()
 		})
 	}
 
