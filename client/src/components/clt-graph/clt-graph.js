@@ -194,10 +194,10 @@ class CltGraph {
 	async loadGraphData(graphData) {
 		let resMessage = await this.validateGraphDataStructure(graphData)
 
-		if(resMessage != 'ok') {
-			comShowMessage('Format or data in Data Graph Structure is corrupted. You should check it!')
+		if(resMessage.type !== 'ok') {
+			comShowMessage(resMessage.message)
 
-			if(resMessage == 'error')
+			if(resMessage.type === 'error')
 				return
 		}
 
@@ -272,14 +272,20 @@ class CltGraph {
 		if(data===undefined)
 		{
 			console.log('Data does not exist')
-			return Promise.resolve('error')
+			return Promise.resolve({
+				type: 'error',
+				message: 'Empty data.'
+			})
 		}
 
 		// Validate struct data
 		if (!data.vertex || !data.boundary || !data.position || !data.vertexTypes ||
       (Object.keys(data.vertexTypes).length === 0 && data.vertexTypes.constructor === Object)) {
 			console.log('Data Graph Structure is corrupted. You should check it!')
-			return Promise.resolve('error')
+			return Promise.resolve({
+				type: 'error',
+				message: 'Data Graph Structure is corrupted. You should check it!'
+			})
 		}
 
 		// Validate embedded vertex type with vertices
@@ -291,8 +297,11 @@ class CltGraph {
 			let type = vertex.vertexType
 			// If vertex type not exit in embedded vertex type
 			if (types.indexOf(type) < 0) {
-				console.log('[Graph Data Structure] Vertex type not exits in embedded vertex type')
-				return Promise.resolve('warning')
+				console.log('Vertex type not exits in embedded vertex type')
+				return Promise.resolve({
+					type: 'warning',
+					message: 'Vertex type not exits in embedded vertex type'
+				})
 			}
 
 			// Validate data key between embedded vertex and vetex in graph.
@@ -303,20 +312,29 @@ class CltGraph {
 
 			// Check length key
 			if (this.checkLengthMisMatch(keySource, keyTarget)) {
-				console.log('[Graph Data Structure] Data\'s length is different')
-				return Promise.resolve('warning')
+				console.log('Data\'s length is different')
+				return Promise.resolve({
+					type: 'warning',
+					message: 'Data\'s length is different'
+				})
 			}
 
 			// Check mismatch key
 			let flag = await this.checkKeyMisMatch(keySource, keyTarget)
 
 			if (flag) {
-				console.log('[Graph Data Structure] Key vertex at source not exit in target')
-				return Promise.resolve('warning')
+				console.log('Key vertex at source not exit in target')
+				return Promise.resolve({
+					type: 'warning',
+					message: 'Key vertex at source not exit in target'
+				})
 			}
 		}
 
-		return Promise.resolve('ok')
+		return Promise.resolve({
+			type: 'ok',
+			message: ''
+		})
 	}
 
 	/**
