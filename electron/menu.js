@@ -115,30 +115,30 @@ class MenuBuilder {
 
 	buildDefaultTemplate(calbackFunc) {
 		const templateDefault = [{
-			label: '&Create',
+			label: '&Tool',
 			submenu: [{
-				label: 'Message Segment',
+				label: 'Segment Set Editor',
 				// accelerator: 'Ctrl+O',
 				click: () => {
-					calbackFunc('MessageSegment')
+					calbackFunc('SegmentSetEditor')
 				}
 			},{
-				label: 'Message Spec',
+				label: 'Message Spec Editor',
 				// accelerator: 'Ctrl+O',
 				click: () => {
-					calbackFunc('MessageSpec')
+					calbackFunc('MessageSpecEditor')
 				}
 			},{
-				label: 'Message Mapping',
+				label: 'Message Mapping Editor',
 				// accelerator: 'Ctrl+O',
 				click: () => {
-					calbackFunc('MessageMapping')
+					calbackFunc('MessageMappingEditor')
 				}
 			},{
-				label: 'Sample Message',
+				label: 'Sample Message Viewer',
 				// accelerator: 'Ctrl+O',
 				click: () => {
-					calbackFunc('SampleMessage')
+					calbackFunc('SampleMessageViewer')
 				}
 			}, {
 				label: '&Close',

@@ -30,28 +30,28 @@ let mainWindow = null;
 
 function callBackFunc(res) {
   switch(res) {
-    case 'MessageSegment':
+    case 'SegmentSetEditor':
       mainWindow.loadURL(url.format ({
         pathname: path.join(__dirname, '/../client/src/modules/segment-set-editor/index.html'),
         protocol: 'file:',
         slashes: true
       }));
     break;
-    case 'MessageSpec':
+    case 'MessageSpecEditor':
       mainWindow.loadURL(url.format ({
         pathname: path.join(__dirname, '/../client/src/modules/graph-library/index.html'),
         protocol: 'file:',
         slashes: true
       }));
     break;
-    case 'MessageMapping':
+    case 'MessageMappingEditor':
       mainWindow.loadURL(url.format ({
         pathname: path.join(__dirname, '/../client/src/modules/message-mapping-gui/index.html'),
         protocol: 'file:',
         slashes: true
       }));
     break;
-    case 'SampleMessage':
+    case 'SampleMessageViewer':
       mainWindow.loadURL(url.format ({
         pathname: path.join(__dirname, '/../client/src/modules/sample-message-viewer/index.html'),
         protocol: 'file:',
@@ -88,7 +88,7 @@ app.on('ready', async () => {
     pathname: path.join(__dirname, '/../client/src/modules/message-mapping-gui/index.html'),
     protocol: 'file:',
     slashes: true
-  }));
+	}));
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools();

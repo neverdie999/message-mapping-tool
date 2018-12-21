@@ -101,12 +101,15 @@ class cltSampleMessageViewer {
 
 	loadData() {
 		if (this.specFile === '' || this.sampleFile === '') return
+		
 		if (!this.isSpecData(this.specFile)) {
 			return
 		}
+
+		const messageGroupType = $(`#messageGroupType`).val()
 		
 		this.main.jsTree = null
-		const result = this.main.makeTree(this.specFile, this.sampleFile)
+		const result = this.main.makeTree(this.specFile, this.sampleFile, messageGroupType)
 
 		// Load data failed
 		if (result && result.length > 0 && !result[0].isValid()) {

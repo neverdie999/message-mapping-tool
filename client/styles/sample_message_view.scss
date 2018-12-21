@@ -90,7 +90,7 @@ input[type="file"] {
 	color:#636363!important;
 }
 
-.form-group .control-label:after { 
+.form-group .mandatory-label:after { 
 	content:"*";
 	color:red;
 }

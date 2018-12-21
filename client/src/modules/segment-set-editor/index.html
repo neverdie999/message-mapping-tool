@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
-  <title>ALGETA GUI Mapping Tool</title>
+  <title>Segment Set Editor</title>
   <meta name="description" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -31,19 +31,19 @@
 			<div>
 				<form class="form-horizontal">
 					<div class="form-group">
-						<label class="control-label font-weight-700 col-sm-2">File Input</label>
+						<label class="control-label font-weight-700 col-sm-3">Input File</label>
 						<div class="col-sm-6">
 							<div class="group-type-file-input">
 								<select id="optionFileTypeInput" class="form-control" style="width: 200px">
 									<option value="VERTEX_TYPE" selected>Vertex Group Definition</option>
-									<option value="GRPH_DATA">Segment Data Structure</option>
+									<option value="GRPH_DATA">Segment Set</option>
 								</select>
 								<input type="file" class="form-control" id="inputFileData" name="inputFileData" style="width: calc(100% - 200px)">
 							</div>
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="control-label font-weight-700 col-sm-2">Save File</label>
+						<label class="control-label font-weight-700 col-sm-3">Save File</label>
 						<div class="col-sm-6">
 							<div class="input-group">
 								<input class="form-control" name="outFile" id="outputFileName" placeholder="Enter file name">
