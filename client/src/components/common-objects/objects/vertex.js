@@ -96,7 +96,7 @@ class Vertex {
 		this.type = 'V'
 		this.show = true
 
-		if ( !this.dataContainer.vertex ) this.dataContainer.vertex = []
+		if (!this.dataContainer.vertex) this.dataContainer.vertex = []
 		this.dataContainer.vertex.push(this)
 
 		let group = d3.select(`#${this.svgId}`).selectAll(`.${this.selectorClass}`)

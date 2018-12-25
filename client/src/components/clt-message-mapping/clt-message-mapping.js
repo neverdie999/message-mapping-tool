@@ -418,7 +418,7 @@ class CltMessageMapping {
 			}
 
 			// Check mismatch key
-			let flag = await this.checkKeyMisMatch(keySource, keyTarget)
+			const flag = await this.checkKeyMisMatch(keySource, keyTarget)
 
 			if (flag) {
 				console.log('[Graph Data Structure] Key vertex at source not exit in target')
@@ -684,8 +684,7 @@ class CltMessageMapping {
 			height: boundary.height,
 			parent: boundary.parent,
 			mandatory: boundary.mandatory,
-			repeat: boundary.repeat,
-			svgId: boundary.svgId
+			repeat: boundary.repeat
 		}
 	}
 
@@ -703,8 +702,7 @@ class CltMessageMapping {
 			groupType: vertex.groupType,
 			parent: vertex.parent,
 			mandatory: vertex.mandatory,
-			repeat: vertex.repeat,
-			svgId: vertex.svgId
+			repeat: vertex.repeat
 		}
 	}
 

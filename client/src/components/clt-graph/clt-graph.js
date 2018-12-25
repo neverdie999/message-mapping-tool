@@ -482,8 +482,7 @@ class CltGraph {
 			height: boundary.height,
 			parent: boundary.parent,
 			mandatory: boundary.mandatory,
-			repeat: boundary.repeat,
-			svgId: boundary.svgId
+			repeat: boundary.repeat
 		}
 	}
 
@@ -501,8 +500,7 @@ class CltGraph {
 			groupType: vertex.groupType,
 			parent: vertex.parent,
 			mandatory: vertex.mandatory,
-			repeat: vertex.repeat,
-			svgId: vertex.svgId
+			repeat: vertex.repeat
 		}
 	}
 
