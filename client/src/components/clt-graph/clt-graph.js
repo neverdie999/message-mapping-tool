@@ -591,7 +591,7 @@ class CltGraph {
 		})
 
 		lstNoneParentVertex.forEach(item => {
-			this.doValidateConnectionByUsage(item)
+			item.validateConnectionByUsage()
 		})
 	}
 }
