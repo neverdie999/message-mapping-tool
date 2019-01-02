@@ -3,35 +3,31 @@ const MessageGroupFormatFactory = require('../message_spec/message_group_format_
 const ScannerWriter = require('./scanner_writer');
 
 class ScannerWriterFactory {
-  static createFixedLengthByLine(config={}) {
+  static createFixedLengthByLine(config = {}) {
     const fixedLengthGroupFormat = MessageGroupFormatFactory.createFixedLength(config);
     const segmentScanFormatter = ({
       segmentName,
-    }) => {
-      return [
-        `scanVal("", ${segmentName});`,
-      ];
-    };
+    }) => [
+      `scanVal("", ${segmentName});`,
+    ];
     return new ScannerWriter(fixedLengthGroupFormat, segmentScanFormatter);
   }
 
-  static createFixedLengthWithIndexedItem(config={}) {
+  static createFixedLengthWithIndexedItem(config = {}) {
     const fixedLengthGroupFormat = MessageGroupFormatFactory.createFixedLength(config);
     const segmentScanFormatter = ({
       lengthListVar,
       lengthList,
       segmentName,
       nDataElement,
-    }) => {
-      return [
-        `const int ${lengthListVar}[] = {${lengthList}};`,
-        `scanValLen("", ${segmentName}, ${lengthListVar}, ${nDataElement});`,
-      ];
-    };
+    }) => [
+      `const int ${lengthListVar}[] = {${lengthList}};`,
+      `scanValLen("", ${segmentName}, ${lengthListVar}, ${nDataElement});`,
+    ];
     return new ScannerWriter(fixedLengthGroupFormat, segmentScanFormatter);
   }
 
-  static createFixedLengthWithNamedItem(config={}) {
+  static createFixedLengthWithNamedItem(config = {}) {
     const fixedLengthGroupFormat = MessageGroupFormatFactory.createFixedLength(config);
     const segmentScanFormatter = ({
       lengthListVar,
@@ -40,30 +36,26 @@ class ScannerWriterFactory {
       nameList,
       segmentName,
       nDataElement,
-    }) => {
-      return [
-        `const int ${lengthListVar}[] = {${lengthList}};`,
-        `const char* ${nameListVar}[] = {${nameList}};`,
-        `scanValLenWithName("", ${segmentName}, ${lengthListVar}, ${nameListVar}, ${nDataElement});`,
-      ]
-    };
+    }) => [
+      `const int ${lengthListVar}[] = {${lengthList}};`,
+      `const char* ${nameListVar}[] = {${nameList}};`,
+      `scanValLenWithName("", ${segmentName}, ${lengthListVar}, ${nameListVar}, ${nDataElement});`,
+    ];
     return new ScannerWriter(fixedLengthGroupFormat, segmentScanFormatter);
   }
 
-  static createDelimiterWithIndexedItem(config={}) {
+  static createDelimiterWithIndexedItem(config = {}) {
     const delimiterGroupFormat = MessageGroupFormatFactory.createDelimiter(config);
     const segmentScanFormatter = ({
       dataElementSeparator,
       segmentName,
-    }) => {
-      return [
-        `scanValDelim("", '${dataElementSeparator}', ${segmentName});`,
-      ];
-    }
+    }) => [
+      `scanValDelim("", '${dataElementSeparator}', ${segmentName});`,
+    ];
     return new ScannerWriter(delimiterGroupFormat, segmentScanFormatter);
   }
 
-  static createDelimiterWithNamedItem(config={}) {
+  static createDelimiterWithNamedItem(config = {}) {
     const delimiterGroupFormat = MessageGroupFormatFactory.createDelimiter(config);
     const segmentScanFormatter = ({
       nameListVar,
@@ -71,24 +63,20 @@ class ScannerWriterFactory {
       dataElementSeparator,
       segmentName,
       nDataElement,
-    }) => {
-      return [
-        `const char* ${nameListVar}[] = {${nameList}};`,
-        `scanValDelimWithName("", '${dataElementSeparator}', ${segmentName}, ${nameListVar}, ${nDataElement});`,
-      ];
-    };
+    }) => [
+      `const char* ${nameListVar}[] = {${nameList}};`,
+      `scanValDelimWithName("", '${dataElementSeparator}', ${segmentName}, ${nameListVar}, ${nDataElement});`,
+    ];
     return new ScannerWriter(delimiterGroupFormat, segmentScanFormatter);
   }
 
-  static createDictionary(config={}) {
+  static createDictionary(config = {}) {
     const dictionaryGroupFormat = MessageGroupFormatFactory.createDictionary(config);
     const segmentScanFormatter = ({
       dataElementName,
-    }) => {
-      return [
-        `scanVal("${dataElementName}:", ${dataElementName});`,
-      ];
-    };
+    }) => [
+      `scanVal("${dataElementName}:", ${dataElementName});`,
+    ];
     return new ScannerWriter(dictionaryGroupFormat, segmentScanFormatter);
   }
 }

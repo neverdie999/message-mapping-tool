@@ -20,7 +20,7 @@ class MessageParser {
    * @param {Object} currentMatchedSegmentGroup
    * @param {Object} currentMatchedSegment
    */
-  constructor(delimiter, messageType='', lastMatchedSegmentGroup, lastMatchedMessageSegmentGroup=null, currentSegmentGroupStack=[], lastMatchedSegment='', lastMatchedMessageSegment='', currentMatchedSegmentGroup='', currentMatchedSegment='') {
+  constructor(delimiter, messageType = '', lastMatchedSegmentGroup, lastMatchedMessageSegmentGroup = null, currentSegmentGroupStack = [], lastMatchedSegment = '', lastMatchedMessageSegment = '', currentMatchedSegmentGroup = '', currentMatchedSegment = '') {
     this._delimiter = delimiter;
     this._messageType = messageType;
     this._lastMatchedSegmentGroup = lastMatchedSegmentGroup;
@@ -68,7 +68,7 @@ class MessageParser {
         this._currentSegmentGroupStack.push(segmentGroupName);
         continue;
       }
-      
+
       let matchResult = new MatchResult();
       const currentSegmentGroup = this._lastMatchedSegmentGroup;
       matchResult = this._matchStructureFromChildren(messageSampleSegments[i], currentSegmentGroup);
@@ -155,14 +155,12 @@ class MessageParser {
           }
           messageSegmentGroupParent = messageSegmentGroupParent.parent;
         }
+      } else if (this._lastMatchedMessageSegmentGroup.parent.parent) {
+        messageSegmentGroupParent = this._lastMatchedMessageSegmentGroup.parent;
       } else {
-        if (this._lastMatchedMessageSegmentGroup.parent.parent) {
-          messageSegmentGroupParent = this._lastMatchedMessageSegmentGroup.parent;
-        } else {
-          messageSegmentGroupParent = this._lastMatchedMessageSegmentGroup;
-        }
+        messageSegmentGroupParent = this._lastMatchedMessageSegmentGroup;
       }
-      
+
       if (matchResult.matchedSegment.parent.name === messageSegmentGroupParent.parent.name) {
         messageSegmentGroupParent.parent.children.push(this._parseSegment(eachMessageSampleSegment, this._currentMatchedSegment.name, messageSegmentGroupParent.parent));
         this._lastMatchedMessageSegmentGroup = messageSegmentGroupParent.parent;
@@ -186,7 +184,7 @@ class MessageParser {
     return new MatchResult(ResultType.FAIL_FIND_TARGET_GROUP, `[${this._currentMatchedSegmentGroup.name}]INVALID GROUP`);
   }
 
-  _parseSegment(messageSampleSegment, messageSampleSegmentName='', parent) {
+  _parseSegment(messageSampleSegment, messageSampleSegmentName = '', parent) {
     const newMessageSegment = new MessageSegment(messageSampleSegmentName);
     newMessageSegment.parent = parent;
     this._setMessageSegmentOrder(newMessageSegment);
@@ -403,7 +401,7 @@ class MessageParser {
     console.log(this._currentMatchedSegment.maxRepeat);
   }
 
-  _splitByDelimiter(string, delimiter, releaseChar, removeReleaseChar=false) {
+  _splitByDelimiter(string, delimiter, releaseChar, removeReleaseChar = false) {
     const tokens = [];
     const buffer = [];
     let processingRelease = false;
@@ -435,7 +433,7 @@ class MessageParser {
   }
 
   _needNewGroup(eachSampleSegmentIndex) {
-    const values = Object.values(this._currentMatchedSegmentGroup._instances[this._currentMatchedSegmentGroup._instances.length -1]);
+    const values = Object.values(this._currentMatchedSegmentGroup._instances[this._currentMatchedSegmentGroup._instances.length - 1]);
     let segmentAppearanceOneCounter = 0;
     let segmentAppearanceZeroCounter = 0;
     values.forEach((value) => {

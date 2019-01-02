@@ -3,7 +3,7 @@ const MessageGroupFormat = require('./message_group_format');
 
 /**
  * @class
- * A factory 
+ * A factory
  */
 class MessageGroupFormatFactory {
   static create(messageGroupFormatType) {

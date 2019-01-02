@@ -54,7 +54,7 @@ class MapperWriter {
     return this._codeLines.join('\n');
   }
 
-  _writeLine(codeLine, indentLevel=0, indentChar='\t') {
+  _writeLine(codeLine, indentLevel = 0, indentChar = '\t') {
     const indent = indentChar.repeat(indentLevel);
     this._codeLines.push(`${indent}${codeLine}`);
   }
@@ -76,7 +76,7 @@ class MapperWriter {
     this._writeLine('}', 1);
   }
 
-  _writeOutputSegmentGroupVariables(outputMessageSpec, bufferSize=128) {
+  _writeOutputSegmentGroupVariables(outputMessageSpec, bufferSize = 128) {
     const segmentGroupCount = outputMessageSpec.boundary.length;
     this._writeLine('');
     for (let i = 0; i < segmentGroupCount; i += 1) {
@@ -89,7 +89,7 @@ class MapperWriter {
     // }
   }
 
-  _writeOutputSegmentVariables(bufferSize=128) {
+  _writeOutputSegmentVariables(bufferSize = 128) {
     this._writeLine('');
     this._writeLine(`char ${this._outputVariableNameFormatter.segmentIdVarName()}[${bufferSize}] = { 0 };`, 1);
     this._writeLine(`char ${this._outputVariableNameFormatter.segmentCounterVarName()}[${bufferSize}] = { 0 };`, 1);

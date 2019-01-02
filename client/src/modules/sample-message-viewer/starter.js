@@ -1,20 +1,19 @@
-import '../../../styles/sample_message_view.scss'
-import '../../../styles/index.scss'
-import MainMgmt from './main-mgnt/main-mgmt'
+import '../../../styles/sample_message_view.scss';
+import '../../../styles/index.scss';
+import MainMgmt from './main-mgnt/main-mgmt';
 
 class Starter {
-	constructor() {
-		this.initialize()
-	}
+  constructor() {
+    this.initialize();
+  }
 
-	initialize() {
-
-		/**
+  initialize() {
+    /**
      * Init MainMgmt
      * @type {MainMgmt}
      */
-		new MainMgmt()
-	}
+    new MainMgmt();
+  }
 }
 
-new Starter()
+new Starter();

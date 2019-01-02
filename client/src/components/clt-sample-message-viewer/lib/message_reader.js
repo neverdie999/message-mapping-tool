@@ -1,4 +1,4 @@
-'use strict';
+
 
 const FileReader = require('./file_reader');
 /**

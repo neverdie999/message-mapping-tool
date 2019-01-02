@@ -31,21 +31,15 @@ class FunctionMap {
   }
 
   static _upcase() {
-    return (input) => {
-      return `x_upcase(${input})`;
-    };
+    return input => `x_upcase(${input})`;
   }
 
   static _downcase() {
-    return (input) => {
-      return `x_downcase(${input})`;
-    };
+    return input => `x_downcase(${input})`;
   }
 
   static _trim() {
-    return (input) => {
-      return `x_trim(${input})`;
-    };
+    return input => `x_trim(${input})`;
   }
 
   static _replace(operation) {

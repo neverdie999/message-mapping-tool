@@ -1,4 +1,4 @@
-'use strict';
+
 
 const fs = require('fs');
 
@@ -13,7 +13,7 @@ class FileReader {
    * @returns {String}
    */
   static read(fileName) {
-    try {      
+    try {
       const data = fs.readFileSync(fileName);
       return data.toString();
     } catch (ex) {

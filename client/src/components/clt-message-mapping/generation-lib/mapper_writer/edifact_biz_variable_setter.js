@@ -33,7 +33,7 @@ class InputSegmentGroup {
     }
   }
 
-  toString(depth=0, indent=' '.repeat(2)) {
+  toString(depth = 0, indent = ' '.repeat(2)) {
     const currentIndent = indent.repeat(depth);
     const lines = [];
     lines.push(`${currentIndent}[GRP${this._groupIndex}] ${this._name}`);
@@ -43,7 +43,7 @@ class InputSegmentGroup {
     return lines.join('\n');
   }
 
-  printCode(depth=1, indent='\t') {
+  printCode(depth = 1, indent = '\t') {
     if (this._children.length === 0) {
       return '';
     }
@@ -114,7 +114,7 @@ class InputSegment {
     return `${this._groupIndex}${this._segmentIndex}`;
   }
 
-  zeroPad(number, length=2) {
+  zeroPad(number, length = 2) {
     return String(number).padStart(length, '0');
   }
 
@@ -129,7 +129,7 @@ class InputSegment {
     }
   }
 
-  toString(depth=0, indent=' '.repeat(2)) {
+  toString(depth = 0, indent = ' '.repeat(2)) {
     const currentIndent = indent.repeat(depth);
     return `${currentIndent}> [SGM${this._segmentIndex}] ${this._name}`;
   }
@@ -224,7 +224,7 @@ class OutputSegmentGroup {
     }
   }
 
-  toString(depth=0, indent=' '.repeat(2)) {
+  toString(depth = 0, indent = ' '.repeat(2)) {
     const currentIndent = indent.repeat(depth);
     const lines = [];
     lines.push(`${currentIndent}[GRP${this._groupIndex}] ${this._name}`);
@@ -324,7 +324,7 @@ class OutputSegment {
     operationChains.push(operationChain);
   }
 
-  toString(depth=0, indent=' '.repeat(2)) {
+  toString(depth = 0, indent = ' '.repeat(2)) {
     const currentIndent = indent.repeat(depth);
     return `${currentIndent}> [SGM] ${this._name}`;
   }
@@ -380,7 +380,7 @@ class OutputSegment {
 }
 
 class EdifactBizVariableSetter {
-  constructor(dataElementNameFormatter=(segmentName, dataElement) => `${segmentName}${String(dataElement.index).padStart(2, '0')}`) {
+  constructor(dataElementNameFormatter = (segmentName, dataElement) => `${segmentName}${String(dataElement.index).padStart(2, '0')}`) {
     this._dataElementNameFormatter = dataElementNameFormatter;
   }
 

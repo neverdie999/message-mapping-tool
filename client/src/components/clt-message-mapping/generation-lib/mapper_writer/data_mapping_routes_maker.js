@@ -62,7 +62,7 @@ class MappingData {
     };
   }
 
-  updateSource({ vertexId, dataIndex, dataName='' }) {
+  updateSource({ vertexId, dataIndex, dataName = '' }) {
     this._srcData.vertexId = vertexId;
     this._srcData.dataIndex = dataIndex;
     this._srcData.dataName = dataName;
@@ -95,7 +95,7 @@ class MappingData {
 }
 
 class DataMappingRoutesMaker {
-  constructor(inputSegmentMap, outputSegmentMap, operationMap, debug=false) {
+  constructor(inputSegmentMap, outputSegmentMap, operationMap, debug = false) {
     this._inputSegmentMap = inputSegmentMap;
     this._outputSegmentMap = outputSegmentMap;
     this._operationMap = operationMap;

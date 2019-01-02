@@ -1,24 +1,23 @@
-import FileMgmt from '../file-mgmt/file-mgmt'
-import cltSampleMessageViewer from '../../../components/clt-sample-message-viewer/clt_sample_message_viewer'
+import FileMgmt from '../file-mgmt/file-mgmt';
+import CltSampleMessageViewer from '../../../components/clt-sample-message-viewer/clt_sample_message_viewer';
 
 class MainMgmt {
-	constructor(props) {
+  constructor() {
+    this.cltSampleMessageViewer = new CltSampleMessageViewer({
+      parent: this,
+    });
 
-		this.cltSampleMessageViewer = new cltSampleMessageViewer({
-			parent: this
-		})
+    this.fileMgmt = new FileMgmt({
+      parent: this,
+    });
+  }
 
-		this.fileMgmt = new FileMgmt({
-			parent: this
-		})
-	}
+  loadSpecFile(data) {
+    return this.cltSampleMessageViewer.loadSpecFile(data);
+  }
 
-	loadSpecFile(data) {
-		return this.cltSampleMessageViewer.loadSpecFile(data)
-	}
-
-	loadSampleFile(data) {
-		this.cltSampleMessageViewer.loadSampleFile(data)
-	}
+  loadSampleFile(data) {
+    this.cltSampleMessageViewer.loadSampleFile(data);
+  }
 }
-export default MainMgmt
+export default MainMgmt;

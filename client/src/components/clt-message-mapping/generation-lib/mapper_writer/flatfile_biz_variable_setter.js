@@ -6,7 +6,7 @@ const inputVariableNameFormatter = new VariableNameFormatter('Input');
 const outputVariableNameFormatter = new VariableNameFormatter('Output');
 
 class InputSegmentGroup {
-  constructor(name, groupIndex=0) {
+  constructor(name, groupIndex = 0) {
     this._name = name;
     this._groupIndex = groupIndex;
     this._type = LoopType.INPUT_SEGMENT_GROUP;
@@ -27,7 +27,7 @@ class InputSegmentGroup {
     }
   }
 
-  toString(depth=0, indent=' '.repeat(2)) {
+  toString(depth = 0, indent = ' '.repeat(2)) {
     const currentIndent = indent.repeat(depth);
     const lines = [];
     lines.push(`${currentIndent}[GRP] ${this._name}`);
@@ -37,7 +37,7 @@ class InputSegmentGroup {
     return lines.join('\n');
   }
 
-  printCode(depth=1, indent='\t') {
+  printCode(depth = 1, indent = '\t') {
     const currentIndent = indent.repeat(depth);
     const innerIndent = indent.repeat(depth + 1);
     const inputGroupIndexVarName = inputVariableNameFormatter.segmentGroupIndexVarName(this.name);
@@ -88,7 +88,7 @@ class InputSegmentGroup {
 }
 
 class InputSegment {
-  constructor(name, segmentIndex=0) {
+  constructor(name, segmentIndex = 0) {
     this._name = name;
     this._segmentIndex = segmentIndex;
     this._type = LoopType.INPUT_SEGMENT;
@@ -103,7 +103,7 @@ class InputSegment {
     return this._type;
   }
 
-  toString(depth=0, indent=' '.repeat(2)) {
+  toString(depth = 0, indent = ' '.repeat(2)) {
     const currentIndent = indent.repeat(depth);
     return `${currentIndent}> [SGM] ${this._name}`;
   }
@@ -173,7 +173,7 @@ class OutputSegmentGroup {
     }
   }
 
-  toString(depth=0, indent=' '.repeat(2)) {
+  toString(depth = 0, indent = ' '.repeat(2)) {
     const currentIndent = indent.repeat(depth);
     const lines = [];
     lines.push(`${currentIndent}[GRP${this._groupIndex}] ${this._name}`);
@@ -266,7 +266,7 @@ class OutputSegment {
     operationChains.push(operationChain);
   }
 
-  toString(depth=0, indent=' '.repeat(2)) {
+  toString(depth = 0, indent = ' '.repeat(2)) {
     const currentIndent = indent.repeat(depth);
     return `${currentIndent}> [SGM] ${this._name}`;
   }
@@ -321,7 +321,7 @@ class OutputSegment {
 }
 
 class FlatFileBizVariableSetter {
-  constructor(dataElementNameFormatter=(segmentName, dataElement) => {
+  constructor(dataElementNameFormatter = (segmentName, dataElement) => {
     const dataElementName = dataElement.name ? dataElement.name.trim().replace(/\s+/g, '_') : dataElement.index;
     return `${segmentName}_${dataElementName}`;
   }) {

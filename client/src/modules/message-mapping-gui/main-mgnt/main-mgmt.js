@@ -31,18 +31,18 @@ class MainMgmt {
    * @param data
    * @param option
    */
-	async separateDataToManagement(data, option) {
+	async separateDataToManagement(data, option, fileName) {
 		if (option === 'DATA_INPUT_MESSAGE') {
-			await this.cltMessageMapping.LoadInputMessage(data)
+			await this.cltMessageMapping.LoadInputMessage(data, fileName)
 
 		}else if (option === 'DATA_OUTPUT_MESSAGE') {
-			await this.cltMessageMapping.LoadOutputMessage(data)
+			await this.cltMessageMapping.LoadOutputMessage(data, fileName)
 
 		}else if (option === 'DATA_VERTEX_DEFINE_OPERATIONS') {
-			await this.cltMessageMapping.LoadOperationsVertexDefinition(data)
+			await this.cltMessageMapping.LoadOperationsVertexDefinition(data, fileName)
 
 		}else if (option === 'DATA_MESSAGE_MAPPING_DEFINITION') {
-			await this.cltMessageMapping.LoadMesseageMapping(data)
+			await this.cltMessageMapping.LoadMesseageMapping(data, fileName)
 		}
 
 		if (this.cltMessageMapping.storeInputMessage.boundary.length > 0

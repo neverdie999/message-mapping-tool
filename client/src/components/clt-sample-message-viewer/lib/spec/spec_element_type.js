@@ -26,7 +26,7 @@ class SpecElementType {
 
   static isDataElement(type) {
     return type === SpecElementType.DataElement;
-  }  
+  }
 }
 
 module.exports = SpecElementType;

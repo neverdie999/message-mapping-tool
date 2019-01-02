@@ -43,7 +43,7 @@ class SegmentGroupIndexMap {
     if (root === undefined) {
       return segmentGroupIndexMap;
     }
-    
+
     let segmentGroupIndex = 0;
     segmentGroupIndexMap.set(root.id, { name: root.name, index: segmentGroupIndex });
     segmentGroupIndex += 1;

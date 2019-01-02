@@ -20,7 +20,7 @@ class Branch {
     this.state = state;
     this.li_attr = li_attr;
     this.a_attr = a_attr;
-  } 
+  }
 }
 
 module.exports = Branch;

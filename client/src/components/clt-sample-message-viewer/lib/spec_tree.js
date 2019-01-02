@@ -1,4 +1,4 @@
-'use strict';
+
 
 const SegmentGroup = require('./spec/segment_group');
 const SpecElementType = require('./spec/spec_element_type');
@@ -33,8 +33,8 @@ class SpecTree {
 
   _createElementMap(segments, segmentGroups) {
     const elementMap = new Map();
-    
-    segments.forEach((segment) => {      
+
+    segments.forEach((segment) => {
       elementMap.set(segment.id, segment);
     });
     segmentGroups.forEach((segmentGroup) => {
@@ -46,7 +46,7 @@ class SpecTree {
         description,
         id,
         parent,
-        segmentCounter
+        segmentCounter,
       } = segmentGroup;
       const newSegmentGroup = new SegmentGroup(name, depth, maxRepeat, isMandatory, description, id, parent, segmentCounter);
       elementMap.set(id, newSegmentGroup);
@@ -69,12 +69,12 @@ class SpecTree {
     root.depth = 0;
     depth += 1;
     root.children.forEach((member) => {
-      if (SpecElementType.isSegmentGroup(member.elementType)) {            
+      if (SpecElementType.isSegmentGroup(member.elementType)) {
         member.depth = depth;
         groupList.push(member);
         member.addMemberToGroupList(groupList, depth);
       }
-    });    
+    });
     return groupList;
   }
 }

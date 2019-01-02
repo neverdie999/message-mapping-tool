@@ -1,20 +1,25 @@
-import * as d3 from 'd3'
-import _ from 'lodash'
-import ObjectUtils from '../../common/utilities/object.util'
-import VertexMgmt from '../common-objects/objects/vertex-mgmt'
-import BoundaryMgmt from '../common-objects/objects/boundary-mgmt'
-import EdgeMgmt from '../common-objects/objects/edge-mgmt'
-import MainMenu from '../common-objects/menu-context/main-menu'
+import * as d3 from 'd3';
+import _ from 'lodash';
+import ObjectUtils from '../../common/utilities/object.util';
+import VertexMgmt from '../common-objects/objects/vertex-mgmt';
+import BoundaryMgmt from '../common-objects/objects/boundary-mgmt';
+import EdgeMgmt from '../common-objects/objects/edge-mgmt';
+import MainMenu from '../common-objects/menu-context/main-menu';
 
 import {
 	comShowMessage,
 	setSizeGraph,
 	setMinBoundaryGraph,
-} from '../../common/utilities/common.util'
+	unsetAddressTabName,
+	setAddressTabName,
+} from '../../common/utilities/common.util';
 
 import { 
 	DEFAULT_CONFIG_GRAPH, VIEW_MODE,
-} from '../../common/const/index'
+} from '../../common/const/index';
+
+const ID_ADDRESS_SEGMENT_SET = 'addressSegmentSet';
+const ID_ADDRESS_MESSAGE_SPEC = 'addressMessageSpec';
 
 class CltGraph {
 	constructor(props) {
@@ -87,7 +92,14 @@ class CltGraph {
 
 	initSvgHtml() {
 		let sHtml = 
-    `<div id="${this.graphContainerId}" class="graphContainer" ref="${this.graphSvgId}">
+		`<!-- Address bar (S) -->
+		<div id="addressBar" class="address-bar">
+			<div id="${ID_ADDRESS_SEGMENT_SET}" class="address-tab" style="display: none"></div>
+			<div id="${ID_ADDRESS_MESSAGE_SPEC}" class="address-tab" style="display: none"></div>
+		</div>
+		<!-- Address bar (E) -->
+
+		<div id="${this.graphContainerId}" class="graphContainer" ref="${this.graphSvgId}">
         <svg id="${this.graphSvgId}" class="svg"></svg>
       </div>
       <svg id="${this.connectSvgId}" class="connect-svg"></svg>`
@@ -138,8 +150,11 @@ class CltGraph {
    * And reinit marker def
    */
 	clearAll() {
-		this.vertexMgmt.clearAll()
-		this.boundaryMgmt.clearAll()
+		this.vertexMgmt.clearAll();
+		this.boundaryMgmt.clearAll();
+
+		unsetAddressTabName(ID_ADDRESS_SEGMENT_SET);
+		unsetAddressTabName(ID_ADDRESS_MESSAGE_SPEC);
 
 		setSizeGraph({ width: DEFAULT_CONFIG_GRAPH.MIN_WIDTH, height: DEFAULT_CONFIG_GRAPH.MIN_HEIGHT }, this.graphSvgId)
 	}
@@ -191,74 +206,78 @@ class CltGraph {
 		}
 	}
 
-	async loadGraphData(graphData) {
-		let resMessage = await this.validateGraphDataStructure(graphData)
+	async loadGraphData(graphData, fileName) {
+		let resMessage = await this.validateGraphDataStructure(graphData);
 
 		if(resMessage.type !== 'ok') {
-			comShowMessage(resMessage.message)
+			comShowMessage(resMessage.message);
 
 			if(resMessage.type === 'error')
-				return
+				return;
 		}
 
 		//clear data
-		this.clearAll()
-		this.edgeMgmt.clearAll()
+		this.clearAll();
+		this.edgeMgmt.clearAll();
 
 		//Reload Vertex Define and draw graph
-		const {vertexTypes} = graphData
-		await this.vertexMgmt.processDataVertexTypeDefine(vertexTypes)
-		await this.drawObjects(graphData)
-		this.initMenuContext()
+		const {vertexTypes} = graphData;
+		await this.vertexMgmt.processDataVertexTypeDefine(vertexTypes);
+		await this.drawObjects(graphData);
+		this.initMenuContext();
 		
-		this.validateConnectionByUsage()
+		this.validateConnectionByUsage();
 
 		//Solve in case of save and import from different window size
-		this.objectUtils.updatePathConnectOnWindowResize(this.edgeMgmt, [this.dataContainer])
+		this.objectUtils.updatePathConnectOnWindowResize(this.edgeMgmt, [this.dataContainer]);
 
 		//Solve in case of save and import from different scroll position
-		this.objectUtils.onContainerSvgScroll(this.svgId, this.edgeMgmt, [this.dataContainer])
+		this.objectUtils.onContainerSvgScroll(this.svgId, this.edgeMgmt, [this.dataContainer]);
 
-		setMinBoundaryGraph(this.dataContainer,this.graphSvgId, this.viewMode.value)
+		setMinBoundaryGraph(this.dataContainer,this.graphSvgId, this.viewMode.value);
+
+		setAddressTabName(ID_ADDRESS_MESSAGE_SPEC, fileName);
 	}
 
 	save(fileName) {
 
 		if (!fileName) {
-			comShowMessage('Please input file name')
-			return
+			comShowMessage('Please input file name');
+			return;
 		}
 
 		this.getContentGraphAsJson().then(content => {
 			if (!content) {
-				comShowMessage('No content to export')
-				return
+				comShowMessage('No content to export');
+				return;
 			}
 			// stringify with tabs inserted at each level
-			let graph = JSON.stringify(content, null, '\t')
-			let blob = new Blob([graph], {type: 'application/json', charset: 'utf-8'})
+			let graph = JSON.stringify(content, null, '\t');
+			let blob = new Blob([graph], {type: 'application/json', charset: 'utf-8'});
 
 			if (navigator.msSaveBlob) {
-				navigator.msSaveBlob(blob, fileName)
-				return
+				navigator.msSaveBlob(blob, fileName);
+				return;
 			}
 
-			let fileUrl = window.URL.createObjectURL(blob)
-			let downLink = $('<a>')
-			downLink.attr('download', `${fileName}.json`)
-			downLink.attr('href', fileUrl)
-			downLink.css('display', 'none')
-			$('body').append(downLink)
-			downLink[0].click()
-			downLink.remove()
+			let fileUrl = window.URL.createObjectURL(blob);
+			let downLink = $('<a>');
+			downLink.attr('download', `${fileName}.json`);
+			downLink.attr('href', fileUrl);
+			downLink.css('display', 'none');
+			$('body').append(downLink);
+			downLink[0].click();
+			downLink.remove();
 		}).catch(err => {
-			comShowMessage(err)
+			comShowMessage(err);
 		})
 	}
 
-	LoadVertexDefinition(vertexDefinitionData) {
+	LoadVertexDefinition(vertexDefinitionData, fileName) {
 		if (this.vertexMgmt.LoadVertexDefinition(vertexDefinitionData)) {
-			this.initMenuContext()
+			this.initMenuContext();
+
+			setAddressTabName(ID_ADDRESS_SEGMENT_SET, fileName);
 		}
 	}
 

@@ -609,14 +609,14 @@ class SegmentMgmt {
 	LoadVertexGroupDefinition(vertexDefinitionData) {
 		//Validate data struct
 		if (!this.validateVertexGourpDefineStructure(vertexDefinitionData)) {
-			comShowMessage('Format or data in Vertex Group Definition Structure is corrupted. You should check it!')
-			return false
+			comShowMessage('Format or data in Vertex Group Definition Structure is corrupted. You should check it!');
+			return false;
 		}
 
 		//Reload Vertex Define and init main menu
-		this.processDataVertexTypeDefine(vertexDefinitionData)
+		this.processDataVertexTypeDefine(vertexDefinitionData);
 
-		return true
+		return true;
 	}
 
 	getVertexFormatType(vertexGroup) {

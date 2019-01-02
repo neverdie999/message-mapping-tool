@@ -1,397 +1,394 @@
-import SampleMessageViewer from './lib/sample_message_viewer'
-import PopUtils from '../../common/utilities/popup.util'
+import SampleMessageViewer from './lib/sample_message_viewer';
+import PopUtils from '../../common/utilities/popup.util';
 import { comShowMessage } from '../../common/utilities/common.util';
 
-class cltSampleMessageViewer {
-	constructor(props){
-		this.specFile = ''
-		this.sampleFile = ''
-		this.messageElement = null
-		this.main = new SampleMessageViewer();
-		this.parent = props.parent
+class CltSampleMessageViewer {
+  constructor(props) {
+    this.specFile = '';
+    this.sampleFile = '';
+    this.messageElement = null;
+    this.main = new SampleMessageViewer();
+    this.parent = props.parent;
 
-		this.bindMainEvent()
+    this.bindMainEvent();
 
-		this.bindEventForPopup()
-	}
+    this.bindEventForPopup();
+  }
 
-	bindMainEvent() {
-		$('#btnEditSample').click(event => {
-			this.editSampleClickEvent(event)
-		})
+  bindMainEvent() {
+    $('#btnEditSample').click((event) => {
+      this.editSampleClickEvent(event);
+    });
 
-		$(`#btnViewFullText`).click((event) => {
-			this.viewFullText()
-		})
-	}
+    $('#btnViewFullText').click(() => {
+      this.viewFullText();
+    });
+  }
 
-	bindEventForPopup() {
+  bindEventForPopup() {
+    $('#btnExport').click(() => {
+      this.export();
+    });
 
-		$(`#btnExport`).click(() => {
-			this.export()
-		})
+    $('#btnPopupClose').click(() => {
+      const options = { popupId: 'popupFullText' };
+      PopUtils.metClosePopup(options);
+    });
 
-		$(`#btnPopupClose`).click(() => {
-			let options = {popupId: `popupFullText`}
-			PopUtils.metClosePopup(options)
-		})
+    // Prevent refresh page after pressing enter on form control (Edit popup)
+    $('form').submit(() => false);
 
-		// Prevent refresh page after pressing enter on form control (Edit popup)
-		$('form').submit(function() { return false })
-		
-		// Enable dragging for popup
-		this.initDialogDragEvent()
-	}
+    // Enable dragging for popup
+    this.initDialogDragEvent();
+  }
 
-	/**
+  /**
 	 * Enable dragging for popup
 	 */
-	initDialogDragEvent() {
-		$(`#popupFullText .dialog-title`).css('cursor', 'move').on('mousedown', (e) => {
-			let $drag = $(`#popupFullText .modal-dialog`).addClass('draggable')
-				
-			let pos_y = $drag.offset().top - e.pageY,
-				pos_x = $drag.offset().left - e.pageX,
-				winH = window.innerHeight,
-				winW = window.innerWidth,
-				dlgW = $drag.get(0).getBoundingClientRect().width
-				
-			$(window).on('mousemove', function(e) {
-				let x = e.pageX + pos_x
-				let y = e.pageY + pos_y
+  initDialogDragEvent() {
+    $('#popupFullText .dialog-title').css('cursor', 'move').on('mousedown', (e) => {
+      const $drag = $('#popupFullText .modal-dialog').addClass('draggable');
+      const posY = $drag.offset().top - e.pageY;
+      const posX = $drag.offset().left - e.pageX;
+      const winH = window.innerHeight;
+      const winW = window.innerWidth;
+      const dlgW = $drag.get(0).getBoundingClientRect().width;
 
-				if (x < 10) x = 10
-				else if (x + dlgW > winW - 10) x = winW - dlgW - 10
+      $(window).on('mousemove', (mousemoveEvent) => {
+        let x = mousemoveEvent.pageX + posX;
+        let y = mousemoveEvent.pageY + posY;
 
-				if (y < 10) y = 10
-				else if (y > winH - 10) y = winH - 10
+        if (x < 10) x = 10;
+        else if (x + dlgW > winW - 10) x = winW - dlgW - 10;
 
-				$(`#popupFullText .draggable`).offset({
-					top: y,
-					left: x
-				})
-			})
-			e.preventDefault() // disable selection
-		})
+        if (y < 10) y = 10;
+        else if (y > winH - 10) y = winH - 10;
 
-		$(window).on('mouseup', function(e) {
-			$(`#popupFullText .draggable`).removeClass('draggable')
-		})
-	}
+        $('#popupFullText .draggable').offset({
+          top: y,
+          left: x,
+        });
+      });
+      e.preventDefault(); // disable selection
+    });
 
-	loadSpecFile(data) {
-		if (!this.isSpecData(data)) return false
+    $(window).on('mouseup', (e) => {
+      $('#popupFullText .draggable').removeClass('draggable');
+    });
+  }
 
-		this.specFile = data;
+  loadSpecFile(data) {
+    if (!this.isSpecData(data)) return false;
 
-		if (this.sampleFile !== '') {
-			this.loadData()
-		}
+    this.specFile = data;
 
-		return true
-	}
+    if (this.sampleFile !== '') {
+      this.loadData();
+    }
 
-	loadSampleFile(data) {
-		this.sampleFile = data;
+    return true;
+  }
 
-		if (this.specFile !== '') {
-			this.loadData()
-		}
-	}
+  loadSampleFile(data) {
+    this.sampleFile = data;
 
-	loadData() {
-		if (this.specFile === '' || this.sampleFile === '') return
-		
-		if (!this.isSpecData(this.specFile)) {
-			return
-		}
+    if (this.specFile !== '') {
+      this.loadData();
+    }
+  }
 
-		const messageGroupType = $(`#messageGroupType`).val()
-		
-		this.main.jsTree = null
-		const result = this.main.makeTree(this.specFile, this.sampleFile, messageGroupType)
+  loadData() {
+    if (this.specFile === '' || this.sampleFile === '') return;
 
-		// Load data failed
-		if (result && result.length > 0 && !result[0].isValid()) {
-			let regex = /(Symbol\()(.*)(\))/
-			let errorType = regex.exec(result[0].resultType.toString())
-			$.notify({
-				message: `[Failed] ${errorType[2]}!`
-			},{
-				type: "danger",
-			});
-		}
+    if (!this.isSpecData(this.specFile)) {
+      return;
+    }
 
-		// Clear screen
-		$('#btnEditSample').hide()
-		$('#btnViewFullText').hide()
-		$('#detailHead').html('');
-		$('#detailBody').html('');
-		$('#jstree').empty()		
+    const messageGroupType = $('#messageGroupType').val();
 
-		// for loading new jstree, need to clear all attributes
-		const attrs = $('#jstree')[0].attributes
-		const length = attrs.length
-		for (let i = length - 1; i >= 0; i--) {
-			const attr = attrs[i]
-			if (attr.name !== "id") {
-				$('#jstree').removeAttr(attr.name)
-			}
-		}
+    this.main.jsTree = null;
+    const result = this.main.makeTree(this.specFile, this.sampleFile, messageGroupType);
 
-		// Print error message if existed
-		this.printError(result);
+    // Load data failed
+    if (result && result.length > 0 && !result[0].isValid()) {
+      const regex = /(Symbol\()(.*)(\))/;
+      const errorType = regex.exec(result[0].resultType.toString());
+      $.notify({
+        message: `[Failed] ${errorType[2]}!`,
+      }, {
+        type: 'danger',
+      });
+    }
 
-		// reload tree view
-		$('#jstree').jstree({
-			'core': {
-				'data': this.main.jsTree
-			}
-		});
-		$('#jstree').jstree('close_all')
+    // Clear screen
+    $('#btnEditSample').hide();
+    $('#btnViewFullText').hide();
+    $('#detailHead').html('');
+    $('#detailBody').html('');
+    $('#jstree').empty();
 
-		this.treeNodeClickEvent();
+    // for loading new jstree, need to clear all attributes
+    const attrs = $('#jstree')[0].attributes;
+    const length = attrs.length;
+    for (let i = length - 1; i >= 0; i -= 1) {
+      const attr = attrs[i];
+      if (attr.name !== 'id') {
+        $('#jstree').removeAttr(attr.name);
+      }
+    }
 
-		this.parent.fileMgmt.slideToggle()
-	}
+    // Print error message if existed
+    this.printError(result);
 
-	viewFullText() {
-		if (this.sampleFile === '') return
+    // reload tree view
+    $('#jstree').jstree({
+      core: {
+        data: this.main.jsTree,
+      },
+    });
+    $('#jstree').jstree('close_all');
 
-		const fullText = this.main.getAssembledMessage('\n');
-		$('#popupContent').get(0).innerHTML = fullText.join('')
+    this.treeNodeClickEvent();
 
-		let options = {
-			popupId: `popupFullText`,
-			position: 'center',
-			width: ((window.innerWidth/3)*2) < 500 ? 500 : ((window.innerWidth/3)*2)
-		}
+    this.parent.fileMgmt.slideToggle();
+  }
 
-		PopUtils.metSetShowPopup(options)
-  } 
+  viewFullText() {
+    if (this.sampleFile === '') return;
 
-  treeNodeClickEvent() {    
-    $('#jstree').on("changed.jstree", (e, data) => {
-			//element가 아니라 messageElementd를 가져올 수 있도록!!      
-			const id = (data.instance.get_node(data.selected).id);
-			this.messageElement = this.main.getDetail(id);
-			if (this.messageElement.constructor.name === "MessageSegment") {
-				$('#btnEditSample').show()
-				$('#btnViewFullText').show()
+    const fullText = this.main.getAssembledMessage('\n');
+    $('#popupContent').get(0).innerHTML = fullText.join('');
 
-				$('#detailBody').html('');
-				$('#detailHead').html('');
-				$('#detailHead').append('<tr>');
-				$('#detailHead').append('<td class="col_header" >NAME</td>');
-				$('#detailHead').append('<td class="col_header" >TYPE</td>');
-				$('#detailHead').append('<td class="col_header" >USAGE</td>');
-				$('#detailHead').append('<td class="col_header" >FORMAT</td>');
-				$('#detailHead').append('<td class="col_header" >DESCRIPTION</td>');
-				$('#detailHead').append('<td class="col_header" >VALUE</td>');
-				$('#detailHead').append('</tr>');
+    const options = {
+      popupId: 'popupFullText',
+      position: 'center',
+      width: ((window.innerWidth / 3) * 2) < 500 ? 500 : ((window.innerWidth / 3) * 2),
+    };
 
-				this.printMessageElement();
-			}
-		});
-	}
-	
-	editSampleClickEvent() {
-		this.setMessageElement();
-		let result = this.main.reMatch(this.main.messageStructure)
-		this.printError(result);
+    PopUtils.metSetShowPopup(options);
+  }
 
-		if (result) {
-			if (result.length > 0 && !result[0].isValid()) {
-				let regex = /(Symbol\()(.*)(\))/
-				let errorType = regex.exec(result[0].resultType.toString())
+  treeNodeClickEvent() {
+    $('#jstree').on('changed.jstree', (e, data) => {
+      // element가 아니라 messageElementd를 가져올 수 있도록!!
+      const id = (data.instance.get_node(data.selected).id);
+      this.messageElement = this.main.getDetail(id);
+      if (this.messageElement.constructor.name === 'MessageSegment') {
+        $('#btnEditSample').show();
+        $('#btnViewFullText').show();
 
-				$.notify({
-					message: `[Failed] ${errorType[2]}!`
-				},{
-					type: "danger",
-				});
-			} else {
-				$.notify({
-					message: 'Applied!'
-				},{
-					type: "success"
-				})
-			}
-		}
-	}
+        $('#detailBody').html('');
+        $('#detailHead').html('');
+        $('#detailHead').append('<tr>');
+        $('#detailHead').append('<td class="col_header" >NAME</td>');
+        $('#detailHead').append('<td class="col_header" >TYPE</td>');
+        $('#detailHead').append('<td class="col_header" >USAGE</td>');
+        $('#detailHead').append('<td class="col_header" >FORMAT</td>');
+        $('#detailHead').append('<td class="col_header" >DESCRIPTION</td>');
+        $('#detailHead').append('<td class="col_header" >VALUE</td>');
+        $('#detailHead').append('</tr>');
 
-	printMessageElement() {
-		let seqTextBox = 0;
-		this.messageElement.spec.dataElements.forEach((eachDataElement) => {
-			let elementDataExist = false;
-			this.messageElement._children.forEach((eachMessageDataElements) => {
-				eachMessageDataElements.forEach((eachMessageDataElement) => {
-					if (
-						eachMessageDataElement.name === eachDataElement.name
+        this.printMessageElement();
+      }
+    });
+  }
+
+  editSampleClickEvent() {
+    this.setMessageElement();
+    const result = this.main.reMatch(this.main.messageStructure);
+    this.printError(result);
+
+    if (result) {
+      if (result.length > 0 && !result[0].isValid()) {
+        const regex = /(Symbol\()(.*)(\))/;
+        const errorType = regex.exec(result[0].resultType.toString());
+
+        $.notify({
+          message: `[Failed] ${errorType[2]}!`,
+        }, {
+          type: 'danger',
+        });
+      } else {
+        $.notify({
+          message: 'Applied!',
+        }, {
+          type: 'success',
+        });
+      }
+    }
+  }
+
+  printMessageElement() {
+    let seqTextBox = 0;
+    this.messageElement.spec.dataElements.forEach((eachDataElement) => {
+      let elementDataExist = false;
+      this.messageElement._children.forEach((eachMessageDataElements) => {
+        eachMessageDataElements.forEach((eachMessageDataElement) => {
+          if (
+            eachMessageDataElement.name === eachDataElement.name
 						&& eachMessageDataElement.spec.id === eachDataElement.id
-					) {
-						eachMessageDataElement.whiteSpace = eachMessageDataElement.value.length - eachMessageDataElement.value.trim().length;
+          ) {
+            eachMessageDataElement.whiteSpace = eachMessageDataElement.value.length - eachMessageDataElement.value.trim().length;
 
-						const inputId = `editValue${eachDataElement.name + seqTextBox}`
+            const inputId = `editValue${eachDataElement.name + seqTextBox}`;
 
-						$('#detailBody').append('<tr>')
-							.append(`<td>${eachDataElement.name}</td>`)
-							.append(`<td>${eachDataElement.type}</td>`)
-							.append(`<td>${eachDataElement.mandatory}</td>`)
-							.append(`<td>${eachDataElement.format}</td>`)
-							.append(`<td>${eachDataElement.description}</td>`)
-							.append(`<td ><input type="text" class="form-control" id="${inputId}" value="${eachMessageDataElement.value.trim()}"></td>`)
-							.append('</tr>');
+            $('#detailBody').append('<tr>')
+              .append(`<td>${eachDataElement.name}</td>`)
+              .append(`<td>${eachDataElement.type}</td>`)
+              .append(`<td>${eachDataElement.mandatory}</td>`)
+              .append(`<td>${eachDataElement.format}</td>`)
+              .append(`<td>${eachDataElement.description}</td>`)
+              .append(`<td ><input type="text" class="form-control" id="${inputId}" value="${eachMessageDataElement.value.trim()}"></td>`)
+              .append('</tr>');
 
-						const $el = $(`#${inputId}`)
+            const $el = $(`#${inputId}`);
 
-						// validate when loading segment info
-						this.doValidateByFormat(inputId, $el.val(), eachDataElement.format)
+            // validate when loading segment info
+            this.doValidateByFormat(inputId, $el.val(), eachDataElement.format);
 
-						// validate on change event
-						$el.change( event => {
-							this.doValidateByFormat(inputId, $el.val(), eachDataElement.format)
-						})
-						
-						elementDataExist = true;
-					}
-					seqTextBox += 1;
-				});
-				seqTextBox += 1;
-			});
+            // validate on change event
+            $el.change((event) => {
+              this.doValidateByFormat(inputId, $el.val(), eachDataElement.format);
+            });
 
-			if (!elementDataExist) {
-				$('#detailBody').append('<tr>')
-					.append(`<td>${eachDataElement.name}</td>`)
-					.append(`<td>${eachDataElement.type}</td>`)
-					.append(`<td>${eachDataElement.mandatory}</td>`)
-					.append(`<td>${eachDataElement.format}</td>`)
-					.append(`<td>${eachDataElement.description}</td>`)
-					.append(`<td></td>`)
-					.append('</tr>');
-			}
-			seqTextBox += 1;
-	});
-	}
+            elementDataExist = true;
+          }
+          seqTextBox += 1;
+        });
+        seqTextBox += 1;
+      });
 
-	setMessageElement(defaultValue=true) {
-		let seqTextBox = 0;
-		this.messageElement.spec.dataElements.forEach((eachDataElement) => {
-			let elementDataExist = false;
-			this.messageElement._children.forEach((eachMessageDataElements) => {
-				eachMessageDataElements.forEach((eachMessageDataElement) => {
-					if (eachMessageDataElement.name === eachDataElement.name && eachMessageDataElement.spec.id === eachDataElement.id) {
-						eachMessageDataElement.value = $('#editValue' + eachDataElement.name + seqTextBox).val() + ' '.repeat(Number(eachMessageDataElement.whiteSpace));
-						eachMessageDataElement.matchResult = defaultValue;
-					}
-					seqTextBox += 1;
-				});
-				seqTextBox += 1;
-			});
-			seqTextBox += 1;
-		});
-	}
+      if (!elementDataExist) {
+        $('#detailBody').append('<tr>')
+          .append(`<td>${eachDataElement.name}</td>`)
+          .append(`<td>${eachDataElement.type}</td>`)
+          .append(`<td>${eachDataElement.mandatory}</td>`)
+          .append(`<td>${eachDataElement.format}</td>`)
+          .append(`<td>${eachDataElement.description}</td>`)
+          .append('<td></td>')
+          .append('</tr>');
+      }
+      seqTextBox += 1;
+    });
+  }
 
-	printError(results) {
-		if (!results || results.length == 0){
-			$('#desc').html('');
-		}
+  setMessageElement(defaultValue = true) {
+    let seqTextBox = 0;
+    this.messageElement.spec.dataElements.forEach((eachDataElement) => {
+      this.messageElement._children.forEach((eachMessageDataElements) => {
+        eachMessageDataElements.forEach((eachMessageDataElement) => {
+          if (eachMessageDataElement.name === eachDataElement.name && eachMessageDataElement.spec.id === eachDataElement.id) {
+            eachMessageDataElement.value = $(`#editValue${eachDataElement.name}${seqTextBox}`).val() + ' '.repeat(Number(eachMessageDataElement.whiteSpace));
+            eachMessageDataElement.matchResult = defaultValue;
+          }
+          seqTextBox += 1;
+        });
+        seqTextBox += 1;
+      });
+      seqTextBox += 1;
+    });
+  }
 
-		if (results) {
-			$('#desc').html('');
-			results.forEach((result) => {
-				const text = `ERROR MESSAGE: ${result._desc}`;
-				$('#desc').append(text + '<br>');
-			});          
-		}             
-	}
+  printError(results) {
+    if (!results || results.length === 0) {
+      $('#desc').html('');
+    }
 
-	validateByFormat(string='', format='AN999') { 
-		if (string === '') {
-			return true;
-		}
+    if (results) {
+      $('#desc').html('');
+      results.forEach((result) => {
+        const text = `ERROR MESSAGE: ${result._desc}`;
+        $('#desc').append(`${text}<br>`);
+      });
+    }
+  }
 
-    if (!format) { 
-      return true; 
-    } 
- 
-    const normalizedFormat = format.trim().toUpperCase(); 
-    const regex = /([AN]{1,2})(\d+)/; 
-    const matched = normalizedFormat.match(regex); 
-    if (matched === null) { 
-      return true; 
-    } 
- 
-    const [, dataFormat, length] = matched; 
-    if (string.length > parseInt(length, 10)) { 
-      return false; 
-    } 
- 
-    if (dataFormat === 'A') { 
-      const regexAnyNumber = /\d+/; 
-      return !regexAnyNumber.test(string); 
-    } 
- 
-    if (dataFormat === 'N') { 
+  validateByFormat(string = '', format = 'AN999') {
+    if (string === '') {
+      return true;
+    }
+
+    if (!format) {
+      return true;
+    }
+
+    const normalizedFormat = format.trim().toUpperCase();
+    const regex = /([AN]{1,2})(\d+)/;
+    const matched = normalizedFormat.match(regex);
+    if (matched === null) {
+      return true;
+    }
+
+    const [, dataFormat, length] = matched;
+    if (string.length > parseInt(length, 10)) {
+      return false;
+    }
+
+    if (dataFormat === 'A') {
+      const regexAnyNumber = /\d+/;
+      return !regexAnyNumber.test(string);
+    }
+
+    if (dataFormat === 'N') {
       const regexNumeric = /^(\+|-)?\d+[.,]?\d*$/;
       return regexNumeric.test(string);
-    } 
- 
-    return true; 
-	}
-	
-	doValidateByFormat(elementId, string, format) {
-		const $el = $(`#${elementId}`)
-		if (!this.validateByFormat(string, format)) {
-			$el.css('background-color', '#fb2d2d')
-			$el.css('color', 'white')
-		} else {
-			$el.css('background-color', '')
-			$el.css('color', '')
-		}
-	}
+    }
 
-	isSpecData(data) {
-		//Validate data exists
-		if(data === '') return false
+    return true;
+  }
 
-		try {
-			data = JSON.parse(data)
-		} catch (error) {
-			comShowMessage(`[Spec data] ${error}`)
-			return false
-		}
+  doValidateByFormat(elementId, string, format) {
+    const $el = $(`#${elementId}`);
+    if (!this.validateByFormat(string, format)) {
+      $el.css('background-color', '#fb2d2d');
+      $el.css('color', 'white');
+    } else {
+      $el.css('background-color', '');
+      $el.css('color', '');
+    }
+  }
 
-		// Validate struct data
-		if (!data.vertex || !data.boundary || !data.position || !data.vertexTypes) {
-			comShowMessage('Spec structure is corrupted. You should check it!')
-			return false
-		}
+  isSpecData(data) {
+    // Validate data exists
+    if (data === '') return false;
 
-		return true
-	}
+    try {
+      data = JSON.parse(data);
+    } catch (error) {
+      comShowMessage(`[Spec data] ${error}`);
+      return false;
+    }
 
-	export() {
-		const editedSampleText = $('#popupContent')[0].innerText
+    // Validate struct data
+    if (!data.vertex || !data.boundary || !data.position || !data.vertexTypes) {
+      comShowMessage('Spec structure is corrupted. You should check it!');
+      return false;
+    }
 
-		let blob = new Blob([editedSampleText], {type: 'application/text', charset: 'utf-8'})
+    return true;
+  }
 
-		const fileName = 'sample'
+  export() {
+    const editedSampleText = $('#popupContent')[0].innerText;
 
-		if (navigator.msSaveBlob) {
-			navigator.msSaveBlob(blob, fileName)
-			return
-		}
+    const blob = new Blob([editedSampleText], { type: 'application/text', charset: 'utf-8' });
 
-		let fileUrl = window.URL.createObjectURL(blob)
-		let downLink = $('<a>')
-		downLink.attr('download', `${fileName}.txt`)
-		downLink.attr('href', fileUrl)
-		downLink.css('display', 'none')
-		$('body').append(downLink)
-		downLink[0].click()
-		downLink.remove()
-	}
+    const fileName = 'sample';
+
+    if (navigator.msSaveBlob) {
+      navigator.msSaveBlob(blob, fileName);
+      return;
+    }
+
+    const fileUrl = window.URL.createObjectURL(blob);
+    const downLink = $('<a>');
+    downLink.attr('download', `${fileName}.txt`);
+    downLink.attr('href', fileUrl);
+    downLink.css('display', 'none');
+    $('body').append(downLink);
+    downLink[0].click();
+    downLink.remove();
+  }
 }
 
-export default cltSampleMessageViewer
+export default CltSampleMessageViewer;

@@ -1,4 +1,4 @@
-'use strict';
+
 
 const MatchResult = require('../message/match_result');
 const SpecElementType = require('./spec_element_type');
@@ -19,7 +19,7 @@ class Segment {
    * @param {Number} cursor
    * @param {Number} instanceIndex
    */
-  constructor(name, description='', dataElements, id, parent='', mandatory=false, maxRepeat=1, instanceIndex=-1) {
+  constructor(name, description = '', dataElements, id, parent = '', mandatory = false, maxRepeat = 1, instanceIndex = -1) {
     this._name = name;
     this._description = description;
     this._dataElements = dataElements;
@@ -28,7 +28,7 @@ class Segment {
     this._mandatory = mandatory;
     this._maxRepeat = maxRepeat;
     this._instanceIndex = instanceIndex;
-    this._elementType= SpecElementType.Segment;
+    this._elementType = SpecElementType.Segment;
   }
 
   /**
@@ -42,11 +42,11 @@ class Segment {
       const matchResult = new MatchResult(ResultType.SUCCESS, '', this);
       return matchResult;
     }
-    
+
     const matchResult = new MatchResult(ResultType.FAIL_FIND_TARGET_SEGMENT, `[${messageSampleSegment}] NOT FOUND IN SEGMENT LIST`, this);
     return matchResult;
   }
-  
+
   _getMessageSampleSegmentName(messageSampleSegment, messageType, delimiter) {
     if (messageType === 'FIXEDLENGTH') {
       const lengthRegex = /\d+/;
@@ -134,7 +134,7 @@ class Segment {
    * @param {*} indentChar
    * print segment info.
    */
-  toString(depth=0, indentChar=' '.repeat(2)) {
+  toString(depth = 0, indentChar = ' '.repeat(2)) {
     const indent = indentChar.repeat(depth);
     return `${indent}[${this._name}][${this._mandatory ? 'M' : 'C'}${this._maxRepeat}]`;
   }

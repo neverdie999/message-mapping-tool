@@ -64,16 +64,17 @@ class FileMgmt {
    * @param event
    */
 	async readJsonFile(event) {
-		let file = event.target.files[0]
+		const file = event.target.files[0]
 		if (!file)
 			return
 
-		const data = await readDataFileJson(file)
+		const data = await readDataFileJson(file);
 		if (!data)
 			return
 
 		const options = $(`#${ID_OPTION_FILE_TYPE_INPUT}`).val()
-		this.parent.separateDataToManagement(data, options)
+
+		this.parent.separateDataToManagement(data, options, file.name);
 
 		//Hide file managememnt area
 		$(`#${ID_CONTAINER_FILE_MGMT}`).slideToggle()

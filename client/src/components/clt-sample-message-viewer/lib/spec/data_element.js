@@ -1,4 +1,4 @@
-'use strict';
+
 
 const SpecElementType = require('./spec_element_type');
 /**
@@ -18,7 +18,7 @@ class DataElement {
   * @param {String} appearance
   * @param {String} id
   */
-  constructor(name, type, mandatory, format, repeat, description='', value='', parent=null, appearance=0, id) {
+  constructor(name, type, mandatory, format, repeat, description = '', value = '', parent = null, appearance = 0, id) {
     this._name = name;
     this._type = type;
     this._mandatory = mandatory;
@@ -114,7 +114,7 @@ class DataElement {
     this._id = id;
   }
 
-  toString(depth=0, indentChar=' '.repeat(2)) {
+  toString(depth = 0, indentChar = ' '.repeat(2)) {
     const indent = indentChar.repeat(depth);
     return `${indent}[${this._type}][${this._mandatory ? 'M' : 'C'}][${this._format}]`;
   }

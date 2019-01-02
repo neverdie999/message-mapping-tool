@@ -1,4 +1,4 @@
-'use strict';
+
 
 const SegmentGroup = require('./spec/segment_group');
 const Segment = require('./spec/segment');
@@ -11,7 +11,7 @@ class SpecParser {
   /**
   * @param {Object} graphDataStructure
   */
-  constructor(graphDataStructure) {    
+  constructor(graphDataStructure) {
     this.graphDataStructure = JSON.parse(graphDataStructure);
     this.boundaryDic = this._createMapById(this.graphDataStructure.boundary);
     this.vertexDic = this._createMapById(this.graphDataStructure.vertex);
@@ -88,9 +88,9 @@ class SpecParser {
     return dataElement;
   }
 
-  _createMapById(list) {    
+  _createMapById(list) {
     const map = {};
-    list.forEach((element) => {      
+    list.forEach((element) => {
       map[element.id] = element;
     });
     return map;

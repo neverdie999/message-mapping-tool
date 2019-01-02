@@ -1,23 +1,31 @@
-import * as d3 from 'd3'
-import _ from 'lodash'
-import InputMgmt from './input-mgmt/input-mgmt'
-import OutputMgmt from './output-mgmt/output-mgmt'
-import OperationsMgmt from './operations-mgmt/operations-mgmt'
-import ConnectMgmt from './connect-mgmt/connect-mgmt'
-import ObjectUtils from '../../common/utilities/object.util'
-const ScannerWriterFactory = require('./generation-lib/scanner_writer/scanner_writer_factory')
-const MessageSpecReader = require('./generation-lib/message_spec/message_spec_reader')
+import * as d3 from 'd3';
+import _ from 'lodash';
+import InputMgmt from './input-mgmt/input-mgmt';
+import OutputMgmt from './output-mgmt/output-mgmt';
+import OperationsMgmt from './operations-mgmt/operations-mgmt';
+import ConnectMgmt from './connect-mgmt/connect-mgmt';
+import ObjectUtils from '../../common/utilities/object.util';
+const ScannerWriterFactory = require('./generation-lib/scanner_writer/scanner_writer_factory');
+const MessageSpecReader = require('./generation-lib/message_spec/message_spec_reader');
 const MapperWriter = require('./generation-lib/mapper_writer/mapper_writer');
 
 import {
 	comShowMessage,
-	setMinBoundaryGraph
-} from '../../common/utilities/common.util'
+	setMinBoundaryGraph,
+	setAddressTabName,
+	unsetAddressTabName
+} from '../../common/utilities/common.util';
 
 import { 
 	VERTEX_ATTR_SIZE, BOUNDARY_ATTR_SIZE, TYPE_CONNECT
-} from '../../common/const/index'
+} from '../../common/const/index';
+
 import { __await } from 'tslib';
+
+const ID_ADDRESS_INPUT_MESSAGE = 'addressInputMessage';
+const ID_ADDRESS_OUTPUT_MESSAGE = 'addressOutputMessage';
+const ID_ADDRESS_OPERATION_SET = 'addressOperationSet';
+const ID_ADDRESS_MESSAGE_MAPPING_DEFINITION = 'addressMessageMappingDefinition';
 
 class CltMessageMapping {
 	constructor(props) {
@@ -111,7 +119,16 @@ class CltMessageMapping {
 
 	initSvgHtml() {
 		let sHtml = 
-    `<div id="${this.inputMessageContainerId}" class="left-svg container-svg" ref="${this.inputMessageSvgId}">
+    `<!-- Address bar (S) -->
+		<div id="addressBar" class="address-bar">
+			<div id="${ID_ADDRESS_INPUT_MESSAGE}" class="address-tab" style="display: none"></div>
+			<div id="${ID_ADDRESS_OUTPUT_MESSAGE}" class="address-tab" style="display: none"></div>
+			<div id="${ID_ADDRESS_OPERATION_SET}" class="address-tab" style="display: none"></div>
+			<div id="${ID_ADDRESS_MESSAGE_MAPPING_DEFINITION}" class="address-tab" style="display: none"></div>
+		</div>
+		<!-- Address bar (E) -->
+
+		<div id="${this.inputMessageContainerId}" class="left-svg container-svg" ref="${this.inputMessageSvgId}">
         <svg id="${this.inputMessageSvgId}" class="svg"></svg>
       </div>
       <div id="${this.operationsContainerId}" class="middle-svg container-svg" ref="${this.operationsSvgId}">
@@ -180,139 +197,145 @@ class CltMessageMapping {
 		})
 	}
 
-	async LoadInputMessage(graphData) {
+	async LoadInputMessage(graphData, fileName) {
     
-		let resMessage = await this.validateGraphDataStructure(graphData)
+		const resMessage = await this.validateGraphDataStructure(graphData);
 
 		if(resMessage.type !== 'ok') {
-			comShowMessage(resMessage.message)
+			comShowMessage(resMessage.message);
 
 			if(resMessage.type === 'error')
-				return
+				return;
 		}
 
-		let isError = this.validatesSameGraph(graphData, 'I')
-		if( isError ) {
-			comShowMessage('There was duplicate data with Output graph.\nYou should check it or choose another one!')
-			return
+		const isError = this.validatesSameGraph(graphData, 'I');
+		if (isError) {
+			comShowMessage('There was duplicate data with Output graph.\nYou should check it or choose another one!');
+			return;
 		}
 
 		//clear data
-		this.connectMgmt.clearInputEdges()
-		this.inputMgmt.clearAll()
+		this.connectMgmt.clearInputEdges();
+		this.inputMgmt.clearAll();
 
 		//Reload Vertex Define and draw graph
-		const {vertexTypes} = graphData
-		this.inputMgmt.processDataVertexTypeDefine(vertexTypes)
-		this.inputMgmt.drawObjectsOnInputGraph(graphData)
-		this.inputMgmt.initMenuContext()
+		const {vertexTypes} = graphData;
+		this.inputMgmt.processDataVertexTypeDefine(vertexTypes);
+		this.inputMgmt.drawObjectsOnInputGraph(graphData);
+		this.inputMgmt.initMenuContext();
+		setAddressTabName(ID_ADDRESS_INPUT_MESSAGE, fileName);
 
-		setMinBoundaryGraph(this.storeInputMessage,this.inputMessageSvgId, this.inputMgmt.viewMode.value)
+		setMinBoundaryGraph(this.storeInputMessage,this.inputMessageSvgId, this.inputMgmt.viewMode.value);
 	}
 
-	async LoadOutputMessage(graphData) {
-		const {vertexTypes} = graphData
+	async LoadOutputMessage(graphData, fileName) {
+		const {vertexTypes} = graphData;
 
-		let resMessage = await this.validateGraphDataStructure(graphData)
+		const resMessage = await this.validateGraphDataStructure(graphData);
 
-		if(resMessage.type !== 'ok') {
-			comShowMessage(resMessage.message)
+		if (resMessage.type !== 'ok') {
+			comShowMessage(resMessage.message);
 
-			if(resMessage.type === 'error')
-				return
+			if (resMessage.type === 'error')
+				return;
 		}
 
-		let isError= await this.validatesSameGraph(graphData, 'O')
-		if( isError ) {
-			comShowMessage('There was duplicate data with Iutput graph.\nYou should check it or choose another one!')
-			return
+		const isError = await this.validatesSameGraph(graphData, 'O');
+		if (isError) {
+			comShowMessage('There was duplicate data with Iutput graph.\nYou should check it or choose another one!');
+			return;
 		}
 
 		//clear data
-		this.connectMgmt.clearOutputEdges()
-		this.outputMgmt.clearAll()
+		this.connectMgmt.clearOutputEdges();
+		this.outputMgmt.clearAll();
 
 		//Reload Vertex Define and draw graph
-		await this.outputMgmt.processDataVertexTypeDefine(vertexTypes)
-		await this.outputMgmt.drawObjectsOnOutputGraph(graphData)
-		this.outputMgmt.initMenuContext()
+		await this.outputMgmt.processDataVertexTypeDefine(vertexTypes);
+		await this.outputMgmt.drawObjectsOnOutputGraph(graphData);
+		this.outputMgmt.initMenuContext();
+		setAddressTabName(ID_ADDRESS_OUTPUT_MESSAGE, fileName);
 		
 		// Validate for mandatory Data Element
-		this.outputMgmt.validateConnectionByUsage()
+		this.outputMgmt.validateConnectionByUsage();
 
-		setMinBoundaryGraph(this.storeOutputMessage,this.outputMessageSvgId, this.outputMgmt.viewMode.value)
+		setMinBoundaryGraph(this.storeOutputMessage,this.outputMessageSvgId, this.outputMgmt.viewMode.value);
 	}
 
-	async LoadMesseageMapping(messageMappingData) {
-		const {inputMessage, outputMessage, operations, edges} = messageMappingData
+	async LoadMesseageMapping(messageMappingData, fileName) {
+		const {inputMessage, outputMessage, operations, edges} = messageMappingData;
 
 		//Validate Input data
-		let resMessage = await this.validateGraphDataStructure(inputMessage)
+		let resMessage = await this.validateGraphDataStructure(inputMessage);
 
-		if(resMessage.type !== 'ok') {
-			comShowMessage(`Input Message: ${resMessage.message}`)
+		if (resMessage.type !== 'ok') {
+			comShowMessage(`Input Message: ${resMessage.message}`);
 
-			if(resMessage.type === 'error')
-				return
+			if (resMessage.type === 'error')
+				return;
 		}
 
 		//Validate Output data
-		resMessage = await this.validateGraphDataStructure(outputMessage)
+		resMessage = await this.validateGraphDataStructure(outputMessage);
 
-		if(resMessage.type !== 'ok') {
-			comShowMessage(`Output Message: ${resMessage.message}`)
+		if (resMessage.type !== 'ok') {
+			comShowMessage(`Output Message: ${resMessage.message}`);
 
-			if(resMessage.type === 'error')
-				return
+			if (resMessage.type === 'error')
+				return;
 		}
 
 		//Validate Operations data
-		resMessage = await this.validateGraphDataStructure(operations)
+		resMessage = await this.validateGraphDataStructure(operations);
 
 		if(resMessage.type !== 'ok') {
-			comShowMessage(`Operations: ${resMessage.message}`)
+			comShowMessage(`Operations: ${resMessage.message}`);
 
 			if(resMessage.type === 'error')
-				return
+				return;
 		}
 
 		//Clear all data
-		this.inputMgmt.clearAll()
-		this.operationsMgmt.clearAll()
-		this.outputMgmt.clearAll()
-		this.connectMgmt.clearAll()
+		this.inputMgmt.clearAll();
+		this.operationsMgmt.clearAll();
+		this.outputMgmt.clearAll();
+		this.connectMgmt.clearAll();
+		unsetAddressTabName(ID_ADDRESS_INPUT_MESSAGE);
+		unsetAddressTabName(ID_ADDRESS_OUTPUT_MESSAGE);
+		unsetAddressTabName(ID_ADDRESS_OPERATION_SET);
+		setAddressTabName(ID_ADDRESS_MESSAGE_MAPPING_DEFINITION, fileName);
 
 		//Input Graph - Reload Vertex define and draw new graph
-		let vertexTypes = inputMessage.vertexTypes
-		await this.inputMgmt.processDataVertexTypeDefine(vertexTypes)
-		await this.inputMgmt.drawObjectsOnInputGraph(inputMessage)
-		this.inputMgmt.initMenuContext()
+		let vertexTypes = inputMessage.vertexTypes;
+		await this.inputMgmt.processDataVertexTypeDefine(vertexTypes);
+		await this.inputMgmt.drawObjectsOnInputGraph(inputMessage);
+		this.inputMgmt.initMenuContext();
 
 		//Output Graph - Reload Vertex define and draw new graph
-		vertexTypes = {}
-		vertexTypes = outputMessage.vertexTypes
-		await this.outputMgmt.processDataVertexTypeDefine(vertexTypes)
-		await this.outputMgmt.drawObjectsOnOutputGraph(outputMessage)
-		this.outputMgmt.initMenuContext()
-		this.outputMgmt.validateConnectionByUsage()
+		vertexTypes = {};
+		vertexTypes = outputMessage.vertexTypes;
+		await this.outputMgmt.processDataVertexTypeDefine(vertexTypes);
+		await this.outputMgmt.drawObjectsOnOutputGraph(outputMessage);
+		this.outputMgmt.initMenuContext();
+		this.outputMgmt.validateConnectionByUsage();
 
 		//Operations Graph - Reload Vertex define and draw new graph.
-		vertexTypes = {}
-		vertexTypes = operations.vertexTypes
-		await this.operationsMgmt.processDataVertexTypeDefine(vertexTypes)
-		await this.operationsMgmt.drawObjectsOnOperationsGraph(operations)
-		this.operationsMgmt.initMenuContext()
+		vertexTypes = {};
+		vertexTypes = operations.vertexTypes;
+		await this.operationsMgmt.processDataVertexTypeDefine(vertexTypes);
+		await this.operationsMgmt.drawObjectsOnOperationsGraph(operations);
+		this.operationsMgmt.initMenuContext();
     
 		//Draw edges
-		this.edgeVerifySvgId(edges)
-		await this.connectMgmt.drawEdgeOnConnectGraph(edges)
+		this.edgeVerifySvgId(edges);
+		await this.connectMgmt.drawEdgeOnConnectGraph(edges);
 
-		setMinBoundaryGraph(this.storeInputMessage,this.inputMessageSvgId, this.inputMgmt.viewMode.value)
-		setMinBoundaryGraph(this.storeOutputMessage,this.outputMessageSvgId, this.outputMgmt.viewMode.value)
-		setMinBoundaryGraph(this.storeOperations,this.operationsSvgId, this.operationsMgmt.viewMode.value)
+		setMinBoundaryGraph(this.storeInputMessage,this.inputMessageSvgId, this.inputMgmt.viewMode.value);
+		setMinBoundaryGraph(this.storeOutputMessage,this.outputMessageSvgId, this.outputMgmt.viewMode.value);
+		setMinBoundaryGraph(this.storeOperations,this.operationsSvgId, this.operationsMgmt.viewMode.value);
 
 		//Solve in case of save and import from different window size
-		await this.objectUtils.updatePathConnectOnWindowResize(this.connectMgmt.edgeMgmt, [this.storeInputMessage, this.storeOperations, this.storeOutputMessage])
+		await this.objectUtils.updatePathConnectOnWindowResize(this.connectMgmt.edgeMgmt, [this.storeInputMessage, this.storeOperations, this.storeOutputMessage]);
 	}
 
 	save(fileName) {
@@ -354,9 +377,10 @@ class CltMessageMapping {
 		})
 	}
 
-	LoadOperationsVertexDefinition(vertexDefinitionData) {
+	LoadOperationsVertexDefinition(vertexDefinitionData, fileName) {
 		if (this.operationsMgmt.LoadVertexDefinition(vertexDefinitionData)) {
-			this.operationsMgmt.initMenuContext()
+			this.operationsMgmt.initMenuContext();
+			setAddressTabName(ID_ADDRESS_OPERATION_SET, fileName);
 		}
 	}
 
@@ -1812,8 +1836,6 @@ class CltMessageMapping {
 		$('body').append(downLink)
 		downLink[0].click()
 		downLink.remove()
-
-		
 	}
 }
   

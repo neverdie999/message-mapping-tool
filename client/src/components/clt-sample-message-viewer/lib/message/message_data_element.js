@@ -1,4 +1,4 @@
-'use strict';
+
 const ValidationResult = require('./validation_result');
 const MessageElementType = require('./message_element_type');
 const ResultType = require('./result_type');
@@ -18,7 +18,7 @@ class MessageDataElement {
    * @param {String} whiteSpace
    * @param {String} elementType
    */
-  constructor(type, name='', value='', spec=null, id=null, matchResult, whiteSpace='') {
+  constructor(type, name = '', value = '', spec = null, id = null, matchResult, whiteSpace = '') {
     this._type = type;
     this._name = name;
     this._value = value;
@@ -45,7 +45,7 @@ class MessageDataElement {
     return this._matchResult;
   }
 
-  _validateRepeat() {    
+  _validateRepeat() {
     this.spec.appearance += 1;
     // console.log(this.value);
     // console.log(this.spec.repeat);
@@ -158,9 +158,9 @@ class MessageDataElement {
 
   get matchResult() {
     return this._matchResult;
-	}
-	
-	set matchResult(matchResult) {
+  }
+
+  set matchResult(matchResult) {
     this._matchResult = matchResult;
   }
 
@@ -182,7 +182,7 @@ class MessageDataElement {
    * @return String
    * print dataElement field.
    */
-  toString(depth=0, indentChar=' '.repeat(2)) {
+  toString(depth = 0, indentChar = ' '.repeat(2)) {
     const indent = indentChar.repeat(depth);
     return `${indent}[DE: ${this._name}] ${this._value} (ID: ${this._id} / SPEC: ${this._spec ? this._spec.toString() : 'NONE'})`;
   }

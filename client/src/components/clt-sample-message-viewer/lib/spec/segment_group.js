@@ -1,4 +1,4 @@
-'use strict';
+
 
 const MatchResult = require('../message/match_result');
 const SpecElementType = require('./spec_element_type');
@@ -25,7 +25,7 @@ class SegmentGroup {
    * @param {Array} instances
    */
 
-  constructor(name, depth, maxRepeat=1, mandatory=false, description, id, parent=null, segmentCounter={}, children=[], lastMatchedIndex=-1, lastMatchedSegment='', instances=[]) {
+  constructor(name, depth, maxRepeat = 1, mandatory = false, description, id, parent = null, segmentCounter = {}, children = [], lastMatchedIndex = -1, lastMatchedSegment = '', instances = []) {
     this._elementType = SpecElementType.SegmentGroup;
     this._name = name;
     this._depth = depth;
@@ -48,7 +48,7 @@ class SegmentGroup {
    * @param {Boolean} matchChildrenSegmentOnly
    * @returns {ValidationResult}
    */
-  matchStructure(messageSampleSegment, messageType, delimiter, matchChildrenSegmentOnly=false) {
+  matchStructure(messageSampleSegment, messageType, delimiter, matchChildrenSegmentOnly = false) {
     let matchResult = new MatchResult();
     const init = (this.lastMatchedIndex === -1) ? 0 : this.lastMatchedIndex;
     for (let i = init; i < this.children.length; i += 1) {
@@ -88,10 +88,8 @@ class SegmentGroup {
           if (!this._updateInstanceWhenViolateSegmentMaxRepeat(currentChild.name)) {
             return new MatchResult(ResultType.FAIL_VALIDATION_GROUP, `[GROUP][${this.name}][${currentChild.name}]MAX_REPEAT_VIOLATION`);
           }
-        } else {
-          if (!this._observeSegmentMaxRepeat(i)) {
-            return new MatchResult(ResultType.FAIL_VALIDATION_GROUP, `[GROUP][${this.name}][${currentChild.name}]MAX_REPEAT_VIOLATION`);
-          } 
+        } else if (!this._observeSegmentMaxRepeat(i)) {
+          return new MatchResult(ResultType.FAIL_VALIDATION_GROUP, `[GROUP][${this.name}][${currentChild.name}]MAX_REPEAT_VIOLATION`);
         }
 
         if (!this._satisfyMandatoryCondition(i)) {
@@ -113,7 +111,7 @@ class SegmentGroup {
   * @param {Boolean} matchChildrenSegmentOnly
   * match and validate Segment Group(Dictionary Type only)
   */
-  matchGroup(segmentGroupName, matchChildrenSegmentOnly=false) {
+  matchGroup(segmentGroupName, matchChildrenSegmentOnly = false) {
     const init = (this.lastMatchedIndex === -1) ? 0 : this.lastMatchedIndex;
     for (let i = init; i < this._children.length; i += 1) {
       const currentChild = this._children[i];
@@ -180,10 +178,10 @@ class SegmentGroup {
     if (this._instances.length > this.maxRepeat) {
       return false;
     }
-    
+
     this._instances[this._instances.length - 1][segmentName] -= 1;
-    // register current segment 
-    this.registerNewSegmentCounter();    
+    // register current segment
+    this.registerNewSegmentCounter();
     this._instances[this._instances.length - 1][segmentName] += 1;
     // register parent segmentGroup
     // this.parent.registerNewSegmentCounter();

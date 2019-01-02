@@ -1,4 +1,4 @@
-'use strict';
+
 /**
  * @class
  * A class that presents result of match, validation.

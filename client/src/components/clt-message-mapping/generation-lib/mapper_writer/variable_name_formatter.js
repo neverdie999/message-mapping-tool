@@ -1,9 +1,9 @@
 class VariableNameFormatter {
-  constructor(prefix='') {
+  constructor(prefix = '') {
     this._prefix = prefix;
   }
 
-  dataElementIdVarName(name='') {
+  dataElementIdVarName(name = '') {
     return `id${this._prefix}DataElement${name}`;
   }
 
@@ -25,7 +25,7 @@ class VariableNameFormatter {
    * To avoid that risk, recommend to use index for variable name.
    * @param {string} name
    */
-  segmentGroupCounterVarName(name='') {
+  segmentGroupCounterVarName(name = '') {
     return `cnt${this._prefix}Group${name}`;
   }
 

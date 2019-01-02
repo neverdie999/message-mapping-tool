@@ -1,4 +1,4 @@
-'use strict';
+
 
 const MessageElementType = require('./message_element_type');
 
@@ -18,7 +18,7 @@ class MessageSegmentGroup {
    * @param {String} id
    * @param {Object} elementType
    */
-  constructor(name='', children=[], parent, order=0, matchResult=true, spec=null, id=null) {
+  constructor(name = '', children = [], parent, order = 0, matchResult = true, spec = null, id = null) {
     this._name = name;
     this._children = children;
     this._parent = parent;
@@ -28,7 +28,7 @@ class MessageSegmentGroup {
     this._id = id;
     this._elementType = MessageElementType.SegmentGroup;
   }
-  
+
   get name() {
     return this._name;
   }
@@ -95,10 +95,11 @@ class MessageSegmentGroup {
   resetMessageSegmentGroup() {
     this.children.length = 0;
   }
+
   /**
    * print message Segments group
    */
-  toString(depth=0, indentChar=' '.repeat(2)) {
+  toString(depth = 0, indentChar = ' '.repeat(2)) {
     const indent = indentChar.repeat(depth);
     const lines = [];
     lines.push(`${indent}[GRP: ${this._name}]`);

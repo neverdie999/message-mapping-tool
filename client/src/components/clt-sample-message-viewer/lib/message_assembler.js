@@ -1,4 +1,4 @@
-'use strict'
+
 
 const MessageElementType = require('./message/message_element_type');
 const ResultType = require('./message/result_type');
@@ -16,7 +16,7 @@ class MessageAssembler {
 
   assemble(messageElement, delimiter, lineSeparator) {
     let assembledMessage = ['<style>mark{background-color:red;}</style>'];
-    if (MessageElementType.isSegmentGroup(messageElement.elementType)) {    
+    if (MessageElementType.isSegmentGroup(messageElement.elementType)) {
       assembledMessage = assembledMessage.concat(this._assembleMessageSegmentGroup(messageElement, delimiter, lineSeparator));
     }
     if (MessageElementType.isSegment(messageElement.elementType)) {
@@ -28,7 +28,7 @@ class MessageAssembler {
     return assembledMessage;
   }
 
-  _assembleMessageSegmentGroup(messageElement, delimiter, lineSeparator='') {
+  _assembleMessageSegmentGroup(messageElement, delimiter, lineSeparator = '') {
     const children = messageElement.children;
     const sampleMessageSegmentGroup = [];
 
@@ -46,7 +46,7 @@ class MessageAssembler {
           }
         }
 
-        if (MessageElementType.isSegment(each.elementType)) {        
+        if (MessageElementType.isSegment(each.elementType)) {
           sampleMessageSegmentGroup.push(this._assembleMessageSegment(each, delimiter));
         }
       });
@@ -55,9 +55,9 @@ class MessageAssembler {
     if (MessageElementType.isSegmentGroup(children.elementType)) {
       sampleMessageSegmentGroup.push(this._assembleMessageSegmentGroup(children, delimiter, lineSeparator));
     }
-    if (MessageElementType.isSegment(children.elementType)) {    
+    if (MessageElementType.isSegment(children.elementType)) {
       sampleMessageSegmentGroup.push(this._assembleMessageSegment(children, delimiter));
-    }    
+    }
     return sampleMessageSegmentGroup.join(lineSeparator);
   }
 
@@ -114,7 +114,7 @@ class MessageAssembler {
     return sampleDataElement;
   }
 
-  _assembleLastDataSpec(dataSpec) {    
+  _assembleLastDataSpec(dataSpec) {
     let sampledataElement = '';
     if (dataSpec.matchResult.resultType !== ResultType.SUCCESS) {
       sampledataElement += `<mark title=${dataSpec.spec.format}>${dataSpec.value}</mark>`;

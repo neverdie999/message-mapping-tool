@@ -22,7 +22,7 @@ class OutputMessageWriter {
     return this._printLines();
   }
 
-  _writeLine(line, defaultIndent=1) {
+  _writeLine(line, defaultIndent = 1) {
     this._lines.push(`${this._indent(defaultIndent)}${line}`);
   }
 
@@ -40,7 +40,7 @@ class OutputMessageWriter {
     return this._lines.join('\n');
   }
 
-  _writeVariableLines(outputMessageFormatList, segmentVarSize=64, dataElementVarSize=128) {
+  _writeVariableLines(outputMessageFormatList, segmentVarSize = 64, dataElementVarSize = 128) {
     this._writeLine('');
     this._writeLine('int nLine = 0;');
     this._setSegmentGroupVariables(outputMessageFormatList, segmentVarSize);

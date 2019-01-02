@@ -36,11 +36,11 @@ class MainMgmt {
    * @param data
    * @param option
    */
-	async separateDataToManagement(data, option) {
-		if (option === 'VERTEX_TYPE') {
-			await this.cltSegment.LoadVertexGroupDefinition(data)
-		}else if (option === 'GRPH_DATA') {
-			await this.cltSegment.loadSegmentSpecEditor(data)
+	async separateDataToManagement(data, option, fileName) {
+		if (option === 'VERTEX_GROUP_DEFINITION') {
+			await this.cltSegment.LoadVertexGroupDefinition(data, fileName)
+		}else if (option === 'SEGMENT_SET') {
+			await this.cltSegment.loadSegmentSpecEditor(data, fileName)
 		}
 	}
 

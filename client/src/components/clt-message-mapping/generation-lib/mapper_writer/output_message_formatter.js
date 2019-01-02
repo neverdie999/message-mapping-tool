@@ -10,7 +10,7 @@ class OutputMessageFormat {
    * @param {String} format segment format or segment group format for printing
    * @param {Number} dataElementCount 0 if messageSpecElementType is SEGMENT_GROUP
    */
-  constructor(messageSpecTreeItem, format, dataElementCount=0) {
+  constructor(messageSpecTreeItem, format, dataElementCount = 0) {
     this._messageSpecTreeItem = messageSpecTreeItem;
     this._format = format;
     this._dataElementCount = dataElementCount;
@@ -92,7 +92,7 @@ class OutputMessageFormatter {
    * Return an array of OutputMessageFormat from messageSpecElementList.
    * @param {MessageSpecTreeItem[]} messageSpecElementList
    */
-  print(messageSpecElementList, debug=false) {
+  print(messageSpecElementList, debug = false) {
     const groupStack = [];
     const formats = [];
     const segmentItems = [];

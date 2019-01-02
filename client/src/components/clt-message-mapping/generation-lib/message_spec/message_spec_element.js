@@ -8,7 +8,7 @@ const {
  * Implementation for a segment group.
  */
 class SegmentGroup {
-  constructor(name, isMandatory=false, maxRepeat=1) {
+  constructor(name, isMandatory = false, maxRepeat = 1) {
     this._type = MessageSpecElementType.SEGMENT_GROUP;
     this._name = name;
     this._isMandatory = isMandatory;
@@ -58,7 +58,7 @@ class SegmentGroup {
     return this._members.length;
   }
 
-  toString(indentLevel=0, indentUnit=' '.repeat(2)) {
+  toString(indentLevel = 0, indentUnit = ' '.repeat(2)) {
     const lines = [];
     const indent = indentUnit.repeat(indentLevel);
     lines.push(`${indent}[GRP: ${this._name}]`);
@@ -75,7 +75,7 @@ class SegmentGroup {
  * Implementation for a segment.
  */
 class Segment {
-  constructor(name, isMandatory=false, maxRepeat=1) {
+  constructor(name, isMandatory = false, maxRepeat = 1) {
     this._type = MessageSpecElementType.SEGMENT;
     this._name = name;
     this._isMandatory = isMandatory;
@@ -112,7 +112,7 @@ class Segment {
     return this._dataElements.length === 0;
   }
 
-  toString(indentLevel=0, indentUnit=' '.repeat(2)) {
+  toString(indentLevel = 0, indentUnit = ' '.repeat(2)) {
     const lines = [];
     const indent = indentUnit.repeat(indentLevel);
     lines.push(`${indent}[SGM: ${this._name}]`);
@@ -138,7 +138,7 @@ class DataElement {
    * @param {boolean} isMandatory default: false
    * @param {number} maxRepeat default: 1
    */
-  constructor(type, name, dataType, dataLength, isMandatory=false, maxRepeat=1) {
+  constructor(type, name, dataType, dataLength, isMandatory = false, maxRepeat = 1) {
     this._type = type;
     this._name = name;
     this._dataType = dataType;
@@ -156,7 +156,7 @@ class DataElement {
    * @param {number} maxRepeat default: 1
    * @returns simple data element
    */
-  static createSimple(name, dataType, dataLength, isMandatory=false, maxRepeat=1) {
+  static createSimple(name, dataType, dataLength, isMandatory = false, maxRepeat = 1) {
     return new DataElement(MessageSpecElementType.SIMPLE_DATA_ELEMENT,
       name, dataType, dataLength, isMandatory, maxRepeat);
   }
@@ -170,7 +170,7 @@ class DataElement {
    * @param {number} maxRepeat default: 1
    * @returns composite data element
    */
-  static createComposite(name, dataType, dataLength, isMandatory=false, maxRepeat=1) {
+  static createComposite(name, dataType, dataLength, isMandatory = false, maxRepeat = 1) {
     return new DataElement(MessageSpecElementType.COMPOSITE_DATA_ELEMENT,
       name, dataType, dataLength, isMandatory, maxRepeat);
   }
@@ -184,7 +184,7 @@ class DataElement {
    * @param {number} maxRepeat default: 1
    * @returns component data element
    */
-  static createComponent(name, dataType, dataLength, isMandatory=false, maxRepeat=1) {
+  static createComponent(name, dataType, dataLength, isMandatory = false, maxRepeat = 1) {
     return new DataElement(MessageSpecElementType.COMPONENT_DATA_ELEMENT,
       name, dataType, dataLength, isMandatory, maxRepeat);
   }
@@ -225,7 +225,7 @@ class DataElement {
     return ElementaryDataType.isAlphaNumericChars(this._dataType);
   }
 
-  toString(indentLevel=0, indentUnit=' '.repeat(2)) {
+  toString(indentLevel = 0, indentUnit = ' '.repeat(2)) {
     const indent = indentUnit.repeat(indentLevel);
     const toDataTypeCode = (dataType) => {
       if (dataType === this.ALPHA_CHARS) return 'A';

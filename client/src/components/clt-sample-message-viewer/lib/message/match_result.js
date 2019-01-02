@@ -1,4 +1,4 @@
-'use strict';
+
 
 const ResultType = require('./result_type');
 /**
@@ -6,7 +6,7 @@ const ResultType = require('./result_type');
  * A class that represents result of match.
  */
 class MatchResult {
-  constructor(resultType, desc='', matchedSegment=null, matchedSegmentGroup=null, messageSegmentGroup=null) {
+  constructor(resultType, desc = '', matchedSegment = null, matchedSegmentGroup = null, messageSegmentGroup = null) {
     this.resultType = resultType;
     this.desc = desc;
     this.matchedSegment = matchedSegment;

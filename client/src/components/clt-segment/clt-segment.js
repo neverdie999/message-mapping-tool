@@ -1,19 +1,24 @@
-import * as d3 from 'd3'
-import _ from 'lodash'
-import ObjectUtils from '../../common/utilities/object.util'
-import SegmentMgmt from '../common-objects/objects/segment-mgmt'
-import EdgeMgmt from '../common-objects/objects/edge-mgmt'
-import MainMenuSegment from '../common-objects/menu-context/main-menu-segment'
+import * as d3 from 'd3';
+import _ from 'lodash';
+import ObjectUtils from '../../common/utilities/object.util';
+import SegmentMgmt from '../common-objects/objects/segment-mgmt';
+import EdgeMgmt from '../common-objects/objects/edge-mgmt';
+import MainMenuSegment from '../common-objects/menu-context/main-menu-segment';
 
 import {
 	comShowMessage,
 	setSizeGraph,
-	setMinBoundaryGraph
-} from '../../common/utilities/common.util'
+	setMinBoundaryGraph,
+	unsetAddressTabName,
+	setAddressTabName
+} from '../../common/utilities/common.util';
 
 import { 
-	DEFAULT_CONFIG_GRAPH, VIEW_MODE, VERTEX_ATTR_SIZE, PADDING_POSITION_SVG, DATA_ELEMENT_TYPE,
-} from '../../common/const/index'
+	DEFAULT_CONFIG_GRAPH, VIEW_MODE, VERTEX_ATTR_SIZE, PADDING_POSITION_SVG,
+} from '../../common/const/index';
+
+const ID_ADDRESS_VERTEX_GROUP_DEFINITION = 'addressVertexGroupDefinition';
+const ID_ADDRESS_SEGMENT_SET = 'addressSegmentSet';
 
 class CltSegment {
 	constructor(props) {
@@ -76,7 +81,14 @@ class CltSegment {
 
 	initSvgHtml() {
 		let sHtml = 
-    `<div id="${this.graphContainerId}" class="graphContainer" ref="${this.graphSvgId}">
+    `	<!-- Address bar (S) -->
+			<div id="addressBar" class="address-bar">
+				<div id="${ID_ADDRESS_VERTEX_GROUP_DEFINITION}" class="address-tab" style="display: none"></div>
+				<div id="${ID_ADDRESS_SEGMENT_SET}" class="address-tab" style="display: none"></div>
+			</div>
+			<!-- Address bar (E) -->
+
+			<div id="${this.graphContainerId}" class="graphContainer" ref="${this.graphSvgId}">
 				<svg id="${this.graphSvgId}" class="svg"></svg>
       </div>
       <svg id="${this.connectSvgId}" class="connect-svg"></svg>`
@@ -119,9 +131,12 @@ class CltSegment {
    * And reinit marker def
    */
 	clearAll() {
-		this.segmentMgmt.clearAll()
+		this.segmentMgmt.clearAll();
 
-		setSizeGraph({ width: DEFAULT_CONFIG_GRAPH.MIN_WIDTH, height: DEFAULT_CONFIG_GRAPH.MIN_HEIGHT }, this.graphSvgId)
+		unsetAddressTabName(ID_ADDRESS_SEGMENT_SET);
+		unsetAddressTabName(ID_ADDRESS_VERTEX_GROUP_DEFINITION);
+
+		setSizeGraph({ width: DEFAULT_CONFIG_GRAPH.MIN_WIDTH, height: DEFAULT_CONFIG_GRAPH.MIN_HEIGHT }, this.graphSvgId);
 	}
 
 	showReduced() {
@@ -146,15 +161,16 @@ class CltSegment {
 		this.sortByName()
 	}
 
-	LoadVertexGroupDefinition(vertexDefinitionData) {
-		if (this.dataContainer.vertex.length > 0 && !confirm('The current data will be cleared, do you want to continue ?')) {
-			return
-		}
+	LoadVertexGroupDefinition(vertexDefinitionData, fileName) {
+		if (this.segmentMgmt.LoadVertexGroupDefinition(vertexDefinitionData)) {			
+			if (this.dataContainer.vertex.length > 0 && !confirm('The current data will be cleared, do you want to continue ?')) {
+				return;
+			}
+	
+			this.clearAll();
 
-		this.clearAll()
-
-		if (this.segmentMgmt.LoadVertexGroupDefinition(vertexDefinitionData)) {
-			this.initMenuContext()
+			this.initMenuContext();
+			setAddressTabName(ID_ADDRESS_VERTEX_GROUP_DEFINITION, fileName);
 		}
 	}
 
@@ -173,22 +189,24 @@ class CltSegment {
 		})
 	}
 
-	async loadSegmentSpecEditor(segmentData) {
+	async loadSegmentSpecEditor(segmentData, fileName) {
 
 		if (!this.validateSegmentSpecStructure(segmentData)) {
 			comShowMessage('Format or data in Segment Spec Structure is corrupted. You should check it!')
-			return false
+			return false;
 		}
 
-		this.segmentMgmt.processDataVertexTypeDefine(segmentData)
+		this.segmentMgmt.processDataVertexTypeDefine(segmentData);
 
 		//clear data
-		this.clearAll()
+		this.clearAll();
 
-		await this.drawObjects(segmentData)
-		await this.sortByName()
+		await this.drawObjects(segmentData);
+		await this.sortByName();
 
-		this.initMenuContext()
+		this.initMenuContext();
+
+		setAddressTabName(ID_ADDRESS_SEGMENT_SET, fileName);
 	}
 
 	save(fileName) {

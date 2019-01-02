@@ -1,4 +1,4 @@
-'use strict';
+
 
 const MessageElementType = require('./message/message_element_type');
 /**

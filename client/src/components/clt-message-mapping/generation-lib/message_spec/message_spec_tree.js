@@ -67,7 +67,7 @@ class MessageSpecTreeItem {
    * @param {Number} index segmentGroup sequence
    * @param {Number} depth tree depth from root(0)
    */
-  static createSegmentGroup(name, index, depth, isMandatory=false, maxRepeat=1) {
+  static createSegmentGroup(name, index, depth, isMandatory = false, maxRepeat = 1) {
     return new MessageSpecTreeItem(MessageSpecElementType.SEGMENT_GROUP, name, index, depth)
       .setUsage(isMandatory, maxRepeat);
   }
@@ -78,7 +78,7 @@ class MessageSpecTreeItem {
    * @param {Number} index index as a child
    * @param {Number} depth tree depth from root(0)
    */
-  static createSegment(name, index, depth, isMandatory=false, maxRepeat=1) {
+  static createSegment(name, index, depth, isMandatory = false, maxRepeat = 1) {
     return new MessageSpecTreeItem(MessageSpecElementType.SEGMENT, name, index, depth)
       .setUsage(isMandatory, maxRepeat);
   }
@@ -89,7 +89,7 @@ class MessageSpecTreeItem {
    * @param {Number} index index as a child
    * @param {Number} depth tree depth from root(0)
    */
-  static createCompositeDataElement(name, index, depth, isMandatory=false, maxRepeat=1) {
+  static createCompositeDataElement(name, index, depth, isMandatory = false, maxRepeat = 1) {
     return new MessageSpecTreeItem(MessageSpecElementType.COMPOSITE_DATA_ELEMENT, name, index, depth)
       .setUsage(isMandatory, maxRepeat);
   }
@@ -102,7 +102,7 @@ class MessageSpecTreeItem {
    * @param {String} dataType 'A': Char Only, 'N': Number, 'AN': All
    * @param {Number} dataLength data length
    */
-  static createComponentDataElement(name, index, depth, dataType, dataLength, isMandatory=false, maxRepeat=1) {
+  static createComponentDataElement(name, index, depth, dataType, dataLength, isMandatory = false, maxRepeat = 1) {
     return new MessageSpecTreeItem(MessageSpecElementType.COMPONENT_DATA_ELEMENT, name, index, depth)
       .setDataFormat(dataType, dataLength)
       .setUsage(isMandatory, maxRepeat);
@@ -116,7 +116,7 @@ class MessageSpecTreeItem {
    * @param {String} dataType 'A': Char Only, 'N': Number, 'AN': All
    * @param {Number} dataLength data length
    */
-  static createSimpleDataElement(name, index, depth, dataType, dataLength, isMandatory=false, maxRepeat=1) {
+  static createSimpleDataElement(name, index, depth, dataType, dataLength, isMandatory = false, maxRepeat = 1) {
     return new MessageSpecTreeItem(MessageSpecElementType.SIMPLE_DATA_ELEMENT, name, index, depth)
       .setDataFormat(dataType, dataLength)
       .setUsage(isMandatory, maxRepeat);
@@ -156,7 +156,7 @@ class MessageSpecTree {
     return this._parseAsItem(this._rootSegmentGroup);
   }
 
-  _parseAsItem(messageSpecElement, segmentGroupList=[messageSpecElement], index=0, depth=0, itemList=[]) {
+  _parseAsItem(messageSpecElement, segmentGroupList = [messageSpecElement], index = 0, depth = 0, itemList = []) {
     const elementType = messageSpecElement.type;
     const item = new MessageSpecTreeItem(elementType, messageSpecElement.name, index, depth);
     item.setUsage(messageSpecElement.isMandatory, messageSpecElement.maxRepeat);

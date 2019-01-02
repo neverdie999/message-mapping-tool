@@ -137,7 +137,7 @@ class Boundary {
 
     if (checkModePermission(this.viewMode.value, "isEnableItemVisibleMenu")) {
 
-      const offset = this.boundaryMgmt.vertexMgmt.connectSide == CONNECT_SIDE.LEFT ? 0 : 7;
+      const offset = this.boundaryMgmt.vertexMgmt.connectSide === CONNECT_SIDE.LEFT ? 0 : 7;
       group.append("text")
         .attr("id", `${this.id}Text`)
         .attr("x", this.width - 20 - offset)
@@ -197,7 +197,7 @@ class Boundary {
   updateHeightBoundary() {
 
     let boundaries = _.filter(this.dataContainer.boundary, (g) => {
-      return g.parent == null && g.member.length > 0;
+      return g.parent === null && g.member.length > 0;
     });
 
     boundaries.forEach(boundary => {
@@ -219,7 +219,7 @@ class Boundary {
     this.member.forEach(mem => {
       if (mem.show) {
 
-        if (mem.type == "B") {
+        if (mem.type === "B") {
           let boundaryObj = _.find(this.dataContainer.boundary, {"id": mem.id});
           boundaryObj.updateSize();
         }
@@ -246,7 +246,7 @@ class Boundary {
 
     let hasShowedMember = _.find(this.member, {"show": true});
     // Set height for boundary
-    if (height < BOUNDARY_ATTR_SIZE.BOUND_HEIGHT && (this.member.length == 0 || !hasShowedMember))
+    if (height < BOUNDARY_ATTR_SIZE.BOUND_HEIGHT && (this.member.length === 0 || !hasShowedMember))
       height = BOUNDARY_ATTR_SIZE.BOUND_HEIGHT;
 
     $(`#${this.id}Content`).attr('height', height);
@@ -264,7 +264,7 @@ class Boundary {
     if (width < BOUNDARY_ATTR_SIZE.BOUND_WIDTH)
       width = BOUNDARY_ATTR_SIZE.BOUND_WIDTH;
 
-    const offset = this.boundaryMgmt.vertexMgmt.connectSide == CONNECT_SIDE.LEFT ? 0 : 7;
+    const offset = this.boundaryMgmt.vertexMgmt.connectSide === CONNECT_SIDE.LEFT ? 0 : 7;
 
     $(`#${this.id}Content`).attr('width', width);
     $(`#${this.id}Button`).attr('x', width - 25 - offset);
@@ -489,7 +489,7 @@ class Boundary {
     // Get child of boundary
     const  member = _.cloneDeep(this.member);
     member.forEach(mem => {
-      if (mem.type=="V") {
+      if (mem.type === "V") {
         //need to put deleteVertex function
         let memObj = _.find(this.dataContainer.vertex, {"id": mem.id})
         this.removeMemberFromBoundary(memObj, false);
@@ -691,7 +691,7 @@ class Boundary {
     
     let memObj = null;
     this.member.forEach(e => {
-      if (e.type == "V") {
+      if (e.type === "V") {
         memObj = _.find(this.dataContainer.vertex, {"id": e.id});
       }else{
         memObj = _.find(this.dataContainer.boundary, {"id": e.id});
@@ -709,9 +709,9 @@ class Boundary {
 	isParentOf(objectId) {
 		for (let i = 0; i < this.member.length; i++) {
 			let mem = this.member[i];
-			if (mem.id == objectId) {
+			if (mem.id === objectId) {
 				return true;
-			} else if (mem.type == "B") {
+			} else if (mem.type === "B") {
 				let memObj = _.find(this.dataContainer.boundary, {"id": mem.id});
 				if (memObj.isParentOf(objectId)) {
 					return true;
@@ -743,7 +743,7 @@ class Boundary {
 	doValidateConnectionByUsage(mem) {
 		let bFlag = true;
 		
-		if (mem.type == "V") {
+		if (mem.type === "V") {
 			let vertex = _.find(this.dataContainer.vertex, {"id": mem.id})
 			if (vertex) {
 				if (!vertex.validateConnectionByUsage() && bFlag) {

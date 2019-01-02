@@ -57,7 +57,7 @@ class MessageGroupFormat {
     return this._groupBeginFormatter ? this._groupBeginFormatter(name) : '';
   }
 
-  groupEnd(name='') {
+  groupEnd(name = '') {
     return this._groupEndFormatter ? this._groupEndFormatter(name) : '';
   }
 
@@ -65,11 +65,11 @@ class MessageGroupFormat {
     return this._segmentBeginFormatter ? this._segmentBeginFormatter(name) : '';
   }
 
-  segmentEnd(name='') {
+  segmentEnd(name = '') {
     return this._segmentEndFormatter ? this._segmentEndFormatter(name) : '';
   }
 
-  dataForm(type='', length='') {
+  dataForm(type = '', length = '') {
     return this._dataFormatter ? this._dataFormatter(type, length) : '%s';
   }
 

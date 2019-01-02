@@ -3,7 +3,7 @@ import CltGraph from '../../../components/clt-graph/clt-graph'
 import { VIEW_MODE } from '../../../common/const/index'
 
 class MainMgmt {
-	constructor(props) {
+	constructor() {
 		
 		let options = {
 			selector: $('.algetaContainer'),
@@ -36,11 +36,11 @@ class MainMgmt {
    * @param data
    * @param option
    */
-	async separateDataToManagement(data, option) {
-		if (option === 'VERTEX_TYPE') {
-			await this.cltGraph.LoadVertexDefinition(data)
-		}else if (option === 'GRPH_DATA') {
-			await this.cltGraph.loadGraphData(data)
+	async separateDataToManagement(data, option, fileName) {
+		if (option === 'SEGMENT_SET') {
+			await this.cltGraph.LoadVertexDefinition(data, fileName)
+		} else if (option === 'MESSAGE_SPEC') {
+			await this.cltGraph.loadGraphData(data, fileName)
 		}
 	}
 

@@ -783,14 +783,14 @@ class VertexMgmt {
 	LoadVertexDefinition(vertexDefinitionData) {
 		//Validate data struct
 		if (!this.validateVertexDefineStructure(vertexDefinitionData)) {
-			comShowMessage('Format or data in Vertex Definition Structure is corrupted. You should check it!')
-			return false
+			comShowMessage('Format or data in Vertex Definition Structure is corrupted. You should check it!');
+			return false;
 		}
 
 		//Reload Vertex Define and init main menu
-		this.processDataVertexTypeDefine(vertexDefinitionData)
+		this.processDataVertexTypeDefine(vertexDefinitionData);
 
-		return true
+		return true;
 	}
 
 	/**

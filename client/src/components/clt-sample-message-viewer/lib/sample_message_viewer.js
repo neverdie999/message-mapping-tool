@@ -17,7 +17,7 @@ class SampleMessageViewer {
    * @param {Object} messageStructure
    * @param {Object} specGroupList
    */
-  contructor(jsTree, messageElementMap, messageStructure, specGroupList=[]) {
+  contructor(jsTree, messageElementMap, messageStructure, specGroupList = []) {
     this.jsTree = jsTree;
     this.messageElementMap = messageElementMap;
     this.messageStructure = messageStructure;
@@ -44,9 +44,9 @@ class SampleMessageViewer {
     if (parseResult.constructor.name === 'ValidationResult') {
       return parseResult;
     }
-    
+
     if (parseResult.constructor.name === 'MatchResult') {
-      const finalResult = [parseResult]
+      const finalResult = [parseResult];
       return finalResult;
     }
 
@@ -72,7 +72,7 @@ class SampleMessageViewer {
 
   _setTreeData() {
     const converted = new JsTreeItemConverter().convert(this.messageStructure);
-    this.jsTree = converted.treeItems;    
+    this.jsTree = converted.treeItems;
     this.messageElementMap = converted.itemMap;
   }
 
@@ -97,9 +97,9 @@ class SampleMessageViewer {
     // const delimiter = new Delimiter('\n');
     // const delimiter = new Delimiter('\n', ':', '', '', '{', '}');
     const delimiter = new Delimiter("'", '+', ':', '?');
-    const messageSpec = new MessageSpec(delimiter, this.messageStructure, this.specGroupList[0]);        
+    const messageSpec = new MessageSpec(delimiter, this.messageStructure, this.specGroupList[0]);
     messageSpec.match(this.messageStructure);
-    
+
     if (messageSpec._validationResult) {
       return messageSpec._validationResult;
     }

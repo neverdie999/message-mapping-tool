@@ -1,4 +1,4 @@
-'use strict';
+
 
 const ResultType = require('./result_type');
 
@@ -11,7 +11,7 @@ class ValidationResult {
    * @param {Object} resultType
    * @param {String} desc
    */
-  constructor(resultType, desc='') {
+  constructor(resultType, desc = '') {
     this._resultType = resultType;
     this._desc = desc;
   }

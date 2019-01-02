@@ -1,4 +1,4 @@
-'use strict';
+
 
 const MessageElementType = require('./message_element_type');
 const ResultType = require('./result_type');
@@ -9,18 +9,18 @@ const ValidationResult = require('./validation_result');
  * (MessageSegmentGroup -> MessageSegment -> MessageDataElement)
  */
 class MessageSegment {
- /**
-  * 
-  * @param {String} name 
-  * @param {Object} children 
-  * @param {Object} matchResult 
-  * @param {Object} spec 
-  * @param {String} id 
-  * @param {Number} order 
+  /**
+  *
+  * @param {String} name
+  * @param {Object} children
+  * @param {Object} matchResult
+  * @param {Object} spec
+  * @param {String} id
+  * @param {Number} order
   * @param {Object} parent
-  * @param {Object} elementType 
+  * @param {Object} elementType
   */
-  constructor(name, children=[], matchResult=true, spec=null, id=null, order=0, parent='') {
+  constructor(name, children = [], matchResult = true, spec = null, id = null, order = 0, parent = '') {
     this._name = name;
     this._children = children;
     this._matchResult = matchResult;
@@ -176,7 +176,7 @@ class MessageSegment {
   /**
    * print messageSegments
    */
-  toString(depth=0, indentChar=' '.repeat(2)) {
+  toString(depth = 0, indentChar = ' '.repeat(2)) {
     const indent = indentChar.repeat(depth);
     const lines = [];
     lines.push(`${indent}[SGM: ${this._name}][${this._order}] (ID: ${this._id} / SPEC: ${this._spec ? this._spec.toString() : 'NONE'})`);

@@ -1,4 +1,4 @@
-'use strict';
+
 
 /**
  * @class
@@ -14,7 +14,7 @@ class Delimiter {
    * @param {String} groupOpenDelimiter
    * @param {String} groupCloseDelimiter
    */
-  constructor(segmentTerminator, dataElementSeparator='', componentDataSeparator='', releaseCharacter='', groupOpenDelimiter='', groupCloseDelimiter='') {
+  constructor(segmentTerminator, dataElementSeparator = '', componentDataSeparator = '', releaseCharacter = '', groupOpenDelimiter = '', groupCloseDelimiter = '') {
     this._segmentTerminator = segmentTerminator;
     this._dataElementSeparator = dataElementSeparator;
     this._componentDataSeparator = componentDataSeparator;
@@ -47,7 +47,7 @@ class Delimiter {
     return this._groupCloseDelimiter;
   }
 
-  static createFixedLength(segmentTerminator='\n') {
+  static createFixedLength(segmentTerminator = '\n') {
     return new Delimiter(segmentTerminator);
   }
 

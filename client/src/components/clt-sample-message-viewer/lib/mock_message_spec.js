@@ -1,4 +1,4 @@
-'use strict';
+
 
 const MessageElementType = require('./message/message_element_type');
 const validationResult = require('./message/validation_result');
@@ -8,10 +8,10 @@ const validationResult = require('./message/validation_result');
  */
 class MockMessageSpec {
   /**
-   * 
-   * @param {String} delimiter 
-   * @param {Object} messageStructure 
-   * @param {Object} lastMatchedGroup 
+   *
+   * @param {String} delimiter
+   * @param {Object} messageStructure
+   * @param {Object} lastMatchedGroup
    */
   constructor(delimiter, messageStructure, lastMatchedGroup) {
     this._delimiter = delimiter;
@@ -57,16 +57,16 @@ class MockMessageSpec {
     if (MessageElementType.isDataElement(messageElement.elementType)) {
       return messageElement.validate();
     }
-    return new validationResult(ResultType.FAIL_VALIDATION_SEGMENT)
+    return new validationResult(ResultType.FAIL_VALIDATION_SEGMENT);
   }
 
   _validateArray(elements) {
     let result;
-    for (let element of elements) {
+    for (const element of elements) {
       result = this.match(element);
       if (!result.isValid()) {
         return result;
-      };
+      }
     }
 
     return result;
