@@ -6,8 +6,8 @@ const ID_INPUT_SPEC_FILE = 'specFile';
 const ID_INPUT_SPEC_FILE_NAME = 'specFileName';
 const ID_INPUT_SAMPLE_FILE = 'sampleFile';
 const ID_INPUT_SAMPLE_FILE_NAME = 'sampleFileName';
-const ID_ADDRESS_MESSAGE_SPEC_FILE = 'addressMessageSpecFile';
-const ID_ADDRESS_SAMPLE_MESSAGE_FILE = 'addressSampleMessageFile';
+const ID_TAB_MESSAGE_SPEC_FILE = 'addressMessageSpecFile';
+const ID_TAB_SAMPLE_MESSAGE_FILE = 'addressSampleMessageFile';
 
 class FileMgmt {
   constructor(props) {
@@ -39,7 +39,8 @@ class FileMgmt {
         }
 
         $(`#${ID_INPUT_SPEC_FILE_NAME}`).val(file.name);
-        setAddressTabName(ID_ADDRESS_MESSAGE_SPEC_FILE, file.name);
+				setAddressTabName(ID_TAB_MESSAGE_SPEC_FILE, file.name);
+				this.showFileNameOnApplicationTitleBar();
       };
     });
 
@@ -53,7 +54,8 @@ class FileMgmt {
         if ($(`#${ID_INPUT_SAMPLE_FILE_NAME}`).val() === file.name) return;
 
         $(`#${ID_INPUT_SAMPLE_FILE_NAME}`).val(file.name);
-        setAddressTabName(ID_ADDRESS_SAMPLE_MESSAGE_FILE, file.name);
+				setAddressTabName(ID_TAB_SAMPLE_MESSAGE_FILE, file.name);
+				this.showFileNameOnApplicationTitleBar();
 
         this.parent.loadSampleFile(e.target.result);
       };
@@ -62,7 +64,32 @@ class FileMgmt {
 
   slideToggle() {
     $(`#${ID_CONTAINER_FILE_MGMT}`).slideToggle();
-  }
+	}
+	
+	showFileNameOnApplicationTitleBar() {
+		const messageSpecFileName = $(`#${ID_TAB_MESSAGE_SPEC_FILE}`).attr('title');
+		const sampleFileName = $(`#${ID_TAB_SAMPLE_MESSAGE_FILE}`).attr('title');
+
+		const applicationTitle = 'Message Spec';
+		let fileNameList = '';
+		if (messageSpecFileName !== undefined && messageSpecFileName !== '') {
+			if (fileNameList !== '') {
+				fileNameList += ` - ${messageSpecFileName}`;
+			} else {
+				fileNameList += `${messageSpecFileName}`;
+			}
+		}
+
+		if (sampleFileName !== undefined && sampleFileName !== '') {
+			if (fileNameList !== '') {
+				fileNameList += ` - ${sampleFileName}`;
+			} else {
+				fileNameList += `${sampleFileName}`;
+			}
+		}
+
+		$('head title').text(`${applicationTitle} | ${fileNameList} |`);
+	}
 }
 
 export default FileMgmt;

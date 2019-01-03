@@ -18,8 +18,8 @@ import {
 	DEFAULT_CONFIG_GRAPH, VIEW_MODE,
 } from '../../common/const/index';
 
-const ID_ADDRESS_SEGMENT_SET = 'addressSegmentSet';
-const ID_ADDRESS_MESSAGE_SPEC = 'addressMessageSpec';
+const ID_TAB_SEGMENT_SET = 'addressSegmentSet';
+const ID_TAB_MESSAGE_SPEC = 'addressMessageSpec';
 
 class CltGraph {
 	constructor(props) {
@@ -93,9 +93,9 @@ class CltGraph {
 	initSvgHtml() {
 		let sHtml = 
 		`<!-- Address bar (S) -->
-		<div id="addressBar" class="address-bar">
-			<div id="${ID_ADDRESS_SEGMENT_SET}" class="address-tab" style="display: none"></div>
-			<div id="${ID_ADDRESS_MESSAGE_SPEC}" class="address-tab" style="display: none"></div>
+		<div id="addressBar" class="filename-bar">
+			<div id="${ID_TAB_SEGMENT_SET}" class="filename-tab tab-left" style="display: none"></div>
+			<div id="${ID_TAB_MESSAGE_SPEC}" class="filename-tab tab-left" style="display: none"></div>
 		</div>
 		<!-- Address bar (E) -->
 
@@ -152,9 +152,6 @@ class CltGraph {
 	clearAll() {
 		this.vertexMgmt.clearAll();
 		this.boundaryMgmt.clearAll();
-
-		unsetAddressTabName(ID_ADDRESS_SEGMENT_SET);
-		unsetAddressTabName(ID_ADDRESS_MESSAGE_SPEC);
 
 		setSizeGraph({ width: DEFAULT_CONFIG_GRAPH.MIN_WIDTH, height: DEFAULT_CONFIG_GRAPH.MIN_HEIGHT }, this.graphSvgId)
 	}
@@ -236,7 +233,8 @@ class CltGraph {
 
 		setMinBoundaryGraph(this.dataContainer,this.graphSvgId, this.viewMode.value);
 
-		setAddressTabName(ID_ADDRESS_MESSAGE_SPEC, fileName);
+		setAddressTabName(ID_TAB_MESSAGE_SPEC, fileName);
+		this.showFileNameOnApplicationTitleBar();
 	}
 
 	save(fileName) {
@@ -277,7 +275,8 @@ class CltGraph {
 		if (this.vertexMgmt.LoadVertexDefinition(vertexDefinitionData)) {
 			this.initMenuContext();
 
-			setAddressTabName(ID_ADDRESS_SEGMENT_SET, fileName);
+			setAddressTabName(ID_TAB_SEGMENT_SET, fileName);
+			this.showFileNameOnApplicationTitleBar();
 		}
 	}
 
@@ -612,6 +611,31 @@ class CltGraph {
 		lstNoneParentVertex.forEach(item => {
 			item.validateConnectionByUsage()
 		})
+	}
+
+	showFileNameOnApplicationTitleBar() {
+		const segmentSetFileName = $(`#${ID_TAB_SEGMENT_SET}`).attr('title');
+		const messageSpecFileName = $(`#${ID_TAB_MESSAGE_SPEC}`).attr('title');
+
+		const applicationTitle = 'Message Spec';
+		let fileNameList = '';
+		if (segmentSetFileName !== undefined && segmentSetFileName !== '') {
+			if (fileNameList !== '') {
+				fileNameList += ` - ${segmentSetFileName}`;
+			} else {
+				fileNameList += `${segmentSetFileName}`;
+			}
+		}
+
+		if (messageSpecFileName !== undefined && messageSpecFileName !== '') {
+			if (fileNameList !== '') {
+				fileNameList += ` - ${messageSpecFileName}`;
+			} else {
+				fileNameList += `${messageSpecFileName}`;
+			}
+		}
+
+		$('head title').text(`${applicationTitle} | ${fileNameList} |`);
 	}
 }
   

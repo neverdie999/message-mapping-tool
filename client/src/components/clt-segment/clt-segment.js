@@ -17,8 +17,8 @@ import {
 	DEFAULT_CONFIG_GRAPH, VIEW_MODE, VERTEX_ATTR_SIZE, PADDING_POSITION_SVG,
 } from '../../common/const/index';
 
-const ID_ADDRESS_VERTEX_GROUP_DEFINITION = 'addressVertexGroupDefinition';
-const ID_ADDRESS_SEGMENT_SET = 'addressSegmentSet';
+const ID_TAB_VERTEX_GROUP_DEFINITION = 'addressVertexGroupDefinition';
+const ID_TAB_SEGMENT_SET = 'addressSegmentSet';
 
 class CltSegment {
 	constructor(props) {
@@ -82,9 +82,9 @@ class CltSegment {
 	initSvgHtml() {
 		let sHtml = 
     `	<!-- Address bar (S) -->
-			<div id="addressBar" class="address-bar">
-				<div id="${ID_ADDRESS_VERTEX_GROUP_DEFINITION}" class="address-tab" style="display: none"></div>
-				<div id="${ID_ADDRESS_SEGMENT_SET}" class="address-tab" style="display: none"></div>
+			<div id="addressBar" class="filename-bar">
+				<div id="${ID_TAB_VERTEX_GROUP_DEFINITION}" class="filename-tab tab-left" style="display: none"></div>
+				<div id="${ID_TAB_SEGMENT_SET}" class="filename-tab tab-left" style="display: none"></div>
 			</div>
 			<!-- Address bar (E) -->
 
@@ -132,9 +132,8 @@ class CltSegment {
    */
 	clearAll() {
 		this.segmentMgmt.clearAll();
-
-		unsetAddressTabName(ID_ADDRESS_SEGMENT_SET);
-		unsetAddressTabName(ID_ADDRESS_VERTEX_GROUP_DEFINITION);
+		unsetAddressTabName(ID_TAB_VERTEX_GROUP_DEFINITION);
+		unsetAddressTabName(ID_TAB_SEGMENT_SET);
 
 		setSizeGraph({ width: DEFAULT_CONFIG_GRAPH.MIN_WIDTH, height: DEFAULT_CONFIG_GRAPH.MIN_HEIGHT }, this.graphSvgId);
 	}
@@ -170,7 +169,8 @@ class CltSegment {
 			this.clearAll();
 
 			this.initMenuContext();
-			setAddressTabName(ID_ADDRESS_VERTEX_GROUP_DEFINITION, fileName);
+			setAddressTabName(ID_TAB_VERTEX_GROUP_DEFINITION, fileName);
+			this.showFileNameOnApplicationTitleBar();
 		}
 	}
 
@@ -206,7 +206,8 @@ class CltSegment {
 
 		this.initMenuContext();
 
-		setAddressTabName(ID_ADDRESS_SEGMENT_SET, fileName);
+		setAddressTabName(ID_TAB_SEGMENT_SET, fileName);
+		this.showFileNameOnApplicationTitleBar();
 	}
 
 	save(fileName) {
@@ -655,6 +656,31 @@ class CltSegment {
 		}
 
 		return index
+	}
+
+	showFileNameOnApplicationTitleBar() {
+		const vertexGroupFileName = $(`#${ID_TAB_VERTEX_GROUP_DEFINITION}`).attr('title');
+		const segmentSetFileName = $(`#${ID_TAB_SEGMENT_SET}`).attr('title');
+
+		const applicationTitle = 'Message Spec';
+		let fileNameList = '';
+		if (vertexGroupFileName !== undefined && vertexGroupFileName !== '') {
+			if (fileNameList !== '') {
+				fileNameList += ` - ${vertexGroupFileName}`;
+			} else {
+				fileNameList += `${vertexGroupFileName}`;
+			}
+		}
+
+		if (segmentSetFileName !== undefined && segmentSetFileName !== '') {
+			if (fileNameList !== '') {
+				fileNameList += ` - ${segmentSetFileName}`;
+			} else {
+				fileNameList += `${segmentSetFileName}`;
+			}
+		}
+
+		$('head title').text(`${applicationTitle} | ${fileNameList} |`);
 	}
 }
   

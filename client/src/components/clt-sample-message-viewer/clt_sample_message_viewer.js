@@ -388,7 +388,7 @@ class CltSampleMessageViewer {
     $('body').append(downLink);
     downLink[0].click();
     downLink.remove();
-  }
+	}
 }
 
 export default CltSampleMessageViewer;

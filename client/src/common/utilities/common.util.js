@@ -336,10 +336,12 @@ export function segmentName(segmentObject, viewMode) {
 
 export function setAddressTabName(tabId, fileName) {
   $(`#${tabId}`).show();
-  $(`#${tabId}`).text(fileName);
+  $(`#${tabId}`).text(`< ${fileName} >`);
   $(`#${tabId}`).attr('title', fileName);
 }
 
 export function unsetAddressTabName(tabId) {
+	$(`#${tabId}`).text('');
+  $(`#${tabId}`).attr('title', '');
   $(`#${tabId}`).hide();
 }

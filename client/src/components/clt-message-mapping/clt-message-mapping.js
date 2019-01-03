@@ -22,10 +22,9 @@ import {
 
 import { __await } from 'tslib';
 
-const ID_ADDRESS_INPUT_MESSAGE = 'addressInputMessage';
-const ID_ADDRESS_OUTPUT_MESSAGE = 'addressOutputMessage';
-const ID_ADDRESS_OPERATION_SET = 'addressOperationSet';
-const ID_ADDRESS_MESSAGE_MAPPING_DEFINITION = 'addressMessageMappingDefinition';
+const ID_TAB_INPUT_MESSAGE = 'addressInputMessage';
+const ID_TAB_OUTPUT_MESSAGE = 'addressOutputMessage';
+const ID_TAB_MESSAGE_MAPPING_DEFINITION = 'addressMessageMappingDefinition';
 
 class CltMessageMapping {
 	constructor(props) {
@@ -120,11 +119,11 @@ class CltMessageMapping {
 	initSvgHtml() {
 		let sHtml = 
     `<!-- Address bar (S) -->
-		<div id="addressBar" class="address-bar">
-			<div id="${ID_ADDRESS_INPUT_MESSAGE}" class="address-tab" style="display: none"></div>
-			<div id="${ID_ADDRESS_OUTPUT_MESSAGE}" class="address-tab" style="display: none"></div>
-			<div id="${ID_ADDRESS_OPERATION_SET}" class="address-tab" style="display: none"></div>
-			<div id="${ID_ADDRESS_MESSAGE_MAPPING_DEFINITION}" class="address-tab" style="display: none"></div>
+		<div id="addressBar" class="filename-bar">
+			<div id="${ID_TAB_MESSAGE_MAPPING_DEFINITION}" class="filename-tab tab-left" style="display: none"></div>
+			<div id="${ID_TAB_INPUT_MESSAGE}" class="filename-tab tab-left" style="display: none"></div>
+			<div id="${ID_TAB_OUTPUT_MESSAGE}" class="filename-tab tab-right" style="display: none"></div>
+			
 		</div>
 		<!-- Address bar (E) -->
 
@@ -223,7 +222,8 @@ class CltMessageMapping {
 		this.inputMgmt.processDataVertexTypeDefine(vertexTypes);
 		this.inputMgmt.drawObjectsOnInputGraph(graphData);
 		this.inputMgmt.initMenuContext();
-		setAddressTabName(ID_ADDRESS_INPUT_MESSAGE, fileName);
+		setAddressTabName(ID_TAB_INPUT_MESSAGE, fileName);
+		this.showFileNameOnApplicationTitleBar();
 
 		setMinBoundaryGraph(this.storeInputMessage,this.inputMessageSvgId, this.inputMgmt.viewMode.value);
 	}
@@ -254,7 +254,8 @@ class CltMessageMapping {
 		await this.outputMgmt.processDataVertexTypeDefine(vertexTypes);
 		await this.outputMgmt.drawObjectsOnOutputGraph(graphData);
 		this.outputMgmt.initMenuContext();
-		setAddressTabName(ID_ADDRESS_OUTPUT_MESSAGE, fileName);
+		setAddressTabName(ID_TAB_OUTPUT_MESSAGE, fileName);
+		this.showFileNameOnApplicationTitleBar()
 		
 		// Validate for mandatory Data Element
 		this.outputMgmt.validateConnectionByUsage();
@@ -300,10 +301,10 @@ class CltMessageMapping {
 		this.operationsMgmt.clearAll();
 		this.outputMgmt.clearAll();
 		this.connectMgmt.clearAll();
-		unsetAddressTabName(ID_ADDRESS_INPUT_MESSAGE);
-		unsetAddressTabName(ID_ADDRESS_OUTPUT_MESSAGE);
-		unsetAddressTabName(ID_ADDRESS_OPERATION_SET);
-		setAddressTabName(ID_ADDRESS_MESSAGE_MAPPING_DEFINITION, fileName);
+		unsetAddressTabName(ID_TAB_INPUT_MESSAGE);
+		unsetAddressTabName(ID_TAB_OUTPUT_MESSAGE);
+		setAddressTabName(ID_TAB_MESSAGE_MAPPING_DEFINITION, fileName);
+		this.showFileNameOnApplicationTitleBar();
 
 		//Input Graph - Reload Vertex define and draw new graph
 		let vertexTypes = inputMessage.vertexTypes;
@@ -380,7 +381,6 @@ class CltMessageMapping {
 	LoadOperationsVertexDefinition(vertexDefinitionData, fileName) {
 		if (this.operationsMgmt.LoadVertexDefinition(vertexDefinitionData)) {
 			this.operationsMgmt.initMenuContext();
-			setAddressTabName(ID_ADDRESS_OPERATION_SET, fileName);
 		}
 	}
 
@@ -1836,6 +1836,40 @@ class CltMessageMapping {
 		$('body').append(downLink)
 		downLink[0].click()
 		downLink.remove()
+	}
+
+	showFileNameOnApplicationTitleBar() {
+		const inputFileName = $(`#${ID_TAB_INPUT_MESSAGE}`).attr('title');
+		const outputFileName = $(`#${ID_TAB_OUTPUT_MESSAGE}`).attr('title');
+		const messageMappingFileName = $(`#${ID_TAB_MESSAGE_MAPPING_DEFINITION}`).attr('title');
+
+		const applicationTitle = 'Message Mapping Editor';
+		let fileNameList = '';
+		if (messageMappingFileName !== undefined && messageMappingFileName !== '') {
+			if (fileNameList !== '') {
+				fileNameList += ` - ${messageMappingFileName}`;
+			} else {
+				fileNameList += `${messageMappingFileName}`;
+			}
+		}
+
+		if (inputFileName !== undefined && inputFileName !== '') {
+			if (fileNameList !== '') {
+				fileNameList += ` - ${inputFileName}`;
+			} else {
+				fileNameList += `${inputFileName}`;
+			}
+		}
+
+		if (outputFileName !== undefined && outputFileName !== '') {
+			if (fileNameList !== '') {
+				fileNameList += ` - ${outputFileName}`;
+			} else {
+				fileNameList += `${outputFileName}`;
+			}
+		}
+
+		$('head title').text(`${applicationTitle} | ${fileNameList} |`);
 	}
 }
   
