@@ -39,8 +39,8 @@ class FileMgmt {
         }
 
         $(`#${ID_INPUT_SPEC_FILE_NAME}`).val(file.name);
-				setAddressTabName(ID_TAB_MESSAGE_SPEC_FILE, file.name);
-				this.showFileNameOnApplicationTitleBar();
+        setAddressTabName(ID_TAB_MESSAGE_SPEC_FILE, file.name);
+        this.showFileNameOnApplicationTitleBar();
       };
     });
 
@@ -54,8 +54,8 @@ class FileMgmt {
         if ($(`#${ID_INPUT_SAMPLE_FILE_NAME}`).val() === file.name) return;
 
         $(`#${ID_INPUT_SAMPLE_FILE_NAME}`).val(file.name);
-				setAddressTabName(ID_TAB_SAMPLE_MESSAGE_FILE, file.name);
-				this.showFileNameOnApplicationTitleBar();
+        setAddressTabName(ID_TAB_SAMPLE_MESSAGE_FILE, file.name);
+        this.showFileNameOnApplicationTitleBar();
 
         this.parent.loadSampleFile(e.target.result);
       };
@@ -64,32 +64,32 @@ class FileMgmt {
 
   slideToggle() {
     $(`#${ID_CONTAINER_FILE_MGMT}`).slideToggle();
-	}
-	
-	showFileNameOnApplicationTitleBar() {
-		const messageSpecFileName = $(`#${ID_TAB_MESSAGE_SPEC_FILE}`).attr('title');
-		const sampleFileName = $(`#${ID_TAB_SAMPLE_MESSAGE_FILE}`).attr('title');
+  }
 
-		const applicationTitle = 'Message Spec';
-		let fileNameList = '';
-		if (messageSpecFileName !== undefined && messageSpecFileName !== '') {
-			if (fileNameList !== '') {
-				fileNameList += ` - ${messageSpecFileName}`;
-			} else {
-				fileNameList += `${messageSpecFileName}`;
-			}
-		}
+  showFileNameOnApplicationTitleBar() {
+    const messageSpecFileName = $(`#${ID_TAB_MESSAGE_SPEC_FILE}`).attr('title');
+    const sampleFileName = $(`#${ID_TAB_SAMPLE_MESSAGE_FILE}`).attr('title');
 
-		if (sampleFileName !== undefined && sampleFileName !== '') {
-			if (fileNameList !== '') {
-				fileNameList += ` - ${sampleFileName}`;
-			} else {
-				fileNameList += `${sampleFileName}`;
-			}
-		}
+    const applicationTitle = 'Message Spec';
+    let fileNameList = '';
+    if (messageSpecFileName !== undefined && messageSpecFileName !== '') {
+      if (fileNameList !== '') {
+        fileNameList += ` - ${messageSpecFileName}`;
+      } else {
+        fileNameList += `${messageSpecFileName}`;
+      }
+    }
 
-		$('head title').text(`${applicationTitle} | ${fileNameList} |`);
-	}
+    if (sampleFileName !== undefined && sampleFileName !== '') {
+      if (fileNameList !== '') {
+        fileNameList += ` - ${sampleFileName}`;
+      } else {
+        fileNameList += `${sampleFileName}`;
+      }
+    }
+
+    $('head title').text(`${applicationTitle} | ${fileNameList} |`);
+  }
 }
 
 export default FileMgmt;

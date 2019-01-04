@@ -109,10 +109,9 @@ class SpecParser {
     segmentIds.forEach((segmentId) => {
       if (segmentId.startsWith('V')) {
         segmentCounter[this.vertexDic[segmentId].vertexType] = 0;
+      } else {
+        segmentCounter[this.boundaryDic[segmentId].name] = 0;
       }
-      // else {
-      //   segmentCounter[this.boundaryDic[segmentId].name] = 0;
-      // }
     });
     return segmentCounter;
   }

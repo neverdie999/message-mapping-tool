@@ -341,7 +341,7 @@ export function setAddressTabName(tabId, fileName) {
 }
 
 export function unsetAddressTabName(tabId) {
-	$(`#${tabId}`).text('');
+  $(`#${tabId}`).text('');
   $(`#${tabId}`).attr('title', '');
   $(`#${tabId}`).hide();
 }

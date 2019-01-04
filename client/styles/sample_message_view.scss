@@ -94,3 +94,17 @@ input[type="file"] {
 	content:"*";
 	color:red;
 }
+
+.invalid-segment {
+	background-color: #e80f0f;
+	border: solid 1px #cac4c4;
+	border-radius: 2px;
+	color: white;
+}
+
+.invalid-segment:hover {
+	background-color: #e7f4f9;
+	border: solid 1px #ececec;
+	border-radius: 2px;
+	color: #bfbfbf;
+}

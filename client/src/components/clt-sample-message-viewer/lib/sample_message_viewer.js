@@ -22,6 +22,8 @@ class SampleMessageViewer {
     this.messageElementMap = messageElementMap;
     this.messageStructure = messageStructure;
     this.specGroupList = specGroupList;
+    this.messageGroupType = '';
+    this.delimiter = '';
   }
 
   /**
@@ -29,17 +31,29 @@ class SampleMessageViewer {
    * @param {File} sampleFile
    * make Jstree
    */
-  makeTree(specFile, sampleFile) {
+  makeTree(specFile, sampleFile, messageGroupType) {
     const specParser = new SpecParser(specFile);
     const parsedSpec = specParser.parse();
     const specTree = new SpecTree();
     this.specGroupList = specTree.makeGroupList(parsedSpec.segment, parsedSpec.group);
-    // const delimiter = new Delimiter('\n', ':', '', '', '{', '}');
-    // const messageParser = new MessageParser(delimiter, 'DICTIONARY', this.specGroupList[0]);
-    const delimiter = new Delimiter("'", '+', ':', '?');
-    const messageParser = new MessageParser(delimiter, 'DELIMITER', this.specGroupList[0]);
-    // const delimiter = new Delimiter('\n');
-    // const messageParser = new MessageParser(delimiter, 'FIXEDLENGTH', this.specGroupList[0]);
+
+    let delimiter = '';
+    let messageParser = '';
+    if (messageGroupType === 'EDIFACT') {
+      delimiter = Delimiter.createEdifact();
+      messageParser = new MessageParser(delimiter, messageGroupType, this.specGroupList[0]);
+    } else if (messageGroupType === 'FIXED_LENGTH') {
+      delimiter = Delimiter.createFixedLength();
+      messageParser = new MessageParser(delimiter, messageGroupType, this.specGroupList[0]);
+    } else if (messageGroupType === 'DICTIONARY') {
+      delimiter = Delimiter.createOpusFlatFile();
+      messageParser = new MessageParser(delimiter, messageGroupType, this.specGroupList[0]);
+    } else if (messageGroupType === 'DELIMITER') {
+      // empty
+    }
+    this.delimiter = delimiter;
+    this.messageGroupType = messageGroupType;
+
     const parseResult = messageParser.parseMessage(sampleFile);
     if (parseResult.constructor.name === 'ValidationResult') {
       return parseResult;
@@ -81,23 +95,15 @@ class SampleMessageViewer {
    * assemble messageStructure to full text
    */
   getAssembledMessage(lineSeparator) {
-    // const delimiter = new Delimiter('\n', ':', '', '', '{', '}');
-    // const messageAssembler = new MessageAssembler('DICTIONARY');
-    const delimiter = new Delimiter("'", '+', ':', '?');
-    const messageAssembler = new MessageAssembler('DELIMITER');
-    // const delimiter = new Delimiter('\n');
-    // const messageAssembler = new MessageAssembler('FIXEDLENGTH');
-    return messageAssembler.assemble(this.messageStructure, delimiter, lineSeparator);
+    const messageAssembler = new MessageAssembler(this.messageGroupType);
+    return messageAssembler.assemble(this.messageStructure, this.delimiter, lineSeparator);
   }
 
   /**
    * rematch the revised messagaStructure
    */
   reMatch() {
-    // const delimiter = new Delimiter('\n');
-    // const delimiter = new Delimiter('\n', ':', '', '', '{', '}');
-    const delimiter = new Delimiter("'", '+', ':', '?');
-    const messageSpec = new MessageSpec(delimiter, this.messageStructure, this.specGroupList[0]);
+    const messageSpec = new MessageSpec(this.delimiter, this.messageStructure, this.specGroupList[0]);
     messageSpec.match(this.messageStructure);
 
     if (messageSpec._validationResult) {

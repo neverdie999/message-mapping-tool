@@ -6,9 +6,12 @@ class CltSampleMessageViewer {
   constructor(props) {
     this.specFile = '';
     this.sampleFile = '';
+    this.messageGroupType = '';
     this.messageElement = null;
     this.main = new SampleMessageViewer();
     this.parent = props.parent;
+
+    this.isNodeOpenedByFunction = false;
 
     this.bindMainEvent();
 
@@ -16,12 +19,32 @@ class CltSampleMessageViewer {
   }
 
   bindMainEvent() {
+    $('#btnShowInvalidSegment').click(() => {
+      this.showInvalidSegmentOnTreeView();
+    });
+
     $('#btnEditSample').click((event) => {
       this.editSampleClickEvent(event);
     });
 
     $('#btnViewFullText').click(() => {
       this.viewFullText();
+    });
+
+    $('#jstree').bind('loaded.jstree', (e, data) => {
+      $('#jstree').jstree('close_all');
+      this.showInvalidSegmentOnTreeView();
+    });
+
+    $('#jstree').on('open_node.jstree', (e, data) => {
+      if (!this.isNodeOpenedByFunction) {
+        const main = this;
+        $(e.target).find('.jstree-leaf').each(function () {
+          if (!main.validateSegment(this.id)) {
+            main.showWarningColorToSegmentOnTreeView(this.id);
+          }
+        });
+      }
     });
   }
 
@@ -121,6 +144,7 @@ class CltSampleMessageViewer {
     }
 
     // Clear screen
+    $('#btnShowInvalidSegment').hide();
     $('#btnEditSample').hide();
     $('#btnViewFullText').hide();
     $('#detailHead').html('');
@@ -146,7 +170,6 @@ class CltSampleMessageViewer {
         data: this.main.jsTree,
       },
     });
-    $('#jstree').jstree('close_all');
 
     this.treeNodeClickEvent();
 
@@ -170,10 +193,14 @@ class CltSampleMessageViewer {
 
   treeNodeClickEvent() {
     $('#jstree').on('changed.jstree', (e, data) => {
-      // element가 아니라 messageElementd를 가져올 수 있도록!!
+      // element가 ?�니??messageElementd�?가?�올 ???�도�?!
       const id = (data.instance.get_node(data.selected).id);
-      this.messageElement = this.main.getDetail(id);
-      if (this.messageElement.constructor.name === 'MessageSegment') {
+      const nodeDetail = this.main.getDetail(id);
+
+      if (nodeDetail.constructor.name === 'MessageSegment') {
+        this.messageElement = nodeDetail;
+
+        $('#btnShowInvalidSegment').show();
         $('#btnEditSample').show();
         $('#btnViewFullText').show();
 
@@ -197,12 +224,12 @@ class CltSampleMessageViewer {
     this.setMessageElement();
     const result = this.main.reMatch(this.main.messageStructure);
     this.printError(result);
+    this.showInvalidSegmentOnTreeView();
 
     if (result) {
       if (result.length > 0 && !result[0].isValid()) {
         const regex = /(Symbol\()(.*)(\))/;
         const errorType = regex.exec(result[0].resultType.toString());
-
         $.notify({
           message: `[Failed] ${errorType[2]}!`,
         }, {
@@ -388,7 +415,78 @@ class CltSampleMessageViewer {
     $('body').append(downLink);
     downLink[0].click();
     downLink.remove();
-	}
+  }
+
+  validateSegment(segmentId) {
+    const segmentDetail = this.main.getDetail(segmentId);
+    if (segmentDetail.constructor.name === 'MessageSegment') {
+      for (let i = 0; i < segmentDetail.spec.dataElements.length; i += 1) {
+        const eachStructDataElement = segmentDetail.spec.dataElements[i];
+
+        for (let j = 0; j < segmentDetail._children.length; j += 1) {
+          const sampleCompositeDataElement = segmentDetail._children[j];
+
+          for (let k = 0; k < sampleCompositeDataElement.length; k += 1) {
+            const eachSampleDataElement = sampleCompositeDataElement[k];
+
+            if (eachSampleDataElement.name === eachStructDataElement.name && eachSampleDataElement.spec.id === eachStructDataElement.id) {
+              if (!this.validateByFormat(eachSampleDataElement.value.trim(), eachStructDataElement.format)) {
+                return false;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return true;
+  }
+
+  showInvalidSegmentOnTreeView() {
+    if (this.main.jsTree !== undefined && this.main.jsTree !== null && this.main.messageElementMap !== undefined && this.main.messageElementMap !== null) {
+      this.isNodeOpenedByFunction = true;
+
+      // Reset invalid segment effect
+      $('.invalid-segment').each(function () {
+        $(this).removeClass('invalid-segment');
+      });
+
+      for (const [key, messageElement] of this.main.messageElementMap) {
+        if (messageElement.constructor.name === 'MessageSegment') {
+          if (!this.validateSegment(messageElement.id)) {
+            this.expandNode(messageElement.id, messageElement.id);
+            this.showWarningColorToSegmentOnTreeView(messageElement.id);
+          }
+        }
+      }
+
+      this.isNodeOpenedByFunction = false;
+    }
+  }
+
+  expandNode(nodeId, leafId) {
+    const parent = _.find(this.main.jsTree, { id: nodeId }).parent;
+    if (parent != '#') {
+      this.expandNode(parent, leafId);
+    }
+
+    if (nodeId !== leafId) {
+      const selectorId = nodeId.replace(/\[/g, '\\[')
+        .replace(/\]/g, '\\]')
+        .replace(/\#/g, '\\#');
+      $('#jstree').jstree('open_node', $(`#${selectorId}`));
+    }
+  }
+
+  showWarningColorToSegmentOnTreeView(segmentId) {
+    const selectorId = segmentId.replace(/\[/g, '\\[')
+      .replace(/\]/g, '\\]')
+      .replace(/\#/g, '\\#')
+      .replace(/\{/g, '\\{')
+      .replace(/\}/g, '\\}');
+
+    $($(`#${selectorId}`).find('a')[0]).addClass('invalid-segment');
+  }
 }
 
 export default CltSampleMessageViewer;

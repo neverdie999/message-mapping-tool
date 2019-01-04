@@ -44,6 +44,8 @@ class MessageParser {
     rootMessageSegmentGroup.id = 'ROOT';
     rootMessageSegmentGroup.order = 1;
     rootMessageSegmentGroup.parent = rootMessageSegmentGroup;
+    this._lastMatchedSegmentGroup.registerNewSegmentCounter();
+    rootMessageSegmentGroup.spec = this._lastMatchedSegmentGroup;
     this._currentMatchedMessageSegmentGroup = rootMessageSegmentGroup;
     this._lastMatchedMessageSegmentGroup = rootMessageSegmentGroup;
     return this._parseSegmentGroup(removedCrlfMessage, rootMessageSegmentGroup);
@@ -54,10 +56,11 @@ class MessageParser {
     root.spec = this._lastMatchedSegmentGroup;
     for (let i = 0; i < messageSampleSegments.length; i += 1) {
       if (this._delimiter.groupCloseDelimiter && messageSampleSegments[i].startsWith(this._delimiter.groupCloseDelimiter)) {
-        const [, segmentGroupName] = this._splitByDelimiter(messageSampleSegments[i], this._delimiter.groupCloseDelimiter, this._delimiter.releaseCharacter);
-        const popGroupName = this._currentSegmentGroupStack.pop();
-        // console.log(`pop: ${popGroupName}`);
-        if (!(popGroupName === segmentGroupName)) {
+        let [, segmentGroupName] = this._splitByDelimiter(messageSampleSegments[i], this._delimiter.groupCloseDelimiter, this._delimiter.releaseCharacter);
+        let popGroupName = this._currentSegmentGroupStack.pop();
+        popGroupName = popGroupName.replace(/\r/g, '');
+        segmentGroupName = segmentGroupName.replace(/\r/g, '');
+        if (popGroupName !== segmentGroupName) {
           return new MatchResult(ResultType.FAIL_FIND_TARGET_GROUP, `[GROUP] ${popGroupName} MATCH FAILED`);
         }
         continue;
@@ -87,7 +90,6 @@ class MessageParser {
       this._currentMatchedSegmentGroup = matchResult.matchedSegment.parent;
       this._currentMatchedSegment = matchResult.matchedSegment;
       this._currentMatchedSegment.instanceIndex += 1;
-      // console.log(`   ${this._currentMatchedSegment.name}`);
       if (this._needNewGroup(i)) {
         const creationResult = this._createMessageSegmentGroup(matchResult, messageSampleSegments[i]);
         if (creationResult.resultType) {
@@ -114,8 +116,12 @@ class MessageParser {
       const newMessageSegmentGroup = new MessageSegmentGroup(matchedSegmentGroup.name);
       newMessageSegmentGroup.spec = matchedSegmentGroup;
       newMessageSegmentGroup.parent = this._lastMatchedMessageSegmentGroup;
-      newMessageSegmentGroup.order = this._currentMatchedSegmentGroup._instances.length;
+      newMessageSegmentGroup.order = this._currentMatchedSegmentGroup.parent._instances[this._currentMatchedSegmentGroup.parent._instances.length - 1][this._currentMatchedSegmentGroup.name];
       newMessageSegmentGroup.id = `[${newMessageSegmentGroup.parent.id}[${newMessageSegmentGroup.name}#${newMessageSegmentGroup.order}]]`;
+      if (newMessageSegmentGroup.order > newMessageSegmentGroup.spec.maxRepeat) {
+        return new MatchResult(ResultType.FAIL_VALIDATION_GROUP, `[GROUP][${newMessageSegmentGroup.spec.name}][${this._currentMatchedSegment.name}]MAX_REPEAT_VIOLATION`);
+      }
+
       this._lastMatchedMessageSegmentGroup.children.push(newMessageSegmentGroup);
       newMessageSegmentGroup.children.push(this._parseSegment(eachMessageSampleSegment, this._currentMatchedSegment.name, newMessageSegmentGroup));
       this._lastMatchedMessageSegmentGroup = newMessageSegmentGroup;
@@ -127,9 +133,10 @@ class MessageParser {
       const newMessageSegmentGroup = new MessageSegmentGroup(this._currentMatchedSegmentGroup.name);
       newMessageSegmentGroup.spec = this._currentMatchedSegmentGroup;
       newMessageSegmentGroup.parent = this._lastMatchedMessageSegmentGroup.parent;
-      newMessageSegmentGroup.order = this._currentMatchedSegmentGroup._instances.length;
+      const currentSegmentGroupOrder = this._currentMatchedSegmentGroup.parent._instances[this._currentMatchedSegmentGroup.parent._instances.length - 1][this._currentMatchedSegmentGroup.name];
+      newMessageSegmentGroup.order = currentSegmentGroupOrder;
       newMessageSegmentGroup.id = `[${newMessageSegmentGroup.parent.id}[${newMessageSegmentGroup.name}#${newMessageSegmentGroup.order}]]`;
-      if (newMessageSegmentGroup.order > newMessageSegmentGroup.spec.maxRepeat) {
+      if (currentSegmentGroupOrder > newMessageSegmentGroup.spec.maxRepeat) {
         return new MatchResult(ResultType.FAIL_VALIDATION_GROUP, `[GROUP][${newMessageSegmentGroup.spec.name}][${this._currentMatchedSegment.name}]MAX_REPEAT_VIOLATION`);
       }
 
@@ -167,6 +174,7 @@ class MessageParser {
         this._lastMatchedSegmentGroup = matchResult.matchedSegment.parent;
         return messageSegmentGroupParent.parent;
       }
+
       const matchedSegmentGroup = matchResult.matchedSegment.parent;
       const newMessageSegmentGroup = new MessageSegmentGroup(matchedSegmentGroup.name);
       newMessageSegmentGroup.spec = matchedSegmentGroup;
@@ -177,7 +185,6 @@ class MessageParser {
       messageSegmentGroupParent.parent.children.push(newMessageSegmentGroup);
       this._lastMatchedMessageSegmentGroup = newMessageSegmentGroup;
       this._lastMatchedSegmentGroup = matchedSegmentGroup;
-
       return newMessageSegmentGroup;
     }
 

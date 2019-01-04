@@ -88,7 +88,7 @@ class MessageAssembler {
           if (lastMessageDataElementFlag) {
             sampleDataElement += this._assembleLastDataSpec(each);
           } else {
-            sampleDataElement += this._assembleNotLastDataSpec(each);
+            sampleDataElement += this._assembleNotLastDataSpec(each, delimiter);
           }
         } else {
           sampleDataElement += this._assembleNotLastMessageDataElement(each, delimiter);
@@ -124,12 +124,12 @@ class MessageAssembler {
     return sampledataElement;
   }
 
-  _assembleNotLastDataSpec(dataSpec) {
+  _assembleNotLastDataSpec(dataSpec, delimiter) {
     let sampledataElement = '';
     if (dataSpec.matchResult.resultType !== ResultType.SUCCESS) {
-      sampledataElement += `<mark title=${dataSpec.spec.format}>${dataSpec.value}</mark>`;
+      sampledataElement += `<mark title=${dataSpec.spec.format}>${dataSpec.value}</mark>${delimiter.dataElementSeparator}`;
     } else {
-      sampledataElement += dataSpec.value;
+      sampledataElement += dataSpec.value + delimiter.dataElementSeparator;
     }
     return sampledataElement;
   }

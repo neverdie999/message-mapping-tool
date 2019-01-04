@@ -175,7 +175,8 @@ class SegmentGroup {
   }
 
   _updateInstanceWhenViolateSegmentMaxRepeat(segmentName) {
-    if (this._instances.length > this.maxRepeat) {
+    const order = this.parent._instances[this.parent._instances.length - 1][this.name];
+    if (order > this.maxRepeat) {
       return false;
     }
 
@@ -183,21 +184,35 @@ class SegmentGroup {
     // register current segment
     this.registerNewSegmentCounter();
     this._instances[this._instances.length - 1][segmentName] += 1;
-    // register parent segmentGroup
-    // this.parent.registerNewSegmentCounter();
-    // console.log(this.parent._instances[this._instances.length - 1]);
-    // this.parent._instances[this._instances.length - 1][this.name] += 1;
+    // update parent segmentGroup
+    this.parent._instances[this.parent._instances.length - 1][this.name] += 1;
     return true;
+  }
+
+  _observeSegmentMaxRepeat(segmentIndex) {
+    if (this.parent) {
+      const values = Object.values(this._instances[this._instances.length - 1]);
+      let segmentAppearanceOneCounter = 0;
+      let segmentAppearanceZeroCounter = 0;
+      values.forEach((value) => {
+        if (value === 1) {
+          segmentAppearanceOneCounter += 1;
+        }
+        if (value === 0) {
+          segmentAppearanceZeroCounter += 1;
+        }
+      });
+      if (segmentAppearanceOneCounter === 1 && segmentAppearanceZeroCounter === values.length - 1) {
+        this.parent._instances[this.parent._instances.length - 1][this.name] += 1;
+      }
+    }
+    return this.lastMatchedIndex <= segmentIndex;
   }
 
   registerNewSegmentCounter() {
     const template = this._segmentCounter || {};
     const cloned = JSON.parse(JSON.stringify(template));
     this._instances.push(cloned);
-  }
-
-  _observeSegmentMaxRepeat(segmentIndex) {
-    return this.lastMatchedIndex <= segmentIndex;
   }
 
   /**

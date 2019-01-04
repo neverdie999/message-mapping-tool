@@ -47,20 +47,20 @@ class Delimiter {
     return this._groupCloseDelimiter;
   }
 
-  static createFixedLength(segmentTerminator = '\n') {
-    return new Delimiter(segmentTerminator);
-  }
-
   static createDelimiter(segmentTerminator, dataElementSeparator, componentDataSeparator) {
     return new Delimiter(segmentTerminator, dataElementSeparator, componentDataSeparator);
   }
 
-  static createDictionary() {
+  static createOpusFlatFile() {
     return new Delimiter('\n', ':', '', '', '{', '}');
   }
 
   static createEdifact() {
-    return new Delimiter('\'', '+', ':');
+    return new Delimiter('\'', '+', ':', '?');
+  }
+
+  static createFixedLength(segmentTerminator = '\n') {
+    return new Delimiter(segmentTerminator);
   }
 }
 

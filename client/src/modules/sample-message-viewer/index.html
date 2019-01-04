@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="x-ua-compatible" content="ie=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="../../../assets/lib/jstree/themes/default/style.min.css" />
+<link rel="stylesheet" href="../../../assets/lib/jstree/themes/default/style.css" />
 <link rel='stylesheet' href='../../../styles/font-awesome/css/font-awesome.min.css'>
 <link rel="stylesheet" href="../../../styles/bootstrap/bootstrap.min.css">
 <link rel="stylesheet" href="../../../styles/bootstrap/animate.min.css">
@@ -49,6 +49,9 @@
 
 			<!-- Top button (S) -->
 			<div class="dialog-button-top" id="${HTML_GROUP_BTN_DYNAMIC_DATASET}_${this.svgId}">
+				<div class="row" style="float: left;">
+					<button id="btnShowInvalidSegment" class="btn-etc" style="display: none; line-height: 20px;">Show invalid segment</button>
+				</div>
 				<div class="row text-right">
 					<button id="btnEditSample" class="btn-etc" style="display: none; line-height: 20px">Edit sample</button>
 					<button id="btnViewFullText" class="btn-etc" style="display: none; line-height: 20px">View full text</button>
