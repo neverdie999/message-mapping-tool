@@ -2,16 +2,6 @@ import SampleMessageViewer from './lib/sample_message_viewer';
 import PopUtils from '../../common/utilities/popup.util';
 import { comShowMessage } from '../../common/utilities/common.util';
 
-<<<<<<< HEAD
-class cltSampleMessageViewer {
-	constructor(props) {
-		this.specFile = '';
-		this.sampleFile = '';
-		this.messageGroupType = '';
-		this.messageElement = null;
-		this.main = new SampleMessageViewer();
-		this.parent = props.parent;
-=======
 class CltSampleMessageViewer {
   constructor(props) {
     this.specFile = '';
@@ -20,14 +10,9 @@ class CltSampleMessageViewer {
     this.messageElement = null;
     this.main = new SampleMessageViewer();
     this.parent = props.parent;
->>>>>>> 13de408c0de027897a38f51ffe79ae10400f983c
-
     this.isNodeOpenedByFunction = false;
-
     this.isNodeOpenedByFunction = false;
-
     this.bindMainEvent();
-
     this.bindEventForPopup();
   }
 
@@ -270,7 +255,7 @@ class CltSampleMessageViewer {
           ) {
             eachMessageDataElement.whiteSpace = eachMessageDataElement.value.length - eachMessageDataElement.value.trim().length;
 
-            const inputId = `editValue${eachDataElement.name + seqTextBox}`;
+            const inputId = `editValue${seqTextBox}`;
 
             $('#detailBody').append('<tr>')
               .append(`<td>${eachDataElement.name}</td>`)
@@ -318,7 +303,12 @@ class CltSampleMessageViewer {
       this.messageElement._children.forEach((eachMessageDataElements) => {
         eachMessageDataElements.forEach((eachMessageDataElement) => {
           if (eachMessageDataElement.name === eachDataElement.name && eachMessageDataElement.spec.id === eachDataElement.id) {
-            eachMessageDataElement.value = $(`#editValue${eachDataElement.name}${seqTextBox}`).val() + ' '.repeat(Number(eachMessageDataElement.whiteSpace));
+            const eachMessageDataElementSpecLength = Number(eachMessageDataElement.spec.format.match(/\d+/i));            
+            eachMessageDataElement.whiteSpace = eachMessageDataElementSpecLength - $('#editValue' + seqTextBox).val().length;
+            if(eachMessageDataElement.whiteSpace < 0) { 
+              eachMessageDataElement.whiteSpace = 0;
+            }
+            eachMessageDataElement.value = $('#editValue' + seqTextBox).val() + ' '.repeat(Number(eachMessageDataElement.whiteSpace));
             eachMessageDataElement.matchResult = defaultValue;
           }
           seqTextBox += 1;
