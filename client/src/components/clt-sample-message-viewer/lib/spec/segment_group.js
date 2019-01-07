@@ -103,6 +103,7 @@ class SegmentGroup {
     }
     // this._instances.length = 0;
     this._lastMatchedSegment = '';
+    // console.log(`[GROUP]: ${this.name}, No: ${messageSampleSegment}`);
     return new MatchResult(ResultType.FAIL_FIND_TARGET_SEGMENT, `[${this.name}]NOT_FOUND_IN_SEGMENT_LIST`);
   }
 
@@ -179,7 +180,7 @@ class SegmentGroup {
     if (order > this.maxRepeat) {
       return false;
     }
-
+ 
     this._instances[this._instances.length - 1][segmentName] -= 1;
     // register current segment
     this.registerNewSegmentCounter();

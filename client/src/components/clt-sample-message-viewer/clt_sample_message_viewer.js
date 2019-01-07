@@ -2,6 +2,16 @@ import SampleMessageViewer from './lib/sample_message_viewer';
 import PopUtils from '../../common/utilities/popup.util';
 import { comShowMessage } from '../../common/utilities/common.util';
 
+<<<<<<< HEAD
+class cltSampleMessageViewer {
+	constructor(props) {
+		this.specFile = '';
+		this.sampleFile = '';
+		this.messageGroupType = '';
+		this.messageElement = null;
+		this.main = new SampleMessageViewer();
+		this.parent = props.parent;
+=======
 class CltSampleMessageViewer {
   constructor(props) {
     this.specFile = '';
@@ -10,6 +20,9 @@ class CltSampleMessageViewer {
     this.messageElement = null;
     this.main = new SampleMessageViewer();
     this.parent = props.parent;
+>>>>>>> 13de408c0de027897a38f51ffe79ae10400f983c
+
+    this.isNodeOpenedByFunction = false;
 
     this.isNodeOpenedByFunction = false;
 

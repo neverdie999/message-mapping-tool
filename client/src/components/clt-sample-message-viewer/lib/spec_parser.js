@@ -1,8 +1,8 @@
 
 
-const SegmentGroup = require('./spec/segment_group');
-const Segment = require('./spec/segment');
-const DataElement = require('./spec/data_element');
+const SegmentGroup = require('../lib/spec/segment_group');
+const Segment = require('../lib/spec/segment');
+const DataElement = require('../lib/spec/data_element');
 /**
  * @class
  * parse spec.

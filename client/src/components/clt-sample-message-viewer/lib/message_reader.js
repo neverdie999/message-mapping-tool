@@ -1,6 +1,6 @@
 
 
-const FileReader = require('./file_reader');
+const FileReader = require('../lib/file_reader');
 /**
  * @class
  * message sample reader.

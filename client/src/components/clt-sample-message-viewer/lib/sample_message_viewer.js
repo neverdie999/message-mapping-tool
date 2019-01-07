@@ -42,14 +42,15 @@ class SampleMessageViewer {
     if (messageGroupType === 'EDIFACT') {
       delimiter = Delimiter.createEdifact();
       messageParser = new MessageParser(delimiter, messageGroupType, this.specGroupList[0]);
-    } else if (messageGroupType === 'FIXED_LENGTH') {
+    } else if (messageGroupType === 'FIXEDLENGTH') {
       delimiter = Delimiter.createFixedLength();
       messageParser = new MessageParser(delimiter, messageGroupType, this.specGroupList[0]);
     } else if (messageGroupType === 'DICTIONARY') {
       delimiter = Delimiter.createOpusFlatFile();
       messageParser = new MessageParser(delimiter, messageGroupType, this.specGroupList[0]);
     } else if (messageGroupType === 'DELIMITER') {
-      // empty
+      delimiter = Delimiter.createEdifact();
+      messageParser = new MessageParser(delimiter, messageGroupType, this.specGroupList[0]);      
     }
     this.delimiter = delimiter;
     this.messageGroupType = messageGroupType;

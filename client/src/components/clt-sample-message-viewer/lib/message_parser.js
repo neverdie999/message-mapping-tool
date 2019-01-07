@@ -20,7 +20,7 @@ class MessageParser {
    * @param {Object} currentMatchedSegmentGroup
    * @param {Object} currentMatchedSegment
    */
-  constructor(delimiter, messageType = '', lastMatchedSegmentGroup, lastMatchedMessageSegmentGroup = null, currentSegmentGroupStack = [], lastMatchedSegment = '', lastMatchedMessageSegment = '', currentMatchedSegmentGroup = '', currentMatchedSegment = '') {
+  constructor(delimiter, messageType='', lastMatchedSegmentGroup, lastMatchedMessageSegmentGroup=null, currentSegmentGroupStack=[], lastMatchedSegment='', lastMatchedMessageSegment='', currentMatchedSegmentGroup='', currentMatchedSegment='') {
     this._delimiter = delimiter;
     this._messageType = messageType;
     this._lastMatchedSegmentGroup = lastMatchedSegmentGroup;
@@ -162,12 +162,14 @@ class MessageParser {
           }
           messageSegmentGroupParent = messageSegmentGroupParent.parent;
         }
-      } else if (this._lastMatchedMessageSegmentGroup.parent.parent) {
-        messageSegmentGroupParent = this._lastMatchedMessageSegmentGroup.parent;
       } else {
-        messageSegmentGroupParent = this._lastMatchedMessageSegmentGroup;
+        if (this._lastMatchedMessageSegmentGroup.parent.parent) {
+          messageSegmentGroupParent = this._lastMatchedMessageSegmentGroup.parent;
+        } else {
+          messageSegmentGroupParent = this._lastMatchedMessageSegmentGroup;
+        }
       }
-
+      
       if (matchResult.matchedSegment.parent.name === messageSegmentGroupParent.parent.name) {
         messageSegmentGroupParent.parent.children.push(this._parseSegment(eachMessageSampleSegment, this._currentMatchedSegment.name, messageSegmentGroupParent.parent));
         this._lastMatchedMessageSegmentGroup = messageSegmentGroupParent.parent;
@@ -345,7 +347,6 @@ class MessageParser {
 
       return this._matchStructureFromChildren(eachMessageSampleSegment, currentSegmentGroup);
     }
-
     return new MatchResult(ResultType.FAIL_FIND_TARGET_GROUP, `${this.currentMatchedSegmentGroup}MATCH FAILED`);
   }
 
