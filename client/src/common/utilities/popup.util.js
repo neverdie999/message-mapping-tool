@@ -4,13 +4,20 @@ import {
 
 class PopUtils {
   metSetShowPopup(options) {
-    const { popupId, position, width } = options;
+    const {
+      popupId, position, width, title,
+    } = options;
     /**
      * Configure position, width for modal popup.
      */
     if (!options.popupId) {
       return;
     }
+
+    if (title !== undefined && title !== '') {
+      $(`#${popupId} .dialog-title .title`).text(title);
+    }
+
     // Configure show modal and prevent close modal when use
     // click outside or press ESC
     $(`#${popupId}`).modal({ backdrop: 'static', keyboard: true });

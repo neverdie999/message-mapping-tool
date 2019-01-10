@@ -1,6 +1,6 @@
 import SampleMessageViewer from './lib/sample_message_viewer';
 import PopUtils from '../../common/utilities/popup.util';
-import { comShowMessage } from '../../common/utilities/common.util';
+import { comShowMessage, initDialogDragEvent } from '../../common/utilities/common.util';
 
 class CltSampleMessageViewer {
   constructor(props) {
@@ -11,18 +11,27 @@ class CltSampleMessageViewer {
     this.main = new SampleMessageViewer();
     this.parent = props.parent;
     this.isNodeOpenedByFunction = false;
-    this.isNodeOpenedByFunction = false;
+    this.errorLogContent = '';
+
     this.bindMainEvent();
     this.bindEventForPopup();
   }
 
   bindMainEvent() {
+    $('#btnLoad').click(() => {
+      this.loadData();
+    });
+
     $('#btnShowInvalidSegment').click(() => {
       this.showInvalidSegmentOnTreeView();
     });
 
+    $('#btnShowErrorLog').click(() => {
+      this.showErrorLog();
+    });
+
     $('#btnEditSample').click((event) => {
-      this.editSampleClickEvent(event);
+      this.editSampleClickEvent();
     });
 
     $('#btnViewFullText').click(() => {
@@ -44,6 +53,14 @@ class CltSampleMessageViewer {
         });
       }
     });
+
+    // $(document).ready(() => {
+    //   this.calculateTableSize();
+    // });
+
+    $(window).resize(() => {
+      this.calculateTableSize();
+    });
   }
 
   bindEventForPopup() {
@@ -60,42 +77,7 @@ class CltSampleMessageViewer {
     $('form').submit(() => false);
 
     // Enable dragging for popup
-    this.initDialogDragEvent();
-  }
-
-  /**
-	 * Enable dragging for popup
-	 */
-  initDialogDragEvent() {
-    $('#popupFullText .dialog-title').css('cursor', 'move').on('mousedown', (e) => {
-      const $drag = $('#popupFullText .modal-dialog').addClass('draggable');
-      const posY = $drag.offset().top - e.pageY;
-      const posX = $drag.offset().left - e.pageX;
-      const winH = window.innerHeight;
-      const winW = window.innerWidth;
-      const dlgW = $drag.get(0).getBoundingClientRect().width;
-
-      $(window).on('mousemove', (mousemoveEvent) => {
-        let x = mousemoveEvent.pageX + posX;
-        let y = mousemoveEvent.pageY + posY;
-
-        if (x < 10) x = 10;
-        else if (x + dlgW > winW - 10) x = winW - dlgW - 10;
-
-        if (y < 10) y = 10;
-        else if (y > winH - 10) y = winH - 10;
-
-        $('#popupFullText .draggable').offset({
-          top: y,
-          left: x,
-        });
-      });
-      e.preventDefault(); // disable selection
-    });
-
-    $(window).on('mouseup', (e) => {
-      $('#popupFullText .draggable').removeClass('draggable');
-    });
+    initDialogDragEvent('popupFullText');
   }
 
   loadSpecFile(data) {
@@ -103,19 +85,11 @@ class CltSampleMessageViewer {
 
     this.specFile = data;
 
-    if (this.sampleFile !== '') {
-      this.loadData();
-    }
-
     return true;
   }
 
   loadSampleFile(data) {
     this.sampleFile = data;
-
-    if (this.specFile !== '') {
-      this.loadData();
-    }
   }
 
   loadData() {
@@ -143,10 +117,11 @@ class CltSampleMessageViewer {
 
     // Clear screen
     $('#btnShowInvalidSegment').hide();
+    $('#btnShowErrorLog').hide();
     $('#btnEditSample').hide();
     $('#btnViewFullText').hide();
-    $('#detailHead').html('');
-    $('#detailBody').html('');
+    $('#tableContent').hide();
+    $('#tableContent').empty();
     $('#jstree').empty();
 
     // for loading new jstree, need to clear all attributes
@@ -160,7 +135,7 @@ class CltSampleMessageViewer {
     }
 
     // Print error message if existed
-    this.printError(result);
+    this.makeErrorLogContent(result);
 
     // reload tree view
     $('#jstree').jstree({
@@ -177,13 +152,31 @@ class CltSampleMessageViewer {
   viewFullText() {
     if (this.sampleFile === '') return;
 
+    $('#btnExport').show();
+
     const fullText = this.main.getAssembledMessage('\n');
-    $('#popupContent').get(0).innerHTML = fullText.join('');
+    $('#popupContent')[0].innerHTML = fullText.join('');
 
     const options = {
       popupId: 'popupFullText',
+      title: 'Message content',
       position: 'center',
       width: ((window.innerWidth / 3) * 2) < 500 ? 500 : ((window.innerWidth / 3) * 2),
+    };
+
+    PopUtils.metSetShowPopup(options);
+  }
+
+  showErrorLog() {
+    $('#popupContent')[0].innerHTML = this.errorLogContent === '' ? 'There is no error.' : this.errorLogContent;
+
+    $('#btnExport').hide();
+
+    const options = {
+      popupId: 'popupFullText',
+      title: 'Error logs',
+      position: 'center',
+      width: 600,
     };
 
     PopUtils.metSetShowPopup(options);
@@ -198,20 +191,27 @@ class CltSampleMessageViewer {
       if (nodeDetail.constructor.name === 'MessageSegment') {
         this.messageElement = nodeDetail;
 
+        
         $('#btnShowInvalidSegment').show();
+        $('#btnShowErrorLog').show();
         $('#btnEditSample').show();
         $('#btnViewFullText').show();
+        
+        $('#tableContent').show();
+        $('#tableContent').empty();
 
-        $('#detailBody').html('');
-        $('#detailHead').html('');
-        $('#detailHead').append('<tr>');
-        $('#detailHead').append('<td class="col_header" >NAME</td>');
-        $('#detailHead').append('<td class="col_header" >TYPE</td>');
-        $('#detailHead').append('<td class="col_header" >USAGE</td>');
-        $('#detailHead').append('<td class="col_header" >FORMAT</td>');
-        $('#detailHead').append('<td class="col_header" >DESCRIPTION</td>');
-        $('#detailHead').append('<td class="col_header" >VALUE</td>');
-        $('#detailHead').append('</tr>');
+
+        const $header = $('<thead>');
+        const $row = $('<tr>');
+        $row.append('<th class="col_header" >NAME</th>')
+          .append('<th class="col_header" >TYPE</th>')
+          .append('<th class="col_header" >USAGE</th>')
+          .append('<th class="col_header" >FORMAT</th>')
+          .append('<th class="col_header" >DESCRIPTION</th>')
+          .append('<th class="col_header" >VALUE</th>');
+
+        $header.append($row);
+        $('#tableContent').append($header);
 
         this.printMessageElement();
       }
@@ -221,8 +221,9 @@ class CltSampleMessageViewer {
   editSampleClickEvent() {
     this.setMessageElement();
     const result = this.main.reMatch(this.main.messageStructure);
-    this.printError(result);
+    this.makeErrorLogContent(result);
     this.showInvalidSegmentOnTreeView();
+    this.hideAllInsideButton();
 
     if (result) {
       if (result.length > 0 && !result[0].isValid()) {
@@ -245,6 +246,7 @@ class CltSampleMessageViewer {
 
   printMessageElement() {
     let seqTextBox = 0;
+    const $body = $('<tbody>');
     this.messageElement.spec.dataElements.forEach((eachDataElement) => {
       let elementDataExist = false;
       this.messageElement._children.forEach((eachMessageDataElements) => {
@@ -256,25 +258,24 @@ class CltSampleMessageViewer {
             eachMessageDataElement.whiteSpace = eachMessageDataElement.value.length - eachMessageDataElement.value.trim().length;
 
             const inputId = `editValue${seqTextBox}`;
-
-            $('#detailBody').append('<tr>')
-              .append(`<td>${eachDataElement.name}</td>`)
+            
+            const $row = $('<tr>');
+            $row.append(`<td>${eachDataElement.name}</td>`)
               .append(`<td>${eachDataElement.type}</td>`)
               .append(`<td>${eachDataElement.mandatory}</td>`)
               .append(`<td>${eachDataElement.format}</td>`)
               .append(`<td>${eachDataElement.description}</td>`)
-              .append(`<td ><input type="text" class="form-control" id="${inputId}" value="${eachMessageDataElement.value.trim()}"></td>`)
-              .append('</tr>');
+              .append(`<td ><div class="edit-value-group value-group">
+                              <input type="text" class="form-control edit-value-input" id="${inputId}" value="${eachMessageDataElement.value.trim()}" formatvalue="${eachDataElement.format}">
+                              <span class="input-group-btn">
+                                <button class="btn btn-default btn-inside" title="Apply change">
+                                  <i class="fa fa-check" aria-hidden="true"></i>
+                                </button>
+                              </span>
+                            </div>
+                      </td>`);
 
-            const $el = $(`#${inputId}`);
-
-            // validate when loading segment info
-            this.doValidateByFormat(inputId, $el.val(), eachDataElement.format);
-
-            // validate on change event
-            $el.change((event) => {
-              this.doValidateByFormat(inputId, $el.val(), eachDataElement.format);
-            });
+            $body.append($row);
 
             elementDataExist = true;
           }
@@ -284,17 +285,45 @@ class CltSampleMessageViewer {
       });
 
       if (!elementDataExist) {
-        $('#detailBody').append('<tr>')
+        const $row = $('<tr>')
           .append(`<td>${eachDataElement.name}</td>`)
           .append(`<td>${eachDataElement.type}</td>`)
           .append(`<td>${eachDataElement.mandatory}</td>`)
           .append(`<td>${eachDataElement.format}</td>`)
           .append(`<td>${eachDataElement.description}</td>`)
-          .append('<td></td>')
-          .append('</tr>');
+          .append('<td></td>');
+
+          $body.append($row);
       }
       seqTextBox += 1;
     });
+
+    $('#tableContent').append($body);
+
+    const main = this;
+    $('.edit-value-input').each(function () {
+      // validate when loading segment info
+      main.doValidateByFormat(this.id, this.value, $(this).attr('formatvalue'));
+    })
+
+    $('.edit-value-input').keyup(function (event) {
+      if (main.isValueChanged(this.id)) {
+        main.visibleInsideButton(this.id, true);
+      } else {
+        main.visibleInsideButton(this.id, false);
+      }
+
+      main.doValidateByFormat(this.id, this.value, $(this).attr('formatvalue'));
+    });
+
+    $('.btn-inside').click(function () {
+      if (main.setSpecifyMessageElement($(this).closest('td').find('input')[0].id)) {
+        main.visibleInsideButton($(this).closest('td').find('input')[0].id, false);
+        main.showInvalidSegmentOnTreeView();
+      }
+    });
+
+    this.calculateTableSize();
   }
 
   setMessageElement(defaultValue = true) {
@@ -303,12 +332,12 @@ class CltSampleMessageViewer {
       this.messageElement._children.forEach((eachMessageDataElements) => {
         eachMessageDataElements.forEach((eachMessageDataElement) => {
           if (eachMessageDataElement.name === eachDataElement.name && eachMessageDataElement.spec.id === eachDataElement.id) {
-            const eachMessageDataElementSpecLength = Number(eachMessageDataElement.spec.format.match(/\d+/i));            
-            eachMessageDataElement.whiteSpace = eachMessageDataElementSpecLength - $('#editValue' + seqTextBox).val().length;
-            if(eachMessageDataElement.whiteSpace < 0) { 
+            const eachMessageDataElementSpecLength = Number(eachMessageDataElement.spec.format.match(/\d+/i));
+            eachMessageDataElement.whiteSpace = eachMessageDataElementSpecLength - $(`#editValue${seqTextBox}`).val().length;
+            if (eachMessageDataElement.whiteSpace < 0) {
               eachMessageDataElement.whiteSpace = 0;
             }
-            eachMessageDataElement.value = $('#editValue' + seqTextBox).val() + ' '.repeat(Number(eachMessageDataElement.whiteSpace));
+            eachMessageDataElement.value = $(`#editValue${seqTextBox}`).val() + ' '.repeat(Number(eachMessageDataElement.whiteSpace));
             eachMessageDataElement.matchResult = defaultValue;
           }
           seqTextBox += 1;
@@ -319,16 +348,17 @@ class CltSampleMessageViewer {
     });
   }
 
-  printError(results) {
+  makeErrorLogContent(results) {
     if (!results || results.length === 0) {
-      $('#desc').html('');
+      this.errorLogContent = '';
+      return;
     }
 
     if (results) {
       $('#desc').html('');
+      this.errorLogContent = '';
       results.forEach((result) => {
-        const text = `ERROR MESSAGE: ${result._desc}`;
-        $('#desc').append(`${text}<br>`);
+        this.errorLogContent += `ERROR MESSAGE: ${result._desc}\n`;
       });
     }
   }
@@ -445,6 +475,33 @@ class CltSampleMessageViewer {
     return true;
   }
 
+  showSpecifyInvalidSegmentOnTreeView(segmentId) {
+    if (this.main.jsTree !== undefined && this.main.jsTree !== null && this.main.messageElementMap !== undefined && this.main.messageElementMap !== null) {
+      this.isNodeOpenedByFunction = true;
+
+      // Reset invalid segment effect
+      $('.jstree-leaf').each(function () {
+        if (this.id === segmentId) {
+          $(this).find('.invalid-segment').each(function () {
+            $(this).removeClass('invalid-segment');
+          });
+        }
+      });
+
+      for (const [key, messageElement] of this.main.messageElementMap) {
+        if (messageElement.constructor.name === 'MessageSegment') {
+          if (messageElement.id === segmentId && !this.validateSegment(messageElement.id)) {
+            this.expandNode(messageElement.id, messageElement.id);
+            this.showWarningColorToSegmentOnTreeView(messageElement.id);
+            break;
+          }
+        }
+      }
+
+      this.isNodeOpenedByFunction = false;
+    }
+  }
+
   showInvalidSegmentOnTreeView() {
     if (this.main.jsTree !== undefined && this.main.jsTree !== null && this.main.messageElementMap !== undefined && this.main.messageElementMap !== null) {
       this.isNodeOpenedByFunction = true;
@@ -489,6 +546,106 @@ class CltSampleMessageViewer {
       .replace(/\}/g, '\\}');
 
     $($(`#${selectorId}`).find('a')[0]).addClass('invalid-segment');
+  }
+
+  calculateTableSize() {
+    // Table size
+    const $tableBody = $('#tableContent tbody');
+    if ($('.content')[0].clientHeight - $tableBody[0].scrollHeight >= 100) {
+      $tableBody.css('height', 'auto');
+    } else {
+      $tableBody.css('height', $('.content').height() - 100);
+    }
+
+    // position for Apply change button
+    $('.bottom-fixed-area').css('top', $tableBody[0].getBoundingClientRect().bottom + 1);
+  }
+
+  setSpecifyMessageElement(inputValueId) {
+    const segmentDetail = this.messageElement;
+    let seqTextBox = 0;
+    if (segmentDetail.constructor.name === 'MessageSegment') {
+      for (let i = 0; i < segmentDetail.spec.dataElements.length; i += 1) {
+        const eachStructDataElement = segmentDetail.spec.dataElements[i];
+
+        for (let j = 0; j < segmentDetail._children.length; j += 1) {
+          const sampleCompositeDataElement = segmentDetail._children[j];
+
+          for (let k = 0; k < sampleCompositeDataElement.length; k += 1) {
+            const eachSampleDataElement = sampleCompositeDataElement[k];
+
+            if (eachSampleDataElement.name === eachStructDataElement.name && eachSampleDataElement.spec.id === eachStructDataElement.id && inputValueId === `editValue${seqTextBox}`) {
+              const eachMessageDataElementSpecLength = Number(eachSampleDataElement.spec.format.match(/\d+/i));
+              eachSampleDataElement.whiteSpace = eachMessageDataElementSpecLength - $(`#editValue${seqTextBox}`).val().length;
+              if (eachSampleDataElement.whiteSpace < 0) {
+                eachSampleDataElement.whiteSpace = 0;
+              }
+              eachSampleDataElement.value = $(`#editValue${seqTextBox}`).val() + ' '.repeat(Number(eachSampleDataElement.whiteSpace));
+              eachSampleDataElement.matchResult = true;
+
+              const result = this.main.reMatch(this.main.messageStructure);
+              this.makeErrorLogContent(result);
+              return true;
+            }
+            seqTextBox += 1;
+          }
+          seqTextBox += 1;
+        }
+        seqTextBox += 1;
+      }
+    }
+
+    return false;
+  }
+
+  isValueChanged(inputValueId) {
+    const segmentDetail = this.messageElement;
+    let seqTextBox = 0;
+    if (segmentDetail.constructor.name === 'MessageSegment') {
+      for (let i = 0; i < segmentDetail.spec.dataElements.length; i += 1) {
+        const eachStructDataElement = segmentDetail.spec.dataElements[i];
+
+        for (let j = 0; j < segmentDetail._children.length; j += 1) {
+          const sampleCompositeDataElement = segmentDetail._children[j];
+
+          for (let k = 0; k < sampleCompositeDataElement.length; k += 1) {
+            const eachSampleDataElement = sampleCompositeDataElement[k];
+
+            if (eachSampleDataElement.name === eachStructDataElement.name && eachSampleDataElement.spec.id === eachStructDataElement.id && inputValueId === `editValue${seqTextBox}`) {
+              const eachMessageDataElementSpecLength = Number(eachSampleDataElement.spec.format.match(/\d+/i));
+              let whiteSpace = eachMessageDataElementSpecLength - $(`#editValue${seqTextBox}`).val().length;
+              if (whiteSpace < 0) {
+                whiteSpace = 0;
+              }
+
+              if (eachSampleDataElement.value.trim() !== $(`#editValue${seqTextBox}`).val().trim()) {
+                return true;
+              }
+            }
+            seqTextBox += 1;
+          }
+          seqTextBox += 1;
+        }
+        seqTextBox += 1;
+      }
+    }
+
+    return false;
+  }
+
+  visibleInsideButton(inputId, isShow = true) {
+    const $input = $(`#${inputId}`);
+    if (isShow) {
+      $($input.closest('.edit-value-group')).removeClass('value-group');
+      $($input.closest('.edit-value-group')).addClass('value-group-show-button');
+    } else {
+      $($input.closest('.edit-value-group')).removeClass('value-group-show-button');
+      $($input.closest('.edit-value-group')).addClass('value-group');
+    }
+  }
+
+  hideAllInsideButton() {
+    $('.value-group-show-button').removeClass('value-group-show-button').addClass('value-group');
   }
 }
 

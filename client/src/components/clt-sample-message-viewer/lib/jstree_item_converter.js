@@ -54,7 +54,7 @@ class JsTreeItemConverter {
 
   _makeMessageSegmentGroupBranch(messageSegmentGroup, parentId) {
     if (!this._messageElementMap.get(messageSegmentGroup.id)) {
-      const branchName = `${messageSegmentGroup.name}[${messageSegmentGroup.order}/${messageSegmentGroup.spec.maxRepeat}]`;
+      const branchName = `${messageSegmentGroup.name}[${messageSegmentGroup.order}/${messageSegmentGroup.existingCount !== -1 ? messageSegmentGroup.existingCount : messageSegmentGroup.spec.maxRepeat}]`;
       const branch = new Branch(messageSegmentGroup.id, parentId, branchName);
       this._treeItems.push(branch);
       this._messageElementMap.set(messageSegmentGroup.id, messageSegmentGroup);

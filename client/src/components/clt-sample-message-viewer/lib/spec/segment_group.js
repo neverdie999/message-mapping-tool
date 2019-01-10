@@ -180,7 +180,7 @@ class SegmentGroup {
     if (order > this.maxRepeat) {
       return false;
     }
- 
+
     this._instances[this._instances.length - 1][segmentName] -= 1;
     // register current segment
     this.registerNewSegmentCounter();

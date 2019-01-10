@@ -18,7 +18,7 @@ class MessageSegmentGroup {
    * @param {String} id
    * @param {Object} elementType
    */
-  constructor(name = '', children = [], parent, order = 0, matchResult = true, spec = null, id = null) {
+  constructor(name = '', children = [], parent, order = 0, matchResult = true, spec = null, id = null, existingCount = -1) {
     this._name = name;
     this._children = children;
     this._parent = parent;
@@ -26,6 +26,7 @@ class MessageSegmentGroup {
     this._matchResult = matchResult;
     this._spec = spec;
     this._id = id;
+    this._existingCount = existingCount;
     this._elementType = MessageElementType.SegmentGroup;
   }
 
@@ -83,6 +84,14 @@ class MessageSegmentGroup {
 
   set id(id) {
     this._id = id;
+  }
+
+  get existingCount() {
+    return this._existingCount;
+  }
+
+  set existingCount(existingCount) {
+    this._existingCount = existingCount;
   }
 
   get elementType() {

@@ -345,3 +345,47 @@ export function unsetAddressTabName(tabId) {
   $(`#${tabId}`).attr('title', '');
   $(`#${tabId}`).hide();
 }
+
+/**
+   * Enable dragging for popup
+   */
+export function initDialogDragEvent(dialogId) {
+  $(`#${dialogId} .dialog-title`).css('cursor', 'move').on('mousedown', (e) => {
+    const $drag = $(`#${dialogId} .modal-dialog`).addClass('draggable');
+
+    const pos_y = $drag.offset().top - e.pageY;
+
+
+    const pos_x = $drag.offset().left - e.pageX;
+
+
+    const winH = window.innerHeight;
+
+
+    const winW = window.innerWidth;
+
+
+    const dlgW = $drag.get(0).getBoundingClientRect().width;
+
+    $(window).on('mousemove', (e) => {
+      let x = e.pageX + pos_x;
+      let y = e.pageY + pos_y;
+
+      if (x < 10) x = 10;
+      else if (x + dlgW > winW - 10) x = winW - dlgW - 10;
+
+      if (y < 10) y = 10;
+      else if (y > winH - 10) y = winH - 10;
+
+      $(`#${dialogId} .draggable`).offset({
+        top: y,
+        left: x,
+      });
+    });
+    e.preventDefault(); // disable selection
+  });
+
+  $(window).on('mouseup', (e) => {
+    $(`#${dialogId} .draggable`).removeClass('draggable');
+  });
+}

@@ -32,54 +32,52 @@
 	<!-- Address bar (E) -->
 
 	<!-- Tree view (S) -->
-	<nav class="w3-sidebar w3-blue w3-collapse w3-top w3-large w3-padding" style="z-index:3;width:300px;" id="mySidebar"><br>
+	<nav class="w3-sidebar w3-blue w3-collapse w3-top w3-large w3-padding" style="z-index:3;width:300px; height: calc(100% - 20px);" id="mySidebar"><br>
 		<div id="jstree">
-			<!-- <a href="#" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Home</a> -->
 		</div>
 		<div id="node"></div>
 	</nav>
 	<!-- Tree view (E) -->
+
+	<!-- Top button (S) -->
+	<div class="top-fixed-area">
+		<div class="dialog-button-top">
+			<div style="float: left;">
+				<button id="btnShowInvalidSegment" class="btn-etc" style="display: none; line-height: 20px;">Show invalid segment</button>
+				<button id="btnShowErrorLog" class="btn-etc" style="display: none; line-height: 20px;">Show error log</button>
+			</div>
+			<div class="text-right">
+				<button id="btnViewFullText" class="btn-etc" style="display: none; line-height: 20px">View as message</button>
+			</div>
+		</div>
+	</div>		
+	<!-- Top button (E) -->
 	
   <!-- PAGE CONTENT (S) -->
   <div class="content">
-		<div class="dialog-wrapper">
-			<!-- Error desc (S) -->
-			<div id="desc" style="word-wrap: break-word;"></div>
-			<!-- Error desc (E) -->
-
-			<!-- Top button (S) -->
-			<div class="dialog-button-top" id="${HTML_GROUP_BTN_DYNAMIC_DATASET}_${this.svgId}">
-				<div class="row" style="float: left;">
-					<button id="btnShowInvalidSegment" class="btn-etc" style="display: none; line-height: 20px;">Show invalid segment</button>
-				</div>
-				<div class="row text-right">
-					<button id="btnEditSample" class="btn-etc" style="display: none; line-height: 20px">Edit sample</button>
-					<button id="btnViewFullText" class="btn-etc" style="display: none; line-height: 20px">View full text</button>
-				</div>
-			</div>
-			<!-- Top button (E) -->
-
-			<!-- Table (S) -->
-			<form action="#" method="post">
-				<div class="dialog-search form-inline">
-					<table class="vertex-properties">
-						<thead id="detailHead"></thead>
-						<tbody id="detailBody">
-						</tbody>
-					</table>
-				</div>
-			</form>
-			<!-- Table (E) -->
-		</div>
+		<!-- Table (S) -->
+		<table id="tableContent" class="fixed_headers" style="display: none">
+		</table>
+		<!-- Table (E) -->
 	</div>
 	<!-- PAGE CONTENT (E) -->
+
+	<!-- Bottom button (S) -->
+	<div class="bottom-fixed-area">
+		<div class="dialog-button-top">
+			<div class="text-right" style="margin-top: 2px">
+				<button id="btnEditSample" class="btn-etc" style="display: none; line-height: 20px">Apply change</button>
+			</div>
+		</div>
+	</div>
+	<!-- Bottom button (E) -->
 
 	<!-- View full text popup (S) -->
 	<div id="popupFullText" class="modal fade" role="dialog" tabindex="-1">
 		<div class="modal-dialog">
 			<div class="web-dialog modal-content">
 				<div class="dialog-title">
-					<span class="title">Full Text</span>
+					<span class="title"></span>
 				</div>
 
 				<div class="dialog-wrapper">
@@ -114,6 +112,16 @@
 								<input type="text" class="file-name form-control" id="specFileName" readonly>
 							</div>
 						</div>
+
+						<label class="control-label font-weight-700 col-sm-2">Message Group Type</label>
+						<div class="col-sm-2">
+							<select id="messageGroupType" class="form-control" >
+								<option value="EDIFACT" selected>EDIFACT</option>
+								<option value="FIXEDLENGTH">FIXED LENGTH</option>
+								<option value="DICTIONARY">DICTIONARY</option>
+								<option value="DELIMITER">DELIMITER</option>
+							</select>
+						</div>
 					</div>
 
 					<div class="form-group">
@@ -125,15 +133,13 @@
 								<input type="text" class="file-name form-control" id="sampleFileName" readonly>
 							</div>
 						</div>
-						<label class="control-label font-weight-700 col-sm-2">Message Group Type</label>
-						<div class="col-sm-2">
-							<select id="messageGroupType" class="form-control" >
-								<option value="EDIFACT" selected>EDIFACT</option>
-								<option value="FIXEDLENGTH">FIXED LENGTH</option>
-								<option value="DICTIONARY">DICTIONARY</option>
-								<option value="DELIMITER">DELIMITER</option>
-							</select>
+
+						<div class="col-sm-4">
+							<div class="input-group" style="width: 100%">
+								<button id="btnLoad" class="btn btn-primary btn-custom" type="button">Load</button>
+							</div>
 						</div>
+						
 					</div>
 				</form>
 			</div>

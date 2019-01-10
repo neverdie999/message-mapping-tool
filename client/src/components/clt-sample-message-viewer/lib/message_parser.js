@@ -20,7 +20,7 @@ class MessageParser {
    * @param {Object} currentMatchedSegmentGroup
    * @param {Object} currentMatchedSegment
    */
-  constructor(delimiter, messageType='', lastMatchedSegmentGroup, lastMatchedMessageSegmentGroup=null, currentSegmentGroupStack=[], lastMatchedSegment='', lastMatchedMessageSegment='', currentMatchedSegmentGroup='', currentMatchedSegment='') {
+  constructor(delimiter, messageType = '', lastMatchedSegmentGroup, lastMatchedMessageSegmentGroup = null, currentSegmentGroupStack = [], lastMatchedSegment = '', lastMatchedMessageSegment = '', currentMatchedSegmentGroup = '', currentMatchedSegment = '') {
     this._delimiter = delimiter;
     this._messageType = messageType;
     this._lastMatchedSegmentGroup = lastMatchedSegmentGroup;
@@ -101,6 +101,7 @@ class MessageParser {
       this._lastMatchedSegmentGroup = this._currentMatchedSegmentGroup;
       this._lastMatchedSegment = this._currentMatchedSegment;
     }
+    this._groupTreeBranch(root);
     return root;
   }
 
@@ -162,14 +163,12 @@ class MessageParser {
           }
           messageSegmentGroupParent = messageSegmentGroupParent.parent;
         }
+      } else if (this._lastMatchedMessageSegmentGroup.parent.parent) {
+        messageSegmentGroupParent = this._lastMatchedMessageSegmentGroup.parent;
       } else {
-        if (this._lastMatchedMessageSegmentGroup.parent.parent) {
-          messageSegmentGroupParent = this._lastMatchedMessageSegmentGroup.parent;
-        } else {
-          messageSegmentGroupParent = this._lastMatchedMessageSegmentGroup;
-        }
+        messageSegmentGroupParent = this._lastMatchedMessageSegmentGroup;
       }
-      
+
       if (matchResult.matchedSegment.parent.name === messageSegmentGroupParent.parent.name) {
         messageSegmentGroupParent.parent.children.push(this._parseSegment(eachMessageSampleSegment, this._currentMatchedSegment.name, messageSegmentGroupParent.parent));
         this._lastMatchedMessageSegmentGroup = messageSegmentGroupParent.parent;
@@ -476,6 +475,66 @@ class MessageParser {
 
   get messageType() {
     return this._messageType;
+  }
+
+  _groupTreeBranch(segmentGroup) {
+    for (let i = 0; i < segmentGroup.children.length; i += 1) {
+      const child = segmentGroup.children[i];
+
+      if (child.constructor.name === MessageSegmentGroup.name) {
+        this._groupTreeBranch(child);
+      }
+    }
+
+    const arrayDuplicateGroupName = this._findDuplicateGroupName(segmentGroup);
+    if (arrayDuplicateGroupName.length > 0) {
+      for (let j = arrayDuplicateGroupName.length - 1; j >= 0; j -= 1) {
+        const duplicateGroupName = arrayDuplicateGroupName[j].name;
+        const duplicateGroupCount = arrayDuplicateGroupName[j].count;
+        let newGroup = {};
+        let isFirstMatch = false;
+        for (let k = segmentGroup.children.length - 1; k >= 0; k -= 1) {
+          const child2 = segmentGroup.children[k];
+
+          if (child2.constructor.name === MessageSegmentGroup.name && child2.name === duplicateGroupName) {
+            if (!isFirstMatch) {
+              isFirstMatch = true;
+              const newId = child2.id.replace(/#\d+(?!.*#.*$)/g, '#0');
+              newGroup = new MessageSegmentGroup(child2.name, [], child2.parent, duplicateGroupCount, true, child2.spec, newId);
+              segmentGroup.children.splice(k + 1, 0, newGroup);
+            }
+
+            child2.parent = newGroup;
+            child2.existingCount = duplicateGroupCount;
+            newGroup._children.splice(0, 0, segmentGroup._children.splice(k, 1)[0]);
+          }
+        }
+      }
+    }
+  }
+
+  _findDuplicateGroupName(segmentGroup) {
+    const arrayDuplicateGroup = [];
+
+    for (let i = 0; i < segmentGroup._children.length; i += 1) {
+      const child = segmentGroup._children[i];
+
+      if (child.constructor.name === MessageSegmentGroup.name && arrayDuplicateGroup.indexOf(child.name) === -1) {
+        let count = 0;
+        for (let j = 0; j < segmentGroup._children.length; j += 1) {
+          const child2 = segmentGroup._children[j];
+          if (child2.name === child.name) {
+            count += 1;
+          }
+        }
+
+        if (count > 1) {
+          arrayDuplicateGroup.push({ name: child.name, count });
+        }
+      }
+    }
+
+    return arrayDuplicateGroup;
   }
 }
 
