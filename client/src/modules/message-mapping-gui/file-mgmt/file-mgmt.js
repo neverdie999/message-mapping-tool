@@ -1,116 +1,112 @@
-import {readDataFileJson, comShowMessage} from '../../../common/utilities/common.util'
-import popupUtil from '../../../common/utilities/popup.util'
+import {readDataFileJson, comShowMessage} from '../../../common/utilities/common.util';
+import popupUtil from '../../../common/utilities/popup.util';
 
-const ID_FOLDER_OPEN_FILE_MGMT = 'folderOpenFileMgmt'
-const ID_CONTAINER_FILE_MGMT = 'containerFileMgmt'
-const ID_OPTION_FILE_TYPE_INPUT = 'optionFileTypeInput'
-const ID_INPUT_FILE_DATA = 'inputFileData'
+const ID_FOLDER_OPEN_FILE_MGMT = 'folderOpenFileMgmt';
+const ID_CONTAINER_FILE_MGMT = 'containerFileMgmt';
+const ID_OPTION_FILE_TYPE_INPUT = 'optionFileTypeInput';
+const ID_INPUT_FILE_DATA = 'inputFileData';
 
-const GROUP_OPTION_MODE_GRAPH = 'input:radio[name=graphMode]'
-const ID_OUTPUT_FILE_NAME = 'outputFileName'
-const ID_BUTTON_DOWNLOAD_FILE = 'btnDownloadFile'
-const ID_BUTTON_GENERATE = 'btnGenerate'
-const ID_GENERATE_DIALOG = 'dlgGenerate'
+const GROUP_OPTION_MODE_GRAPH = 'input:radio[name=graphMode]';
+const ID_OUTPUT_FILE_NAME = 'outputFileName';
+const ID_BUTTON_DOWNLOAD_FILE = 'btnDownloadFile';
+const ID_BUTTON_GENERATE = 'btnGenerate';
+const ID_GENERATE_DIALOG = 'dlgGenerate';
 
-const SCANNER_MESSAGE_GROUP_TYPE_ID = 'scannerMesasgeGroupType'
-const INPUT_MESSAGE_GROUP_TYPE_ID = 'inputMessageGroupType'
-const OUTPUT_MESSAGE_GROUP_TYPE_ID = 'outputMessageGroupType'
-const BUTTON_SCANNER_GENERATE = 'btnScannerGenerate'
-const BUTTON_MAPPER_GENERATE = 'btnMapperGenerate'
-const BUTTON_GENERATE_CLOSE_ID = 'btnGenerateClose'
+const SCANNER_MESSAGE_GROUP_TYPE_ID = 'scannerMesasgeGroupType';
+const INPUT_MESSAGE_GROUP_TYPE_ID = 'inputMessageGroupType';
+const OUTPUT_MESSAGE_GROUP_TYPE_ID = 'outputMessageGroupType';
+const BUTTON_SCANNER_GENERATE = 'btnScannerGenerate';
+const BUTTON_MAPPER_GENERATE = 'btnMapperGenerate';
+const BUTTON_GENERATE_CLOSE_ID = 'btnGenerateClose';
+const ID_BUTTON_LOAD = 'btnLoad';
 
 class FileMgmt {
 	constructor(props) {
-		this.parent = props.parent
-		this.initialize()
-		this.loadedFile = []
+		this.parent = props.parent;
+		this.initialize();
+		this.loadedFile = [];
 	}
 
 	initialize() {
-		this.bindEventListenerToControls()
-		this.initDialogDragEvent()
+		this.bindEventListenerToControls();
+		this.initDialogDragEvent();
 	}
 
 	bindEventListenerToControls() {
 		$(`#${ID_FOLDER_OPEN_FILE_MGMT}`).click(() => {
-			$(`#${ID_CONTAINER_FILE_MGMT}`).slideToggle()
+			$(`#${ID_CONTAINER_FILE_MGMT}`).slideToggle();
 		})
 
 		$(`#${ID_OPTION_FILE_TYPE_INPUT}`).change(event => {
-			$(`#${ID_INPUT_FILE_DATA}`).val('')
-		})
-
-		$(`#${ID_INPUT_FILE_DATA}`).change((event) => {
-			this.readJsonFile(event)
+			$(`#${ID_INPUT_FILE_DATA}`).val('');
 		})
 
 		// Handle event click on button Download
 		$(`#${ID_BUTTON_DOWNLOAD_FILE}`).click((event) => {
-			this.saveFile()
+			this.saveFile();
 		})
 
 		// Handle event press enter on input file name
 		$(`#${ID_OUTPUT_FILE_NAME}`).keypress((event) => {
 			if (event.keyCode == 13) {
-				this.saveFile()
-				event.preventDefault()
+				this.saveFile();
+				event.preventDefault();
 			}
 		})
 
 		// Handle event click on button Generate
 		$(`#${ID_BUTTON_GENERATE}`).click((event) => {
-			this.openGenerateDialog()
+			this.openGenerateDialog();
 		})
 
 		// Scanner generate button click
 		$(`#${BUTTON_SCANNER_GENERATE}`).click((event) => {
-			const messageGroupType = $(`#${SCANNER_MESSAGE_GROUP_TYPE_ID}`).val()
-			this.parent.generateScannerCode(messageGroupType)
+			const messageGroupType = $(`#${SCANNER_MESSAGE_GROUP_TYPE_ID}`).val();
+			this.parent.generateScannerCode(messageGroupType);
 		})
 
 		// mapper generate button click
 		$(`#${BUTTON_MAPPER_GENERATE}`).click((event) => {
 
-			const inputMessageGroupType = $(`#${INPUT_MESSAGE_GROUP_TYPE_ID}`).val()
-			const outputMessageGroupType = $(`#${OUTPUT_MESSAGE_GROUP_TYPE_ID}`).val()
+			const inputMessageGroupType = $(`#${INPUT_MESSAGE_GROUP_TYPE_ID}`).val();
+			const outputMessageGroupType = $(`#${OUTPUT_MESSAGE_GROUP_TYPE_ID}`).val();
 			
-			this.parent.generateMapperWriterCode(inputMessageGroupType, outputMessageGroupType)
+			this.parent.generateMapperWriterCode(inputMessageGroupType, outputMessageGroupType);
 		})
 
 		// Close generate popup
 		$(`#${BUTTON_GENERATE_CLOSE_ID}`).click((event) => {
 			let options = {popupId: `${ID_GENERATE_DIALOG}`}
-			popupUtil.metClosePopup(options)
+			popupUtil.metClosePopup(options);
 		})
+
+		$(`#${ID_BUTTON_LOAD}`).click(()=>{
+			this.readJsonFile();
+		});
 	}
 
 	/**
    * Read content file Vertex Type Definition
    * or  read content file Graph Data Structure
-   * @param event
    */
-	async readJsonFile(event) {
-		let file = event.target.files[0]
+	async readJsonFile() {
+		const file = $(`#${ID_INPUT_FILE_DATA}`)[0].files[0];
 		if (!file)
-			return
+			return;
 
 		const data = await readDataFileJson(file)
 		if (!data)
-			return
+			return;
 
-		const options = $(`#${ID_OPTION_FILE_TYPE_INPUT}`).val()
-		this.parent.separateDataToManagement(data, options, file.name)
-
-		//Hide file managememnt area
-		// $(`#${ID_CONTAINER_FILE_MGMT}`).slideToggle()
+		const options = $(`#${ID_OPTION_FILE_TYPE_INPUT}`).val();
+		this.parent.separateDataToManagement(data, options, file.name);
 	}
 
 	saveFile() {
-		let fileName = $(`#${ID_OUTPUT_FILE_NAME}`).val()
-		this.parent.save(fileName)
+		let fileName = $(`#${ID_OUTPUT_FILE_NAME}`).val();
+		this.parent.save(fileName);
 
-		this.clearOutFileName()
-		// $(`#${ID_CONTAINER_FILE_MGMT}`).slideToggle()
+		this.clearOutFileName();
 	}
 
 	clearOutFileName() {

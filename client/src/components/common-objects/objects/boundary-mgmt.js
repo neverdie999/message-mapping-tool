@@ -15,6 +15,7 @@ import {
   setMinBoundaryGraph,
   checkModePermission,
   segmentName,
+  hideFileChooser,
 } from '../../../common/utilities/common.util';
 
 import {
@@ -304,6 +305,8 @@ class BoundaryMgmt {
       $(`#maxBoundaryRepeat_${this.svgId}`).val(boundary.repeat);
       $(`#isBoundaryMandatory_${this.svgId}`).prop('checked', boundary.mandatory);
     }
+
+    hideFileChooser();
 
     const options = {
       popupId: `boundaryInfo_${this.svgId}`,

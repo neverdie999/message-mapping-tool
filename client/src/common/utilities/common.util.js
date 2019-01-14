@@ -347,8 +347,8 @@ export function unsetAddressTabName(tabId) {
 }
 
 /**
-   * Enable dragging for popup
-   */
+ * Enable dragging for popup
+ */
 export function initDialogDragEvent(dialogId) {
   $(`#${dialogId} .dialog-title`).css('cursor', 'move').on('mousedown', (e) => {
     const $drag = $(`#${dialogId} .modal-dialog`).addClass('draggable');
@@ -388,4 +388,10 @@ export function initDialogDragEvent(dialogId) {
   $(window).on('mouseup', (e) => {
     $(`#${dialogId} .draggable`).removeClass('draggable');
   });
+}
+
+export function hideFileChooser() {
+  if ($('.container.file-mgmt').css('display') === 'block') {
+    $('.container.file-mgmt').slideToggle();
+  }
 }

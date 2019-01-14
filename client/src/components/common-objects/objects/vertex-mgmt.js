@@ -28,6 +28,7 @@ import {
 	checkIsMatchRegexNumber,
 	comShowMessage,
 	segmentName,
+	hideFileChooser,
 } from '../../../common/utilities/common.util'
 
 const HTML_VERTEX_INFO_ID = 'vertexInfo'
@@ -134,10 +135,10 @@ class VertexMgmt {
                 <button id="vertexBtnDelete_${this.svgId}" class="btn-etc">Delete</button>
               </div>
 						</div>
-						
+
             <form id="vertexForm_${this.svgId}" action="#" method="post">
               <div class="dialog-search form-inline">
-                <table class="vertex-properties" id="${HTML_VERTEX_PROPERTIES_ID}_${this.svgId}" border="1"></table>
+                <table class="fixed-headers vertex-properties" id="${HTML_VERTEX_PROPERTIES_ID}_${this.svgId}" border="1"></table>
               </div>
 						</form>
 						
@@ -297,7 +298,7 @@ class VertexMgmt {
 		let $contentHeader = $('<thead>')
 		// Generate header table
 		let $headerRow = $('<tr>')
-		let $colGroup = $('<colgroup>')
+		//let $colGroup = $('<colgroup>')
 		let $popWidth = 0
 		
 		//Append hidden column 'id'
@@ -305,6 +306,9 @@ class VertexMgmt {
 		$colId.attr('class', 'col_header')
 		$colId.css('display', 'none')
 		$colId.appendTo($headerRow)
+
+		// Store column width for table data
+		let arrColumnWidth = [];
 
 		// init delcheck column if isDynamicDataSet
 		const option = group.option
@@ -316,11 +320,8 @@ class VertexMgmt {
 		else {
 			$(`#${HTML_GROUP_BTN_DYNAMIC_DATASET}_${this.svgId}`).show()
 			// Prepend col group del check
-			let $colWidth = $('<col>').attr('width', POPUP_CONFIG.WIDTH_COL_DEL_CHECK)
-			$colWidth.prependTo($colGroup)
-
-			// let $colHdr = $('<th>').text('Del');
-			// $colHdr.attr('class', 'col_header');
+			arrColumnWidth.push(POPUP_CONFIG.WIDTH_COL_DEL_CHECK);
+			
 			let $colHdr = this.initCellDelCheck({
 				'className': 'col_header',
 				'name': `${ATTR_DEL_CHECK_ALL}_${this.svgId}`,
@@ -329,6 +330,7 @@ class VertexMgmt {
 				'isCheckAll': true,
 			})
 			$colHdr.appendTo($headerRow)
+			
 		}
 
 		for (let i = 0; i < cols; i++) {
@@ -342,11 +344,10 @@ class VertexMgmt {
 			let value = group.dataElementFormat[prop]
 			let width = this.findLongestContent({data, prop, type, value})
 			$popWidth += width
-			let $colWidth = $('<col>').attr('width', width)
-			$colWidth.appendTo($colGroup)
+			arrColumnWidth.push(width);
 		}
 
-		$colGroup.appendTo($table)
+		//$colGroup.appendTo($table)
 		$headerRow.appendTo($contentHeader)
 		$contentHeader.appendTo($table)
 
@@ -400,7 +401,18 @@ class VertexMgmt {
 
 		$contentBody.appendTo($table)
 
-		let options = {
+		// Set column with for table data
+		for(let i = 0; i < arrColumnWidth.length; i += 1) {
+			if (i === arrColumnWidth.length - 1) {
+				$(`.fixed-headers th:nth-child(${i+2}),td:nth-child(${i+2})`).css('width', '100%');
+			} else {
+				$(`.fixed-headers th:nth-child(${i+2}),td:nth-child(${i+2})`).css('min-width', arrColumnWidth[i]);
+			}
+		}
+
+		hideFileChooser();
+
+		const options = {
 			popupId: `${HTML_VERTEX_INFO_ID}_${this.svgId}`,
 			position: 'center',
 			width: $popWidth + POPUP_CONFIG.PADDING_CHAR + (!isDynamicDataSet ? 0 : 45)
@@ -589,9 +601,19 @@ class VertexMgmt {
 			$col.appendTo($row)
 		}
 
-    
-
 		$row.appendTo($appendTo)
+
+		// Set column with for table data
+		let columnHeaderCount = 0;
+		$(`.fixed-headers thead tr th`).each(function () {
+			columnHeaderCount += 1;
+
+			if ($(this).css('display') !== 'none') {
+				$(`.fixed-headers td:nth-child(${columnHeaderCount})`).css('min-width', parseInt($(this).css('min-width').replace('px','')));
+			}
+		});
+
+		$(`.fixed-headers td:nth-child(${columnHeaderCount})`).css('width', '100%');
 	}
 
 	removeDataElement() {

@@ -21,6 +21,7 @@ import {
 	setMinBoundaryGraph,
 	checkIsMatchRegexNumber,
 	comShowMessage,
+	hideFileChooser,
 } from '../../../common/utilities/common.util'
 
 
@@ -117,7 +118,7 @@ class SegmentMgmt {
             </div>
             <form id="vertexForm_${this.svgId}" action="#" method="post">
               <div class="dialog-search form-inline">
-                <table class="vertex-properties" id="${HTML_VERTEX_PROPERTIES_ID}_${this.svgId}" border="1"></table>
+                <table class="fixed-headers vertex-properties" id="${HTML_VERTEX_PROPERTIES_ID}_${this.svgId}" border="1"></table>
               </div>
             </form>
             <div class="dialog-button-top">
@@ -223,11 +224,13 @@ class SegmentMgmt {
 		let rows = data.length
 		const dataType = this.vertexGroup.elementDataType
 
+		// Store column width for table data
+		let arrColumnWidth = [];
+
 		let $table = $(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId}`).empty()
 		let $contentHeader = $('<thead>')
 		// Generate header table
 		let $headerRow = $('<tr>')
-		let $colGroup = $('<colgroup>')
 		let $popWidth = 0
 		for (let i = 0; i < cols; i++) {
 			let $colHdr = $('<th>').text(this.capitalizeFirstLetter(columnTitle[i]))
@@ -240,13 +243,11 @@ class SegmentMgmt {
 			let value = this.vertexGroup.dataElementFormat[prop]
 			let width = this.findLongestContent({data, prop, type, value})
 			$popWidth += width
-			let $colWidth = $('<col>').attr('width', width)
-			$colWidth.appendTo($colGroup)
+			arrColumnWidth.push(width);
 		}
 
 		// Prepend col group del check
-		let $colWidth = $('<col>').attr('width', POPUP_CONFIG.WIDTH_COL_DEL_CHECK)
-		$colWidth.prependTo($colGroup)
+		arrColumnWidth.splice(0, 0, POPUP_CONFIG.WIDTH_COL_DEL_CHECK);
 
 		let $colHdr = this.initCellDelCheck({
 			'className': 'col_header',
@@ -257,7 +258,6 @@ class SegmentMgmt {
 		})
 		$colHdr.prependTo($headerRow)
 
-		$colGroup.appendTo($table)
 		$headerRow.appendTo($contentHeader)
 		$contentHeader.appendTo($table)
 
@@ -299,7 +299,18 @@ class SegmentMgmt {
 
 		$contentBody.appendTo($table)
 
-		let options = {
+		// Set column with for table data
+		for(let i = 0; i < arrColumnWidth.length; i += 1) {
+			if (i === arrColumnWidth.length - 1) {
+				$(`.fixed-headers th:nth-child(${i+1}),td:nth-child(${i+1})`).css('width', '100%');
+			} else {
+				$(`.fixed-headers th:nth-child(${i+1}),td:nth-child(${i+1})`).css('min-width', arrColumnWidth[i]);
+			}
+		}
+
+		hideFileChooser();
+
+		const options = {
 			popupId: `${HTML_VERTEX_INFO_ID}_${this.svgId}`,
 			position: 'center',
 			width: $popWidth + POPUP_CONFIG.PADDING_CHAR + 45
@@ -470,6 +481,18 @@ class SegmentMgmt {
 		$col.prependTo($row)
 
 		$row.appendTo($appendTo)
+
+		// Set column with for table data
+		let columnHeaderCount = 0;
+		$(`.fixed-headers thead tr th`).each(function () {
+			columnHeaderCount += 1;
+
+			if ($(this).css('display') !== 'none') {
+				$(`.fixed-headers td:nth-child(${columnHeaderCount})`).css('min-width', parseInt($(this).css('min-width').replace('px','')));
+			}
+		});
+
+		$(`.fixed-headers td:nth-child(${columnHeaderCount})`).css('width', '100%');
 	}
 
 	removeDataElement() {

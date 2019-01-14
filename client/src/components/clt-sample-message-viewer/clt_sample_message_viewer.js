@@ -1,6 +1,6 @@
 import SampleMessageViewer from './lib/sample_message_viewer';
 import PopUtils from '../../common/utilities/popup.util';
-import { comShowMessage, initDialogDragEvent } from '../../common/utilities/common.util';
+import { comShowMessage, initDialogDragEvent, hideFileChooser } from '../../common/utilities/common.util';
 
 class CltSampleMessageViewer {
   constructor(props) {
@@ -61,6 +61,12 @@ class CltSampleMessageViewer {
     $(window).resize(() => {
       this.calculateTableSize();
     });
+
+    (function($) {
+      $.fn.hasVerticalScrollBar = function() {
+          return this.get(0).scrollHeight > this.height();
+      }
+    })(jQuery);
   }
 
   bindEventForPopup() {
@@ -146,11 +152,14 @@ class CltSampleMessageViewer {
 
     this.treeNodeClickEvent();
 
-    this.parent.fileMgmt.slideToggle();
+    hideFileChooser();
   }
 
   viewFullText() {
+    hideFileChooser();
+
     if (this.sampleFile === '') return;
+    $('#popupContent')[0].innerHTML = '';
 
     $('#btnExport').show();
 
@@ -168,6 +177,8 @@ class CltSampleMessageViewer {
   }
 
   showErrorLog() {
+    hideFileChooser();
+
     $('#popupContent')[0].innerHTML = this.errorLogContent === '' ? 'There is no error.' : this.errorLogContent;
 
     $('#btnExport').hide();
@@ -191,12 +202,12 @@ class CltSampleMessageViewer {
       if (nodeDetail.constructor.name === 'MessageSegment') {
         this.messageElement = nodeDetail;
 
-        
+
         $('#btnShowInvalidSegment').show();
         $('#btnShowErrorLog').show();
         $('#btnEditSample').show();
         $('#btnViewFullText').show();
-        
+
         $('#tableContent').show();
         $('#tableContent').empty();
 
@@ -258,7 +269,7 @@ class CltSampleMessageViewer {
             eachMessageDataElement.whiteSpace = eachMessageDataElement.value.length - eachMessageDataElement.value.trim().length;
 
             const inputId = `editValue${seqTextBox}`;
-            
+
             const $row = $('<tr>');
             $row.append(`<td>${eachDataElement.name}</td>`)
               .append(`<td>${eachDataElement.type}</td>`)
@@ -293,7 +304,7 @@ class CltSampleMessageViewer {
           .append(`<td>${eachDataElement.description}</td>`)
           .append('<td></td>');
 
-          $body.append($row);
+        $body.append($row);
       }
       seqTextBox += 1;
     });
@@ -304,7 +315,7 @@ class CltSampleMessageViewer {
     $('.edit-value-input').each(function () {
       // validate when loading segment info
       main.doValidateByFormat(this.id, this.value, $(this).attr('formatvalue'));
-    })
+    });
 
     $('.edit-value-input').keyup(function (event) {
       if (main.isValueChanged(this.id)) {
@@ -324,6 +335,10 @@ class CltSampleMessageViewer {
     });
 
     this.calculateTableSize();
+
+    this.setHeaderWidth();
+
+    this.initTableScrollEvent();
   }
 
   setMessageElement(defaultValue = true) {
@@ -646,6 +661,27 @@ class CltSampleMessageViewer {
 
   hideAllInsideButton() {
     $('.value-group-show-button').removeClass('value-group-show-button').addClass('value-group');
+  }
+
+  setHeaderWidth() {
+    let columnCount = 0;
+    $('table tbody tr').first().find('td').each(function () {
+      columnCount += 1;
+
+      $(`table thead th:nth-child(${columnCount})`).css('min-width', this.getBoundingClientRect().width);
+    });
+  }
+
+  initTableScrollEvent() {
+    $('tbody').scroll(event => {
+      if ($('tbody').hasVerticalScrollBar()) {
+        $('thead').css('overflow-y', 'scroll');
+      } else {
+        $('thead').css('overflow-y', '');
+      }
+      
+      $('thead').scrollLeft(event.target.scrollLeft);
+    });
   }
 }
 

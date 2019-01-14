@@ -137,7 +137,7 @@
           <form class="form-horizontal">
             <div class="form-group">
               <label class="control-label font-weight-700 col-sm-3">Input File</label>
-              <div class="col-sm-6">
+              <div class="col-sm-7">
                 <div class="group-type-file-input">
                   <select id="optionFileTypeInput" class="form-control" style="width: 200px"> 
                     <option value="DATA_INPUT_MESSAGE" selected>Input Message Spec</option>
@@ -145,13 +145,14 @@
                     <option value="DATA_VERTEX_DEFINE_OPERATIONS">Operation Set</option>
                     <option value="DATA_MESSAGE_MAPPING_DEFINITION">Message Mapping Definition</option>
                   </select>
-                  <input type="file" class="form-control" id="inputFileData" name="inputFileData" style="width: calc(100% - 200px)">
+									<input type="file" class="form-control" id="inputFileData" name="inputFileData" style="width: calc(100% - 301px)">
+									<button class="btn btn-primary" type="button" id="btnLoad" style="width:100px; float:right; margin-left: 1px">Load</button>
                 </div>
               </div>
             </div>
             <div class="form-group">
               <label class="control-label font-weight-700 col-sm-3">Save File</label>
-              <div class="col-sm-6">
+              <div class="col-sm-7">
                 <div class="input-group">
                   <input class="form-control" name="outFile" id="outputFileName" placeholder="Enter file name">
                   <span class="input-group-btn">

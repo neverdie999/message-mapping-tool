@@ -7,6 +7,7 @@ const ID_INPUT_FILE_DATA = 'inputFileData';
 const GROUP_OPTION_MODE_GRAPH = 'input:radio[name=graphMode]';
 const ID_OUTPUT_FILE_NAME = 'outputFileName';
 const ID_BUTTON_DOWNLOAD_FILE = 'btnDownloadFile';
+const ID_BUTTON_LOAD = 'btnLoad';
 
 class FileMgmt {
 	constructor(props) {
@@ -21,11 +22,6 @@ class FileMgmt {
 
 		$(`#${ID_OPTION_FILE_TYPE_INPUT}`).change(event => {
 			$(`#${ID_INPUT_FILE_DATA}`).val('');
-		})
-
-		// Handle event on value change on input file
-		$(`#${ID_INPUT_FILE_DATA}`).change((event) => {
-			this.readJsonFile(event);
 		})
 
 		// Handle event change value on group radio Mode
@@ -48,6 +44,10 @@ class FileMgmt {
 				event.preventDefault();
 			}
 		})
+
+		$(`#${ID_BUTTON_LOAD}`).click(()=>{
+			this.readJsonFile();
+		});
 	}
 
 	/**
@@ -55,8 +55,8 @@ class FileMgmt {
    * or  read content file Graph Data Structure
    * @param event
    */
-	async readJsonFile(event) {
-		const file = event.target.files[0];
+	async readJsonFile() {
+		const file = $(`#${ID_INPUT_FILE_DATA}`)[0].files[0];
 		if (!file)
 			return;
 

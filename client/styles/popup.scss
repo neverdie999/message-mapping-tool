@@ -20,6 +20,11 @@
   font-size: 12px;
 }
 
+.poppup-content {
+  overflow-y: auto;
+  max-height: 500px;
+}
+
 .btnClose {
   color: #000000;
   text-decoration: none;
@@ -156,4 +161,22 @@
 		margin-left: -1px;
     width: calc(100% - 92px);
 	}
+}
+
+.fixed-headers {
+  table-layout: fixed;
+	border-collapse: collapse;
+  
+  thead {   
+    tr {
+      display: block;
+      position: relative;
+    }
+  }
+  tbody {
+    display: block;
+		overflow: auto;
+    width: 100%;
+    max-height: 300px;
+  }
 }
