@@ -299,10 +299,9 @@ class CltGraph {
 		// Validate struct data
 		if (!data.vertex || !data.boundary || !data.position || !data.vertexTypes ||
       (Object.keys(data.vertexTypes).length === 0 && data.vertexTypes.constructor === Object)) {
-			console.log('Data Graph Structure is corrupted. You should check it!')
 			return Promise.resolve({
 				type: 'error',
-				message: 'Data Graph Structure is corrupted. You should check it!'
+				message: 'Message Spec Structure is corrupted. You should check it!'
 			})
 		}
 
@@ -617,7 +616,7 @@ class CltGraph {
 		const segmentSetFileName = $(`#${ID_TAB_SEGMENT_SET}`).attr('title');
 		const messageSpecFileName = $(`#${ID_TAB_MESSAGE_SPEC}`).attr('title');
 
-		const applicationTitle = 'Message Spec';
+		const applicationTitle = 'Message Spec Editor';
 		let fileNameList = '';
 		if (segmentSetFileName !== undefined && segmentSetFileName !== '') {
 			if (fileNameList !== '') {

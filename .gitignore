@@ -4,3 +4,11 @@ node_modules/
 *.LICENSE
 
 yarn-error\.log
+
+dist/library\.js
+
+dist/messageMapping\.js
+
+dist/sampleMessageViewer\.js
+
+dist/segmentSetEditor\.js

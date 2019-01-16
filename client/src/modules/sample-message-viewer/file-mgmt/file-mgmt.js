@@ -70,7 +70,7 @@ class FileMgmt {
     const messageSpecFileName = $(`#${ID_TAB_MESSAGE_SPEC_FILE}`).attr('title');
     const sampleFileName = $(`#${ID_TAB_SAMPLE_MESSAGE_FILE}`).attr('title');
 
-    const applicationTitle = 'Message Spec';
+    const applicationTitle = 'Sample Message Viewer';
     let fileNameList = '';
     if (messageSpecFileName !== undefined && messageSpecFileName !== '') {
       if (fileNameList !== '') {

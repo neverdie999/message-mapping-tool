@@ -805,7 +805,7 @@ class VertexMgmt {
 	LoadVertexDefinition(vertexDefinitionData) {
 		//Validate data struct
 		if (!this.validateVertexDefineStructure(vertexDefinitionData)) {
-			comShowMessage('Format or data in Vertex Definition Structure is corrupted. You should check it!');
+			comShowMessage('Format or data in Segment Set is corrupted. You should check it!');
 			return false;
 		}
 

@@ -54,19 +54,15 @@ class CltSampleMessageViewer {
       }
     });
 
-    // $(document).ready(() => {
-    //   this.calculateTableSize();
-    // });
-
     $(window).resize(() => {
       this.calculateTableSize();
     });
 
-    (function($) {
-      $.fn.hasVerticalScrollBar = function() {
-          return this.get(0).scrollHeight > this.height();
-      }
-    })(jQuery);
+    (function ($) {
+      $.fn.hasVerticalScrollBar = function () {
+        return this.get(0).scrollHeight > this.height();
+      };
+    }(jQuery));
   }
 
   bindEventForPopup() {
@@ -673,13 +669,13 @@ class CltSampleMessageViewer {
   }
 
   initTableScrollEvent() {
-    $('tbody').scroll(event => {
+    $('tbody').scroll((event) => {
       if ($('tbody').hasVerticalScrollBar()) {
         $('thead').css('overflow-y', 'scroll');
       } else {
         $('thead').css('overflow-y', '');
       }
-      
+
       $('thead').scrollLeft(event.target.scrollLeft);
     });
   }

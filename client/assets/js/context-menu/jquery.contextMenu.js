@@ -864,6 +864,9 @@
       },
       // contextMenu item click
       itemClick: function (e) {
+        // Prevent middle and right click on menu item
+        if (e.type === 'mouseup' && (e.button === 1 || e.button === 2)) return;
+
         var $this = $(this),
           data = $this.data(),
           opt = data.contextMenu,
