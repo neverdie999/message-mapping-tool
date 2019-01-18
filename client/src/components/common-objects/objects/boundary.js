@@ -414,6 +414,12 @@ class Boundary {
 
     let boudaryObj = _.find(this.dataContainer.boundary, {"id": cBoundaryId});
     boudaryObj.cloneChildElements(cMembers);
+
+    // for Show redeuced case
+    boudaryObj.updateSize();
+    boudaryObj.reorderPositionMember();
+
+    // reset isShowReduced of main parent to false
     if (this.mainParent.isShowReduced) {
       this.mainParent.isShowReduced = false;
     }
