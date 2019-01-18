@@ -1,10 +1,10 @@
-import _ from 'lodash'
-import ColorHash from 'color-hash'
-import * as d3 from 'd3'
-import Vertex from './vertex'
-import PopUtils from '../../../common/utilities/popup.util'
-import ObjectUtils from '../../../common/utilities/object.util'
-import SegmentMenu from '../menu-context/segment-menu'
+import _ from 'lodash';
+import ColorHash from 'color-hash';
+import * as d3 from 'd3';
+import Vertex from './vertex';
+import PopUtils from '../../../common/utilities/popup.util';
+import ObjectUtils from '../../../common/utilities/object.util';
+import SegmentMenu from '../menu-context/segment-menu';
 
 import {
 	VERTEX_FORMAT_TYPE,
@@ -12,7 +12,7 @@ import {
 	CONNECT_SIDE,
 	VIEW_MODE,
 
-} from '../../../common/const/index'
+} from '../../../common/const/index';
 
 import {
 	allowInputNumberOnly,
@@ -22,31 +22,34 @@ import {
 	checkIsMatchRegexNumber,
 	comShowMessage,
 	hideFileChooser,
-} from '../../../common/utilities/common.util'
+} from '../../../common/utilities/common.util';
 
 
-const HTML_VERTEX_INFO_ID = 'vertexInfo'
-const HTML_VERTEX_PROPERTIES_ID = 'vertexProperties'
-const HTML_GROUP_BTN_DYNAMIC_DATASET = 'groupBtnDynamicDataSet'
-const ATTR_DEL_CHECK_ALL = 'delCheckAll'
-const ATTR_DEL_CHECK = 'delCheck'
+const HTML_VERTEX_INFO_ID = 'vertexInfo';
+const HTML_VERTEX_PROPERTIES_ID = 'vertexProperties';
+const HTML_GROUP_BTN_DYNAMIC_DATASET = 'groupBtnDynamicDataSet';
+const ATTR_DEL_CHECK_ALL = 'delCheckAll';
+const ATTR_DEL_CHECK = 'delCheck';
+const FOCUSED_CLASS = 'focused-object';
 
 class SegmentMgmt {
 	constructor(props) {
-		this.dataContainer = props.dataContainer // {[vertex array], [boundary array]} store all vertex and boundary for this SVG
-		this.containerId = props.containerId
-		this.svgId = props.svgId
-		this.viewMode = {value: VIEW_MODE.SEGMENT}
-		this.edgeMgmt = props.edgeMgmt
-		this.connectSide = CONNECT_SIDE.NONE
-		this.mandatoryDataElementConfig = props.mandatoryDataElementConfig
+		this.mainParent = props.mainParent;
+		this.dataContainer = props.dataContainer; // {[vertex array], [boundary array]} store all vertex and boundary for this SVG
+		this.containerId = props.containerId;
+		this.svgId = props.svgId;
+		this.viewMode = {value: VIEW_MODE.SEGMENT};
+		this.edgeMgmt = props.edgeMgmt;
+		this.connectSide = CONNECT_SIDE.NONE;
+		this.mandatoryDataElementConfig = props.mandatoryDataElementConfig;
+		this.parent = props.parent;
 
 		this.vertexDefinition = {
 			vertexGroup: [],  // Group vertex
 			vertex:[]         // List of vertex type
-		}
+		};
 
-		this.initialize()
+		this.initialize();
 	}
 
 	initialize() {
@@ -168,6 +171,7 @@ class SegmentMgmt {
 			return
 
 		let newVertex = new Vertex({
+			mainParent: this.mainParent,
 			vertexMgmt: this
 		})
 
@@ -176,21 +180,23 @@ class SegmentMgmt {
 
 	startDrag(main) {
 		return function (d) {
-			d.moveToFront()
+			d.moveToFront();
+			d3.select(`.${FOCUSED_CLASS}`).classed(FOCUSED_CLASS, false);
+			d3.select(`#${d.id}`).classed(FOCUSED_CLASS, true);
 		}
 	}
 
 	dragTo(main) {
 		return function (d) {
-			updateSizeGraph(d)
-			autoScrollOnMousedrag(d.svgId, d.containerId, main.viewMode.value)
+			updateSizeGraph(d);
+			autoScrollOnMousedrag(d.svgId, d.containerId, main.viewMode.value);
       
 			// Prevent drag object outside the window
-			let {x, y} = main.objectUtils.setPositionObjectJustInSvg(d3.event, d)
-			d.x = x
-			d.y = y
+			let {x, y} = main.objectUtils.setPositionObjectJustInSvg(d3.event, d);
+			d.x = x;
+			d.y = y;
 			// Transform group
-			d3.select(`#${d.id}`).attr('transform', 'translate(' + [d.x, d.y] + ')')
+			d3.select(`#${d.id}`).attr('transform', 'translate(' + [d.x, d.y] + ')');
 		}
 	}
 
@@ -554,44 +560,43 @@ class SegmentMgmt {
 			return
 		}
 		
-		if (!this.validateDataElementTable()) return
+		if (!this.validateDataElementTable()) return;
 
 		// Get data on form
-		this.currentVertex.name = this.currentVertex.vertexType = $(`#vertexName_${this.svgId}`).val()
-		this.currentVertex.description = $(`#vertexDesc_${this.svgId}`).val()
-		const groupType = this.currentVertex.groupType
-		const dataType = this.vertexGroup.elementDataType
+		this.currentVertex.name = this.currentVertex.vertexType = $(`#vertexName_${this.svgId}`).val();
+		this.currentVertex.description = $(`#vertexDesc_${this.svgId}`).val();
+		const groupType = this.currentVertex.groupType;
+		const dataType = this.vertexGroup.elementDataType;
     
-		let elements = []
+		let elements = [];
 		// Get data element
 		$(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId}`).find('tr').each(function () {
-			let row = {}
+			let row = {};
 			$(this).find('td input:text, td input:checkbox, td select').each(function () {
-				let prop = $(this).attr('name')
-				let type = dataType[prop]
-				if (prop != `${ATTR_DEL_CHECK}_${this.svgId}`)
-					row[prop] = type === VERTEX_FORMAT_TYPE.BOOLEAN ? ($(this).is(':checked') ? true : false) : this.value
+				let prop = $(this).attr('name');
+				let type = dataType[prop];
+				if (prop != `${ATTR_DEL_CHECK}_${this.svgId}`);
+					row[prop] = type === VERTEX_FORMAT_TYPE.BOOLEAN ? ($(this).is(':checked') ? true : false) : this.value;
 			})
-			elements.push(row)
+			elements.push(row);
 		})
 
 		// Remove first row (header table)
-		elements.shift()
+		elements.shift();
 
-		this.currentVertex.data = elements
-		this.currentVertex.groupType = groupType
+		this.currentVertex.data = elements;
+		this.currentVertex.groupType = groupType;
 
 		// let newVertex = null;
 		// let updatedVertexId = this.currentVertex.id;
 		if (this.currentVertex.id) {
-			this.updateVertexInfo(this.currentVertex)
-			this.currentVertex.validateConnectionByUsage()
+			this.updateVertexInfo(this.currentVertex);
+			this.currentVertex.validateConnectionByUsage();
 		} else {
 			//Create New
-			this.create(this.currentVertex)
+			this.create(this.currentVertex);
+			this.parent.isShowReduced = false;
 		}
-		
-
 
 		this.closePopVertexInfo()
 	}

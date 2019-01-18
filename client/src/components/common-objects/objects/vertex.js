@@ -21,9 +21,11 @@ import {
 } from '../../../common/utilities/common.util';
 
 const CONNECT_KEY = 'Connected';
+const FOCUSED_CLASS = 'focused-object';
 
 class Vertex {
   constructor(props) {
+    this.mainParent = props.mainParent;
     this.dataContainer = props.vertexMgmt.dataContainer;
     this.containerId = props.vertexMgmt.containerId;
     this.svgId = props.vertexMgmt.svgId;
@@ -115,6 +117,9 @@ class Vertex {
       group.call(callbackDragVertex);
     } else {
       $(`#${this.id}`).click(() => {
+        d3.select(`.${FOCUSED_CLASS}`).classed(FOCUSED_CLASS, false);
+        d3.select(`#${this.id}`).classed(FOCUSED_CLASS, true);
+
         this.vertexMgmt.edgeMgmt.emphasizePathConnectForVertex(this);
       });
     }
@@ -254,6 +259,10 @@ class Vertex {
     this.vertexMgmt.create({
       x, y, name, description, vertexType, data, repeat, mandatory, groupType,
     });
+
+    if (this.mainParent.isShowReduced) {
+      this.mainParent.isShowReduced = false;
+    }
   }
 
   /**

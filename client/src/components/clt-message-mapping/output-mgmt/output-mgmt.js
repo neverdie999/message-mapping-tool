@@ -13,26 +13,30 @@ import { setSizeGraph } from '../../../common/utilities/common.util'
 
 class OutputMgmt {
 	constructor(props) {
-		this.edgeMgmt = props.edgeMgmt
-		this.dataContainer = props.dataContainer
-		this.containerId = props.containerId
-		this.svgId = props.svgId
-		this.isShowReduced = false
-		this.viewMode = {value: VIEW_MODE.OUTPUT_MESSAGE}
+		this.edgeMgmt = props.edgeMgmt;
+		this.dataContainer = props.dataContainer;
+		this.containerId = props.containerId;
+		this.svgId = props.svgId;
+		this.isShowReduced = false;
+		this.viewMode = {value: VIEW_MODE.OUTPUT_MESSAGE};
 
-		this.mandatoryDataElementConfig = props.mandatoryDataElementConfig
+		this.mandatoryDataElementConfig = props.mandatoryDataElementConfig;
 
-		this.initialize()
+		this.mouseX = -1;
+		this.mouseY = -1;
+
+		this.initialize();
 	}
 
 	initialize() {
-		this.objectUtils = new ObjectUtils()
+		this.objectUtils = new ObjectUtils();
 
 		this.defaultOptionsVertex = {
 			connectSide: CONNECT_SIDE.LEFT,
-		}
+		};
 
 		this.vertexMgmt = new VertexMgmt({
+			mainParent: this,
 			dataContainer : this.dataContainer,
 			containerId : this.containerId,
 			svgId : this.svgId,
@@ -40,16 +44,42 @@ class OutputMgmt {
 			connectSide: CONNECT_SIDE.LEFT,
 			edgeMgmt : this.edgeMgmt,
 			mandatoryDataElementConfig: this.mandatoryDataElementConfig
-		})
+		});
 
 		this.boundaryMgmt = new BoundaryMgmt({
+			mainParent: this,
 			dataContainer: this.dataContainer,
 			containerId: this.containerId,
 			svgId: this.svgId,
 			viewMode: this.viewMode,
 			vertexMgmt: this.vertexMgmt,
 			edgeMgmt: this.edgeMgmt,
-		})
+		});
+
+		// // Prevent Ctrl+F on brownser
+		// window.addEventListener("keydown",function (e) {
+		// 	if (e.keyCode === 114 || (e.ctrlKey && e.keyCode === 70)) { 
+		// 			e.preventDefault();
+		// 	}
+		// });
+
+		// capture mouse point for creating menu by Ctrl+F
+		$(`#${this.svgId}`).mousemove( (e) => {
+			this.mouseX = e.pageX;
+			this.mouseY = e.pageY;
+		});
+
+		// Create menu by Ctrl+F
+		$(window).keyup((e) => {
+			// Ctrl + F
+      if ((e.keyCode == 70 || e.keyCode == 102)  && e.ctrlKey) {
+				const $container = $(`#${this.containerId}`);
+				const {left, top, right, bottom} = $container[0].getBoundingClientRect();
+				if (this.mouseOnWindowX > left && this.mouseOnWindowX < right && this.mouseOnWindowY > top && this.mouseOnWindowY < bottom) {
+					$(`#${this.svgId}`).contextMenu({x:this.mouseX, y: this.mouseY});
+				}
+      }
+  	});
 	}
 
 	initMenuContext() {
@@ -102,20 +132,20 @@ class OutputMgmt {
 	}
 
 	clearAll() {
-		this.vertexMgmt.clearAll()
-		this.boundaryMgmt.clearAll()
+		this.vertexMgmt.clearAll();
+		this.boundaryMgmt.clearAll();
 
-		setSizeGraph({ height: DEFAULT_CONFIG_GRAPH.MIN_HEIGHT }, this.svgId)
+		setSizeGraph({ height: DEFAULT_CONFIG_GRAPH.MIN_HEIGHT }, this.svgId);
 	}
 
 	showReduced() {
-		this.isShowReduced = true
-		this.objectUtils.showReduced(this.dataContainer, this.edgeMgmt.dataContainer, this.vertexMgmt.vertexDefinition, this.svgId)
+		this.isShowReduced = true;
+		this.objectUtils.showReduced(this.dataContainer, this.edgeMgmt.dataContainer, this.vertexMgmt.vertexDefinition, this.svgId, this.viewMode.value);
 	}
 
 	showFull() {
-		this.isShowReduced = false
-		this.objectUtils.showFull(this.dataContainer, this.vertexMgmt.vertexDefinition, this.svgId)
+		this.isShowReduced = false;
+		this.objectUtils.showFull(this.dataContainer, this.vertexMgmt.vertexDefinition, this.svgId, this.viewMode.value);
 	}
 
 	/**
@@ -171,6 +201,11 @@ class OutputMgmt {
 		}
 
 		return true
+	}
+
+	setWindowMousePoint(x, y) {
+		this.mouseOnWindowX = x;
+		this.mouseOnWindowY = y;
 	}
 }
 

@@ -12,3 +12,5 @@ dist/messageMapping\.js
 dist/sampleMessageViewer\.js
 
 dist/segmentSetEditor\.js
+
+release-builds/

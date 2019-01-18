@@ -608,26 +608,64 @@
 
           case 37: // left
             handle.keyStop(e, opt);
-            if (opt.isInput || !opt.$selected || !opt.$selected.length) {
+
+            if (!opt.$selected || !opt.$selected.length) {
               break;
+            }
+
+            if (opt.isInput) {
+              if (e.target.value !== "" && e.target.tagName !== "SELECT") {
+                break;
+              } else {
+                // If submenu locate at the left side of root menu then do nothing
+                if (!opt.$selected.parent().hasClass('context-menu-root')) {
+                  let $submenu = opt.$selected.parent();
+                  if ($submenu.css('left').indexOf('-') !== -1) {
+                    break;
+                  }
+                }
+              }
             }
 
             if (!opt.$selected.parent().hasClass('context-menu-root')) {
               var $parent = opt.$selected.parent().parent();
               opt.$selected.trigger('contextmenu:blur');
+              if ($parent.hasClass('context-menu-submenu')) {
+                $parent.removeClass('context-menu-visible');
+              }
               opt.$selected = $parent;
+              opt.isInput = false;
               return;
             }
             break;
 
           case 39: // right
             handle.keyStop(e, opt);
-            if (opt.isInput || !opt.$selected || !opt.$selected.length) {
+            if (!opt.$selected || !opt.$selected.length) {
               break;
+            }
+
+            if (opt.isInput) {
+              if (e.target.value !== "" && e.target.tagName !== "SELECT") {
+                break;
+              } else {
+                // If submenu locate at the left side of root menu then hide submenu
+                if (!opt.$selected.parent().hasClass('context-menu-root')) {
+                  let $submenu = opt.$selected.parent();
+                  let $parent = opt.$selected.parent().parent();
+                  if ($submenu.css('left').indexOf('-') !== -1) {
+                    $parent.removeClass('context-menu-visible');
+                    opt.$selected = $parent;
+                    opt.isInput = false;
+                    break;
+                  }
+                }
+              }
             }
 
             var itemdata = opt.$selected.data('contextMenu') || {};
             if (itemdata.$menu && opt.$selected.hasClass('context-menu-submenu')) {
+              opt.$selected.addClass('context-menu-visible');
               opt.$selected = null;
               itemdata.$selected = null;
               itemdata.$menu.trigger('nextcommand');
@@ -733,7 +771,7 @@
         // focus input
         var $input = $prev.find('input, textarea, select');
         if ($input.length) {
-          $input.focus();
+          $input[0].focus();
         }
       },
       // select next possible command in menu
@@ -777,7 +815,7 @@
         // focus input
         var $input = $next.find('input, textarea, select');
         if ($input.length) {
-          $input.focus();
+          $input[0].focus();
         }
       },
       // flag that we're inside an input so the key handler can act accordingly
@@ -835,7 +873,6 @@
           opt.$selected = null;
           return;
         }
-
 
         $this.trigger('contextmenu:focus');
       },
@@ -969,6 +1006,11 @@
         // backreference for callbacks
         opt.$trigger = $trigger;
 
+        if (!opt.clientX) {
+          opt.clientX = opt.pageX = x;
+          opt.clientY = opt.pageY = y;
+        }
+
         // show event
         if (opt.events.show.call($trigger, opt) === false) {
           $currentTrigger = null;
@@ -1037,6 +1079,13 @@
         }
       },
       hide: function (opt, force) {
+        // // [20190117][Vinh.Vo] hide sub menu if it exist, if not then hide root menu
+        // if ($('.context-menu-list:not(.context-menu-root)').css('display') === 'block') {
+        //   $('.context-menu-visible  ').removeClass('context-menu-visible');
+        //   $('.context-menu-root').focus();
+        //   return;
+        // }
+
         var $trigger = $(this);
         if (!opt) {
           opt = $trigger.data('contextMenu') || {};
@@ -1327,6 +1376,17 @@
 
               if (item.events) {
                 $input.on(item.events, opt);
+              }
+
+              if (item.events2) {
+                if (item.events2.enter) {
+                  $input.on("keyup", (e) => {
+                    if (e.keyCode === 13) {
+                      const tmpFunc = item.events2.enter.bind($input[0]);
+                      tmpFunc();
+                    }
+                  });
+                }
               }
             }
 

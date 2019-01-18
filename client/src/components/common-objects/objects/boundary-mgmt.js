@@ -23,9 +23,11 @@ import {
 } from '../../../common/const/index';
 
 const CONNECT_KEY = 'Connected';
+const FOCUSED_CLASS = 'focused-object';
 
 class BoundaryMgmt {
   constructor(props) {
+    this.mainParent = props.mainParent;
     this.dataContainer = props.dataContainer;
     this.containerId = props.containerId;
     this.svgId = props.svgId;
@@ -176,6 +178,7 @@ class BoundaryMgmt {
 
   create(sOptions) {
     const newBoundary = new Boundary({
+      mainParent: this.mainParent,
       boundaryMgmt: this,
     });
 
@@ -195,6 +198,9 @@ class BoundaryMgmt {
       // Storing start position to calculate the offset for moving members to new position
       d.ctrlSrcX = d.x;
       d.ctrlSrcY = d.y;
+
+      d3.select(`.${FOCUSED_CLASS}`).classed(FOCUSED_CLASS, false);
+      d3.select(`#${d.id}`).classed(FOCUSED_CLASS, true);
     };
   }
 

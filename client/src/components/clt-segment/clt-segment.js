@@ -19,6 +19,7 @@ import {
 
 const ID_TAB_VERTEX_GROUP_DEFINITION = 'addressVertexGroupDefinition';
 const ID_TAB_SEGMENT_SET = 'addressSegmentSet';
+const FOCUSED_CLASS = 'focused-object';
 
 class CltSegment {
 	constructor(props) {
@@ -32,6 +33,9 @@ class CltSegment {
 		this.connectSvgId = `connectSvg_${this.selectorName}`;
 
 		this.isShowReduced = false;
+
+		this.mouseX = -1;
+		this.mouseY = -1;
 		
 		this.mandatoryDataElementConfig = props.mandatoryDataElementConfig // The configuration for Data element validation
 		if (!this.mandatoryDataElementConfig) {
@@ -66,12 +70,14 @@ class CltSegment {
 		});
 
 		this.segmentMgmt = new SegmentMgmt({
+			mainParent: this,
 			dataContainer : this.dataContainer,
 			containerId : this.graphContainerId,
 			svgId : this.graphSvgId,
 			viewMode: this.viewMode,
 			edgeMgmt : this.edgeMgmt,
-			mandatoryDataElementConfig: this.mandatoryDataElementConfig
+			mandatoryDataElementConfig: this.mandatoryDataElementConfig,
+			parent: this
 		});
 
 		this.initCustomFunctionD3();
@@ -83,9 +89,7 @@ class CltSegment {
 			this.initMenuContext();
 		}
 
-		// document.onContextMenu(function (event) {
-		// 	console.log(event);
-		// });
+		this.initShortcutKeyEvent();
 	}
 
 	initSvgHtml() {
@@ -135,6 +139,64 @@ class CltSegment {
 		});
 	}
 
+	initShortcutKeyEvent() {
+		// Prevent Ctrl+F on brownser
+		window.addEventListener("keydown",function (e) {
+			if (e.keyCode === 114 || (e.ctrlKey && e.keyCode === 70)) { 
+					e.preventDefault();
+			}
+		});
+
+		// capture mouse point for creating menu by Ctrl+F
+		$(`#${this.graphSvgId}`).mousemove( (e) => {
+			this.mouseX = e.pageX;
+			this.mouseY = e.pageY;
+		})
+
+		// Create menu by Ctrl+F
+		$(window).keyup((e) => {
+			// Ctrl + F
+      if ((e.keyCode == 70 || e.keyCode == 102)  && e.ctrlKey) {
+        $(`#${this.graphSvgId}`).contextMenu({x:this.mouseX, y: this.mouseY});
+      } else if ((e.keyCode == 67 || e.keyCode == 99)  && e.ctrlKey) {
+				// Ctrl+C
+				const $focusedObject = $(`#${this.graphSvgId} .${FOCUSED_CLASS}`);
+
+				if ($focusedObject.length > 0) {
+					const id = $focusedObject[0].id;
+
+					let object = null;
+					if (id.substr(0,1) === 'V') {
+						object = _.find(this.dataContainer.vertex, {"id": id});
+						object.copy();
+					} else {
+						object = _.find(this.dataContainer.boundary, {"id": id});
+						object.copyAll();
+					}
+				}
+			} else if (e.keyCode == 46) {
+				// Delete key
+
+				const $focusedObject = $(`#${this.graphSvgId} .${FOCUSED_CLASS}`);
+
+				if ($focusedObject.length > 0) {
+					const id = $focusedObject[0].id;
+
+					let object = null;
+					if (id.substr(0,1) === 'V') {
+						object = _.find(this.dataContainer.vertex, {"id": id});
+					} else {
+						object = _.find(this.dataContainer.boundary, {"id": id});
+					}
+
+					if (object) {
+						object.remove();
+					}
+				}
+			}
+  	});
+	}
+
 	/**
    * Clear all element on graph
    * And reinit marker def
@@ -177,6 +239,7 @@ class CltSegment {
 	
 			this.clearAll();
 
+			this.isShowReduced = false;
 			this.initMenuContext();
 			setAddressTabName(ID_TAB_VERTEX_GROUP_DEFINITION, fileName);
 			this.showFileNameOnApplicationTitleBar();
@@ -213,6 +276,7 @@ class CltSegment {
 		await this.drawObjects(segmentData);
 		await this.sortByName();
 
+		this.isShowReduced = false;
 		this.initMenuContext();
 
 		setAddressTabName(ID_TAB_SEGMENT_SET, fileName);
@@ -760,7 +824,7 @@ class CltSegment {
 		});
 
 		if (arrayDup.length > 0) {
-			let message = 'Duplicate segment names.\n';
+			let message = 'There are duplicate segment names.\n';
 			for (let i = 0; i < arrayDup.length; i += 1) {
 				message += `${arrayDup[i].name}: ${arrayDup[i].count}\n`;
 			}

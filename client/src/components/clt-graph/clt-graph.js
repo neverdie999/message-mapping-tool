@@ -10,7 +10,6 @@ import {
 	comShowMessage,
 	setSizeGraph,
 	setMinBoundaryGraph,
-	unsetAddressTabName,
 	setAddressTabName,
 } from '../../common/utilities/common.util';
 
@@ -20,11 +19,12 @@ import {
 
 const ID_TAB_SEGMENT_SET = 'addressSegmentSet';
 const ID_TAB_MESSAGE_SPEC = 'addressMessageSpec';
+const FOCUSED_CLASS = 'focused-object';
 
 class CltGraph {
 	constructor(props) {
-		this.selector = props.selector
-		this.viewMode = {value: props.viewMode || VIEW_MODE.EDIT}
+		this.selector = props.selector;
+		this.viewMode = {value: props.viewMode || VIEW_MODE.EDIT};
 		
 		this.mandatoryDataElementConfig = props.mandatoryDataElementConfig // The configuration for Data element validation
 		if (!this.mandatoryDataElementConfig) {
@@ -32,31 +32,34 @@ class CltGraph {
 				mandatoryEvaluationFunc: (dataElement) => { return false },
 				colorWarning: '#ff8100',
 				colorAvailable: '#5aabff'
-			}
+			};
 		}
 
-		this.selectorName = this.selector.selector.replace(/[\.\#]/,'')
+		this.selectorName = this.selector.selector.replace(/[\.\#]/,'');
 
-		this.graphContainerId = `graphContainer_${this.selectorName}`
-		this.graphSvgId = `graphSvg_${this.selectorName}`
-		this.connectSvgId = `connectSvg_${this.selectorName}`
+		this.graphContainerId = `graphContainer_${this.selectorName}`;
+		this.graphSvgId = `graphSvg_${this.selectorName}`;
+		this.connectSvgId = `connectSvg_${this.selectorName}`;
 
-		this.isShowReduced = false
+		this.isShowReduced = false;
 
-		this.initialize()
+		this.mouseX = -1;
+		this.mouseY = -1;
+
+		this.initialize();
 	}
 
 	initialize() {
 
-		this.objectUtils = new ObjectUtils()
+		this.objectUtils = new ObjectUtils();
 
-		this.initSvgHtml()
+		this.initSvgHtml();
 
 		this.dataContainer = {
 			vertex: [],
 			boundary: [],
 			edge: []
-		}
+		};
 
 		this.edgeMgmt = new EdgeMgmt({
 			dataContainer    : this.dataContainer,
@@ -64,30 +67,33 @@ class CltGraph {
 			vertexContainer  : [
 				this.dataContainer
 			]
-		})
+		});
 
 		this.vertexMgmt = new VertexMgmt({
+			mainParent: this,
 			dataContainer : this.dataContainer,
 			containerId : this.graphContainerId,
 			svgId : this.graphSvgId,
 			viewMode: this.viewMode,
 			edgeMgmt : this.edgeMgmt,
 			mandatoryDataElementConfig: this.mandatoryDataElementConfig
-		})
+		});
 
 		this.boundaryMgmt = new BoundaryMgmt({
+			mainParent: this,
 			dataContainer: this.dataContainer,
 			containerId: this.graphContainerId,
 			svgId: this.graphSvgId,
 			viewMode: this.viewMode,
 			vertexMgmt: this.vertexMgmt,
 			edgeMgmt: this.edgeMgmt
-		})
+		});
 
-		this.initCustomFunctionD3()
-		this.objectUtils.initListenerContainerScroll(this.graphContainerId, this.edgeMgmt, [this.dataContainer])
-		this.objectUtils.initListenerOnWindowResize(this.edgeMgmt, [this.dataContainer])
-		this.initOnMouseUpBackground()
+		this.initCustomFunctionD3();
+		this.objectUtils.initListenerContainerScroll(this.graphContainerId, this.edgeMgmt, [this.dataContainer]);
+		this.objectUtils.initListenerOnWindowResize(this.edgeMgmt, [this.dataContainer]);
+		this.initOnMouseUpBackground();
+		this.initShortcutKeyEvent();
 	}
 
 	initSvgHtml() {
@@ -137,7 +143,71 @@ class CltGraph {
 		})
 	}
 
+	initShortcutKeyEvent() {
+		// Prevent Ctrl+F on brownser
+		window.addEventListener("keydown",function (e) {
+			if (e.keyCode === 114 || (e.ctrlKey && e.keyCode === 70)) {
+					e.preventDefault();
+			}
+		});
+
+		// capture mouse point for creating menu by Ctrl+F
+		$(`#${this.graphSvgId}`).mousemove( (e) => {
+			this.mouseX = e.pageX;
+			this.mouseY = e.pageY;
+		});
+
+		// Create menu by Ctrl+F
+		$(window).keyup((e) => {
+			// Ctrl + F
+      if ((e.keyCode == 70 || e.keyCode == 102)  && e.ctrlKey) {
+        $(`#${this.graphSvgId}`).contextMenu({x:this.mouseX, y: this.mouseY});
+      } else if ((e.keyCode == 67 || e.keyCode == 99)  && e.ctrlKey) {
+				// Ctrl+C
+				const $focusedObject = $(`#${this.graphSvgId} .${FOCUSED_CLASS}`);
+
+				if ($focusedObject.length > 0) {
+					const id = $focusedObject[0].id;
+
+					let object = null;
+					if (id.substr(0,1) === 'V') {
+						object = _.find(this.dataContainer.vertex, {"id": id});
+						object.copy();
+					} else {
+						object = _.find(this.dataContainer.boundary, {"id": id});
+						object.copyAll();
+					}
+				}
+			} else if (e.keyCode == 46) {
+				// Delete key
+
+				const $focusedObject = $(`#${this.graphSvgId} .${FOCUSED_CLASS}`);
+
+				if ($focusedObject.length > 0) {
+					const id = $focusedObject[0].id;
+
+					let object = null;
+					if (id.substr(0,1) === 'V') {
+						object = _.find(this.dataContainer.vertex, {"id": id});
+						object.remove();
+					} else {
+						object = _.find(this.dataContainer.boundary, {"id": id});
+						if (e.shiftKey) {
+							object.deleteAll();
+						} else {
+							object.remove();
+						}
+					}
+				}
+			}
+  	});
+	}
+
 	createVertex(opt) {
+		if (opt.isMenu) {
+			this.isShowReduced = false;
+		}
+		
 		this.vertexMgmt.create(opt)
 	}
 
@@ -153,17 +223,17 @@ class CltGraph {
 		this.vertexMgmt.clearAll();
 		this.boundaryMgmt.clearAll();
 
-		setSizeGraph({ width: DEFAULT_CONFIG_GRAPH.MIN_WIDTH, height: DEFAULT_CONFIG_GRAPH.MIN_HEIGHT }, this.graphSvgId)
+		setSizeGraph({ width: DEFAULT_CONFIG_GRAPH.MIN_WIDTH, height: DEFAULT_CONFIG_GRAPH.MIN_HEIGHT }, this.graphSvgId);
 	}
 
 	showReduced() {
-		this.isShowReduced = true
-		this.objectUtils.showReduced(this.dataContainer, this.edgeMgmt.dataContainer, this.vertexMgmt.vertexDefinition, this.graphSvgId)
+		this.isShowReduced = true;
+		this.objectUtils.showReduced(this.dataContainer, this.edgeMgmt.dataContainer, this.vertexMgmt.vertexDefinition, this.graphSvgId, this.viewMode.value);
 	}
 
 	showFull() {
-		this.isShowReduced = false
-		this.objectUtils.showFull(this.dataContainer, this.vertexMgmt.vertexDefinition, this.graphSvgId)
+		this.isShowReduced = false;
+		this.objectUtils.showFull(this.dataContainer, this.vertexMgmt.vertexDefinition, this.graphSvgId, this.viewMode.value);
 	}
 
 	async drawObjects(data) {
@@ -221,6 +291,7 @@ class CltGraph {
 		const {vertexTypes} = graphData;
 		await this.vertexMgmt.processDataVertexTypeDefine(vertexTypes);
 		await this.drawObjects(graphData);
+		this.isShowReduced = false;
 		this.initMenuContext();
 		
 		this.validateConnectionByUsage();
@@ -301,7 +372,7 @@ class CltGraph {
       (Object.keys(data.vertexTypes).length === 0 && data.vertexTypes.constructor === Object)) {
 			return Promise.resolve({
 				type: 'error',
-				message: 'Message Spec Structure is corrupted. You should check it!'
+				message: 'Message Spec is corrupted. You should check it!'
 			})
 		}
 

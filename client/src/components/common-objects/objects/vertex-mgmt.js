@@ -1,10 +1,10 @@
-import _ from 'lodash'
-import ColorHash from 'color-hash'
-import * as d3 from 'd3'
-import Vertex from './vertex'
-import PopUtils from '../../../common/utilities/popup.util'
-import ObjectUtils from '../../../common/utilities/object.util'
-import VertexMenu from '../menu-context/vertex-menu'
+import _ from 'lodash';
+import ColorHash from 'color-hash';
+import * as d3 from 'd3';
+import Vertex from './vertex';
+import PopUtils from '../../../common/utilities/popup.util';
+import ObjectUtils from '../../../common/utilities/object.util';
+import VertexMenu from '../menu-context/vertex-menu';
 
 import {
 	REPEAT_RANGE,
@@ -13,7 +13,7 @@ import {
 	VERTEX_GROUP_OPTION,
 	CONNECT_SIDE,
 
-} from '../../../common/const/index'
+} from '../../../common/const/index';
 
 import {
 	replaceSpecialCharacter,
@@ -29,30 +29,32 @@ import {
 	comShowMessage,
 	segmentName,
 	hideFileChooser,
-} from '../../../common/utilities/common.util'
+} from '../../../common/utilities/common.util';
 
-const HTML_VERTEX_INFO_ID = 'vertexInfo'
-const HTML_VERTEX_PROPERTIES_ID = 'vertexProperties'
-const HTML_GROUP_BTN_DYNAMIC_DATASET = 'groupBtnDynamicDataSet'
-const ATTR_DEL_CHECK_ALL = 'delCheckAll'
-const ATTR_DEL_CHECK = 'delCheck'
+const HTML_VERTEX_INFO_ID = 'vertexInfo';
+const HTML_VERTEX_PROPERTIES_ID = 'vertexProperties';
+const HTML_GROUP_BTN_DYNAMIC_DATASET = 'groupBtnDynamicDataSet';
+const ATTR_DEL_CHECK_ALL = 'delCheckAll';
+const ATTR_DEL_CHECK = 'delCheck';
+const FOCUSED_CLASS = 'focused-object';
 
 class VertexMgmt {
 	constructor(props) {
-		this.dataContainer = props.dataContainer // {[vertex array], [boundary array]} store all vertex and boundary for this SVG
-		this.containerId = props.containerId
-		this.svgId = props.svgId
-		this.viewMode = props.viewMode
-		this.edgeMgmt = props.edgeMgmt
-		this.connectSide = props.connectSide || CONNECT_SIDE.BOTH
-		this.mandatoryDataElementConfig	= props.mandatoryDataElementConfig // The configuration for Data element validation
+		this.mainParent = props.mainParent;
+		this.dataContainer = props.dataContainer; // {[vertex array], [boundary array]} store all vertex and boundary for this SVG
+		this.containerId = props.containerId;
+		this.svgId = props.svgId;
+		this.viewMode = props.viewMode;
+		this.edgeMgmt = props.edgeMgmt;
+		this.connectSide = props.connectSide || CONNECT_SIDE.BOTH;
+		this.mandatoryDataElementConfig	= props.mandatoryDataElementConfig; // The configuration for Data element validation
 
 		this.vertexDefinition = {
 			vertexGroup: [],  // Group vertex
 			vertex:[]         // List of vertex type
 		}
 
-		this.initialize()
+		this.initialize();
 	}
 
 	initialize() {
@@ -212,6 +214,7 @@ class VertexMgmt {
 			return null
 
 		let newVertex = new Vertex({
+			mainParent: this.mainParent,
 			vertexMgmt: this
 		})
 
@@ -220,16 +223,21 @@ class VertexMgmt {
 
 	startDrag(main) {
 		return function (d) {
-			if (main.edgeMgmt.isSelectingEdge())
-				main.edgeMgmt.cancleSelectedPath()
+			if (main.edgeMgmt.isSelectingEdge()){
+				main.edgeMgmt.cancleSelectedPath();
+			}
 
 			// Resize boundary when vertex dragged
-			if (!d.parent)
-				main.objectUtils.reSizeBoundaryWhenObjectDragged(d)
+			if (!d.parent){
+				main.objectUtils.reSizeBoundaryWhenObjectDragged(d);
+			}
 
-			main.edgeMgmt.emphasizePathConnectForVertex(this)
+			main.edgeMgmt.emphasizePathConnectForVertex(this);
 
-			d.moveToFront()
+			d.moveToFront();
+			
+			d3.select(`.${FOCUSED_CLASS}`).classed(FOCUSED_CLASS, false);
+			d3.select(`#${d.id}`).classed(FOCUSED_CLASS, true);
 		}
 	}
 

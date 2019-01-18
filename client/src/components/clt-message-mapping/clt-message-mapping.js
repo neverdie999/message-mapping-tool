@@ -28,27 +28,27 @@ const ID_TAB_MESSAGE_MAPPING_DEFINITION = 'addressMessageMappingDefinition';
 
 class CltMessageMapping {
 	constructor(props) {
-		this.selector = props.selector
-		this.selectorName = this.selector.selector.replace(/[\.\#]/,'')
+		this.selector = props.selector;
+		this.selectorName = this.selector.selector.replace(/[\.\#]/,'');
 
-		this.inputMessageContainerId = `inputMessageContainer_${this.selectorName}`
-		this.inputMessageSvgId = `inputMessageSvg_${this.selectorName}`
-		this.outputMessageContainerId = `outputMessageContainer_${this.selectorName}`
-		this.outputMessageSvgId = `outputMessageSvg_${this.selectorName}`
-		this.operationsContainerId = `operationsContainer_${this.selectorName}`
-		this.operationsSvgId = `operationsSvg_${this.selectorName}`
-		this.connectSvgId = `connectSvg_${this.selectorName}`
+		this.inputMessageContainerId = `inputMessageContainer_${this.selectorName}`;
+		this.inputMessageSvgId = `inputMessageSvg_${this.selectorName}`;
+		this.outputMessageContainerId = `outputMessageContainer_${this.selectorName}`;
+		this.outputMessageSvgId = `outputMessageSvg_${this.selectorName}`;
+		this.operationsContainerId = `operationsContainer_${this.selectorName}`;
+		this.operationsSvgId = `operationsSvg_${this.selectorName}`;
+		this.connectSvgId = `connectSvg_${this.selectorName}`;
 		
-		this.mandatoryDataElementConfig = props.mandatoryDataElementConfig
+		this.mandatoryDataElementConfig = props.mandatoryDataElementConfig;
 		if (!this.mandatoryDataElementConfig) {
-			this.mandatoryDataElementConfig = { 
+			this.mandatoryDataElementConfig = {
 				mandatoryEvaluationFunc: (dataElement) => { return false },
 				colorWarning: '#ff8100',
 				colorAvailable: '#5aabff'
 			}
 		}
 		
-		this.initialize()
+		this.initialize();
 	}
 
 	initialize() {
@@ -80,7 +80,7 @@ class CltMessageMapping {
 			storeOperations: this.storeOperations,
 			storeOutputMessage: this.storeOutputMessage,
 
-		})
+		});
 
 		this.inputMgmt = new InputMgmt({
 			mainSelector: this.selector,
@@ -88,7 +88,7 @@ class CltMessageMapping {
 			svgId: this.inputMessageSvgId,
 			edgeMgmt: this.connectMgmt.edgeMgmt,
 			dataContainer: this.storeInputMessage
-		})
+		});
 
 		this.outputMgmt = new OutputMgmt({
 			mainSelector: this.selector,
@@ -97,7 +97,7 @@ class CltMessageMapping {
 			edgeMgmt: this.connectMgmt.edgeMgmt,
 			dataContainer: this.storeOutputMessage,
 			mandatoryDataElementConfig: this.mandatoryDataElementConfig
-		})
+		});
 
 		this.operationsMgmt = new OperationsMgmt({
 			mainSelector: this.selector,
@@ -106,14 +106,28 @@ class CltMessageMapping {
 			edgeMgmt: this.connectMgmt.edgeMgmt,
 			dataContainer: this.storeOperations,
 			parent: this
-		})
+		});
 
-		this.initCustomFunctionD3()
-		this.objectUtils.initListenerContainerScroll(this.inputMessageContainerId, this.connectMgmt.edgeMgmt, [this.storeInputMessage, this.storeOperations, this.storeOutputMessage])
-		this.objectUtils.initListenerContainerScroll(this.operationsContainerId, this.connectMgmt.edgeMgmt, [this.storeInputMessage, this.storeOperations, this.storeOutputMessage])
-		this.objectUtils.initListenerContainerScroll(this.outputMessageContainerId, this.connectMgmt.edgeMgmt, [this.storeInputMessage, this.storeOperations, this.storeOutputMessage])
-		this.initListenerOnWindowResize()
-		this.initOnMouseUpBackground()
+		this.initCustomFunctionD3();
+		this.objectUtils.initListenerContainerScroll(this.inputMessageContainerId, this.connectMgmt.edgeMgmt, [this.storeInputMessage, this.storeOperations, this.storeOutputMessage]);
+		this.objectUtils.initListenerContainerScroll(this.operationsContainerId, this.connectMgmt.edgeMgmt, [this.storeInputMessage, this.storeOperations, this.storeOutputMessage]);
+		this.objectUtils.initListenerContainerScroll(this.outputMessageContainerId, this.connectMgmt.edgeMgmt, [this.storeInputMessage, this.storeOperations, this.storeOutputMessage]);
+		this.initListenerOnWindowResize();
+		this.initOnMouseUpBackground();
+
+		// Prevent Ctrl+F on brownser
+		window.addEventListener("keydown",function (e) {
+			if (e.keyCode === 114 || (e.ctrlKey && e.keyCode === 70)) { 
+					e.preventDefault();
+			}
+		});
+
+		// capture mouse point for creating menu by Ctrl+F
+		$(window).mousemove( (e) => {
+			this.inputMgmt.setWindowMousePoint(e.pageX, e.pageY);
+			this.operationsMgmt.setWindowMousePoint(e.pageX, e.pageY);
+			this.outputMgmt.setWindowMousePoint(e.pageX, e.pageY);
+		});
 	}
 
 	initSvgHtml() {
@@ -221,6 +235,7 @@ class CltMessageMapping {
 		const {vertexTypes} = graphData;
 		this.inputMgmt.processDataVertexTypeDefine(vertexTypes);
 		this.inputMgmt.drawObjectsOnInputGraph(graphData);
+		this.inputMgmt.isShowReduced = false;
 		this.inputMgmt.initMenuContext();
 		setAddressTabName(ID_TAB_INPUT_MESSAGE, fileName);
 		this.showFileNameOnApplicationTitleBar();
@@ -253,6 +268,7 @@ class CltMessageMapping {
 		//Reload Vertex Define and draw graph
 		await this.outputMgmt.processDataVertexTypeDefine(vertexTypes);
 		await this.outputMgmt.drawObjectsOnOutputGraph(graphData);
+		this.outputMgmt.isShowReduced = false;
 		this.outputMgmt.initMenuContext();
 		setAddressTabName(ID_TAB_OUTPUT_MESSAGE, fileName);
 		this.showFileNameOnApplicationTitleBar()
@@ -403,10 +419,9 @@ class CltMessageMapping {
 		// Validate struct data
 		if (!data.vertex || !data.boundary || !data.position || !data.vertexTypes ||
       (Object.keys(data.vertexTypes).length === 0 && data.vertexTypes.constructor === Object)) {
-			console.log('Data Graph Structure is corrupted. You should check it!')
 			return Promise.resolve({
 				type: 'error',
-				message: 'Data Graph Structure is corrupted. You should check it!'
+				message: 'Message Spec is corrupted. You should check it!'
 			})
 		}
 
@@ -419,7 +434,6 @@ class CltMessageMapping {
 			let type = vertex.vertexType
 			// If vertex type not exit in embedded vertex type
 			if (types.indexOf(type) < 0) {
-				console.log('[Graph Data Structure] Vertex type not exits in embedded vertex type')
 				return Promise.resolve({
 					type: 'warning',
 					message: 'Vertex type not exits in embedded vertex type'
@@ -434,7 +448,6 @@ class CltMessageMapping {
 
 			// Check length key
 			if (this.checkLengthMisMatch(keySource, keyTarget)) {
-				console.log('[Graph Data Structure] Data\'s length is different')
 				return Promise.resolve({
 					type: 'warning',
 					message: 'Data\'s length is different'
@@ -445,7 +458,6 @@ class CltMessageMapping {
 			const flag = await this.checkKeyMisMatch(keySource, keyTarget)
 
 			if (flag) {
-				console.log('[Graph Data Structure] Key vertex at source not exit in target')
 				return Promise.resolve({
 					type: 'warning',
 					message: 'Key vertex at source not exit in target'

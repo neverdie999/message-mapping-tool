@@ -1,6 +1,6 @@
 {
-  "name": "algeta-mapping-app",
-  "productName": "Algeta Mapping App",
+  "name": "algeta-mapping-tool",
+  "productName": "Algeta Mapping Tool",
   "description": "Application for mapping EDI to Flat file",
   "version": "0.0.1",
   "main": "electron/app.js",

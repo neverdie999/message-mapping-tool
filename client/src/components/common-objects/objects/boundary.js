@@ -19,9 +19,11 @@ import {
 } from '../../../common/utilities/common.util';
 
 const CONNECT_KEY = 'Connected';
+const FOCUSED_CLASS = 'focused-object';
 
 class Boundary {
   constructor(props) {
+    this.mainParent = props.mainParent;
     this.dataContainer = props.boundaryMgmt.dataContainer;
     this.containerId = props.boundaryMgmt.containerId;
     this.svgId = props.boundaryMgmt.svgId;
@@ -111,7 +113,10 @@ class Boundary {
       group.call(callbackDragBoundary);
     }else{
       $(`#${this.id}`).click( () => {
-        this.boundaryMgmt.edgeMgmt.emphasizePathConnectForBoundary(this);
+        d3.select(`.${FOCUSED_CLASS}`).classed(FOCUSED_CLASS, false);
+        d3.select(`#${this.id}`).classed(FOCUSED_CLASS, true);
+        
+        this.boundaryMgmt.edgeMgmt.emphasizePathConnectForBoundary(this);        
       })
     }
 
@@ -409,6 +414,9 @@ class Boundary {
 
     let boudaryObj = _.find(this.dataContainer.boundary, {"id": cBoundaryId});
     boudaryObj.cloneChildElements(cMembers);
+    if (this.mainParent.isShowReduced) {
+      this.mainParent.isShowReduced = false;
+    }
   }
 
   /**

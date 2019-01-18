@@ -83,7 +83,7 @@ class MainMenu {
           show: (opt) => {
             if (!event) { return; }
 
-            const { x, y } = getCoorMouseClickRelativeToParent(event, this.containerId);
+            const { x, y } = getCoorMouseClickRelativeToParent(opt, this.containerId);
             opt.x = x;
             opt.y = y;
             opt.isMenu = true;
@@ -126,7 +126,10 @@ class MainMenu {
       size: 10,
       options,
       events: {
-        change: this.onSelectVertex(this),
+        dblclick: this.onSelectVertex(this),
+      },
+      events2: {
+        enter: this.onSelectVertex(this),
       },
     };
 
@@ -154,12 +157,15 @@ class MainMenu {
         }
       }
 
-      // $($select).click();
+      $select[0].selectedIndex = -1;
+      $select[0].value = '';
     };
   }
 
   onSelectVertex(self) {
     return function () {
+      if (this.selectedIndex === -1) return;
+
       const params = {
         x: self.opt.x,
         y: self.opt.y,
@@ -167,6 +173,7 @@ class MainMenu {
         vertexType: this.value,
         isImport: false,
       };
+
       self.parent.createVertex(params);
       $(`${self.selector}`).contextMenu('hide');
     };

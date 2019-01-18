@@ -69,7 +69,7 @@ class MainMenuSegment {
           show: (opt) => {
             if (!event) { return; }
 
-            const { x, y } = getCoorMouseClickRelativeToParent(event, this.containerId);
+            const { x, y } = getCoorMouseClickRelativeToParent(opt, this.containerId);
             opt.x = x;
             opt.y = y;
             opt.isMenu = true;
@@ -113,7 +113,10 @@ class MainMenuSegment {
       size: 10,
       options,
       events: {
-        click: this.onSelectVertex(this),
+        dblclick: this.onSelectVertex(this),
+      },
+      events2: {
+        enter: this.onSelectVertex(this),
       },
     };
 
@@ -141,6 +144,9 @@ class MainMenuSegment {
           $(element).css('display', 'none');
         }
       }
+
+      $select[0].selectedIndex = -1;
+      $select[0].value = '';
     };
   }
 
@@ -187,7 +193,10 @@ class MainMenuSegment {
       size: 10,
       options,
       events: {
-        click: this.onSelectGroupType(this),
+        dblclick: this.onSelectGroupType(this),
+      },
+      events2: {
+        enter: this.onSelectGroupType(this),
       },
     };
 
