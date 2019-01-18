@@ -192,11 +192,7 @@ class CltGraph {
 						object.remove();
 					} else {
 						object = _.find(this.dataContainer.boundary, {"id": id});
-						if (e.shiftKey) {
-							object.deleteAll();
-						} else {
-							object.remove();
-						}
+						object.deleteAll();
 					}
 				}
 			}
