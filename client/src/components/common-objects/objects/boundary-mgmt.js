@@ -113,7 +113,7 @@ class BoundaryMgmt {
                     <tr>
                       <th>Description</th>
                       <td class="full-width">
-                        <textarea class="form-control" id="boundaryDesc_${this.svgId}" name="boundaryDesc" rows="4"></textarea>
+                        <textarea class="form-control" id="boundaryDesc_${this.svgId}" name="boundaryDesc" rows="4" onfocus="this.select();"></textarea>
                       </td>
                     </tr>
                   </tbody>

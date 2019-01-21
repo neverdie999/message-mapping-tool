@@ -123,7 +123,7 @@ class VertexMgmt {
                     <tr>
                       <th>Description</th>
                       <td class="full-width">
-                        <textarea class="form-control" id="vertexDesc_${this.svgId}" name="vertexDesc" rows="4"></textarea>
+                        <textarea class="form-control" id="vertexDesc_${this.svgId}" name="vertexDesc" rows="4" onfocus="this.select();"></textarea>
                       </td>
                     </tr>
                   </tbody>
