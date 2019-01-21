@@ -347,7 +347,7 @@ class BoundaryMgmt {
 
     d3.select(`#${this.editingBoundary.id}Content`).style('border-color', `${this.colorHash.hex(name)}`);
 
-    d3.selectAll(`[prop='${this.editingBoundary.id}${CONNECT_KEY}boundary_title']`).style('fill', this.colorHash.hex(name));
+    d3.selectAll(`[prop='${this.editingBoundary.id}${CONNECT_KEY}boundary_title']`).attr('fill', this.colorHash.hex(name));
 
     // Check mandatary for member
     this.editingBoundary.validateConnectionByUsage();

@@ -2,6 +2,7 @@ import MainMenu from '../../common-objects/menu-context/main-menu';
 import VertexMgmt from '../../common-objects/objects/vertex-mgmt';
 import BoundaryMgmt from '../../common-objects/objects/boundary-mgmt';
 import ObjectUtils from '../../../common/utilities/object.util';
+import FindMenu from '../../common-objects/menu-context/find-menu';
 
 import {
 	DEFAULT_CONFIG_GRAPH, VIEW_MODE, CONNECT_SIDE
@@ -64,7 +65,12 @@ class OperationsMgmt {
 			parent: this,
 			vertexDefinition: this.vertexMgmt.vertexDefinition,
 			viewMode: this.viewMode,
-		})
+		});
+
+		new FindMenu({
+			selector: `#${this.containerId}`,
+			dataContainer: this.dataContainer
+		});
 	}
 
 	initShortcutKeyEvent() {
@@ -81,7 +87,8 @@ class OperationsMgmt {
 				const $container = $(`#${this.containerId}`);
 				const {left, top, right, bottom} = $container[0].getBoundingClientRect();
 				if (this.mouseOnWindowX > left && this.mouseOnWindowX < right && this.mouseOnWindowY > top && this.mouseOnWindowY < bottom) {
-					$(`#${this.svgId}`).contextMenu({x:this.mouseX, y: this.mouseY});
+					$(`#${this.containerId}`).contextMenu({x:this.mouseX, y: this.mouseY});
+					$('.context-menu-root input').focus();
 				}
 
       } else if ((e.keyCode == 67 || e.keyCode == 99)  && e.ctrlKey) {

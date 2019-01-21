@@ -4,6 +4,7 @@ import ObjectUtils from '../../common/utilities/object.util';
 import SegmentMgmt from '../common-objects/objects/segment-mgmt';
 import EdgeMgmt from '../common-objects/objects/edge-mgmt';
 import MainMenuSegment from '../common-objects/menu-context/main-menu-segment';
+import SegmentFindMenu from '../common-objects/menu-context/segment-find-menu';
 
 import {
 	comShowMessage,
@@ -32,6 +33,12 @@ class CltSegment {
 		this.graphSvgId = `graphSvg_${this.selectorName}`;
 		this.connectSvgId = `connectSvg_${this.selectorName}`;
 
+		this.dataContainer = {
+			vertex: [],
+			boundary: [],
+			edge: []
+		};
+
 		this.isShowReduced = false;
 
 		this.mouseX = -1;
@@ -54,12 +61,6 @@ class CltSegment {
 		this.objectUtils = new ObjectUtils();
 
 		this.initSvgHtml();
-
-		this.dataContainer = {
-			vertex: [],
-			boundary: [],
-			edge: []
-		};
 
 		this.edgeMgmt = new EdgeMgmt({
 			dataContainer    : this.dataContainer,
@@ -137,6 +138,11 @@ class CltSegment {
 			viewMode: this.viewMode,
 			vertexDefinition: this.segmentMgmt.vertexDefinition
 		});
+
+		new SegmentFindMenu({
+			selector: `#${this.graphContainerId}`,
+			dataContainer: this.dataContainer
+		});
 	}
 
 	initShortcutKeyEvent() {
@@ -157,7 +163,9 @@ class CltSegment {
 		$(window).keyup((e) => {
 			// Ctrl + F
       if ((e.keyCode == 70 || e.keyCode == 102)  && e.ctrlKey) {
-        $(`#${this.graphSvgId}`).contextMenu({x:this.mouseX, y: this.mouseY});
+				$(`#${this.graphContainerId}`).contextMenu({x:this.mouseX, y: this.mouseY});
+				$('.context-menu-root input').focus();
+				
       } else if ((e.keyCode == 67 || e.keyCode == 99)  && e.ctrlKey) {
 				// Ctrl+C
 				const $focusedObject = $(`#${this.graphSvgId} .${FOCUSED_CLASS}`);

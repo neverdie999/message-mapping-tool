@@ -1,15 +1,17 @@
-import MainMenu from '../../common-objects/menu-context/main-menu'
-import VertexMgmt from '../../common-objects/objects/vertex-mgmt'
-import BoundaryMgmt from '../../common-objects/objects/boundary-mgmt'
-import ObjectUtils from '../../../common/utilities/object.util'
+import MainMenu from '../../common-objects/menu-context/main-menu';
+import VertexMgmt from '../../common-objects/objects/vertex-mgmt';
+import BoundaryMgmt from '../../common-objects/objects/boundary-mgmt';
+import ObjectUtils from '../../../common/utilities/object.util';
+import FindMenu from '../../common-objects/menu-context/find-menu';
 
 import {
 	CONNECT_SIDE,
 	DEFAULT_CONFIG_GRAPH,
 	VIEW_MODE,
-} from '../../../common/const/index'
+} from '../../../common/const/index';
 
-import { setSizeGraph } from '../../../common/utilities/common.util'
+import { setSizeGraph } from '../../../common/utilities/common.util';
+
 
 class OutputMgmt {
 	constructor(props) {
@@ -56,13 +58,25 @@ class OutputMgmt {
 			edgeMgmt: this.edgeMgmt,
 		});
 
-		// // Prevent Ctrl+F on brownser
-		// window.addEventListener("keydown",function (e) {
-		// 	if (e.keyCode === 114 || (e.ctrlKey && e.keyCode === 70)) { 
-		// 			e.preventDefault();
-		// 	}
-		// });
+		this.initShortcutKeyEvent();
+	}
 
+	initMenuContext() {
+		new MainMenu({
+			selector: `#${this.svgId}`,
+			containerId: `#${this.containerId}`,
+			parent: this,
+			vertexDefinition: this.vertexMgmt.vertexDefinition,
+			viewMode: this.viewMode,
+		});
+
+		new FindMenu({
+			selector: `#${this.containerId}`,
+			dataContainer: this.dataContainer
+		});
+	}
+
+	initShortcutKeyEvent() {
 		// capture mouse point for creating menu by Ctrl+F
 		$(`#${this.svgId}`).mousemove( (e) => {
 			this.mouseX = e.pageX;
@@ -76,20 +90,11 @@ class OutputMgmt {
 				const $container = $(`#${this.containerId}`);
 				const {left, top, right, bottom} = $container[0].getBoundingClientRect();
 				if (this.mouseOnWindowX > left && this.mouseOnWindowX < right && this.mouseOnWindowY > top && this.mouseOnWindowY < bottom) {
-					$(`#${this.svgId}`).contextMenu({x:this.mouseX, y: this.mouseY});
+					$(`#${this.containerId}`).contextMenu({x:this.mouseX, y: this.mouseY});
+					$('.context-menu-root input').focus();
 				}
       }
   	});
-	}
-
-	initMenuContext() {
-		new MainMenu({
-			selector: `#${this.svgId}`,
-			containerId: `#${this.containerId}`,
-			parent: this,
-			vertexDefinition: this.vertexMgmt.vertexDefinition,
-			viewMode: this.viewMode,
-		})
 	}
 
 	async drawObjectsOnOutputGraph(data) {

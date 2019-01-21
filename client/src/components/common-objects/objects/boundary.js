@@ -158,7 +158,7 @@ class Boundary {
         .attr("id", `${this.id}Button`)
         .attr("data", this.id)
         .style("pointer-events", "all")
-        .style("fill", "none")
+        .attr("fill", "none")
         .append("title")
         .text("Right click to select visible member");
     }
@@ -174,7 +174,7 @@ class Boundary {
       .attr("height", BOUNDARY_ATTR_SIZE.HEADER_HEIGHT - 1)
       .attr("x", 1)
       .attr("y", 1)
-      .style("fill", this.colorHash.hex(this.name))
+      .attr("fill", this.colorHash.hex(this.name))
       .style("cursor", "default")
       .call(callbackDragConnection);
     }
@@ -190,7 +190,7 @@ class Boundary {
         .attr("height", BOUNDARY_ATTR_SIZE.HEADER_HEIGHT - 1)
         .attr("x", this.width - (VERTEX_ATTR_SIZE.PROP_HEIGHT / 2))
         .attr("y", 1)
-        .style("fill", this.colorHash.hex(this.name))
+        .attr("fill", this.colorHash.hex(this.name))
         .style("cursor", "default")
         .call(callbackDragConnection);
    }
@@ -774,7 +774,60 @@ class Boundary {
 		}
 
 		return bFlag;
-	}
+  }
+  
+  /**
+   * Calculate for scroll left and scroll top to show this vertex to user (Find feature of SegmentSetEditor)
+   */
+  showToUser() {
+    const $container = $(`#${this.containerId}`);
+    const $vertex = $(`#${this.id}`);
+
+    const { width: cntrW, height: cntrH } = $container.get(0).getBoundingClientRect();
+    const cntrLeft = $container.scrollLeft();
+    const cntrTop = $container.scrollTop();
+    const { width: vtxW, height: vtxH } = $vertex.get(0).getBoundingClientRect();
+
+    // Horizontal
+    if (this.x < cntrLeft) {
+      $container.scrollLeft(this.x - 5);
+    } else if (this.x + vtxW > cntrLeft + cntrW) {
+      $container.scrollLeft(this.x - (cntrW - vtxW) + 15);
+    }
+
+    // Vertical
+    if (this.y < cntrTop) {
+      $container.scrollTop(this.y - 5);
+    } else if (this.y + vtxH > cntrTop + cntrH) {
+      if (vtxH > cntrH - 15) {
+        $container.scrollTop(this.y - 5);
+      } else {
+        $container.scrollTop(this.y - (cntrH - vtxH) + 15);
+      }
+    }
+
+    // Show this vertex on the Top
+    this.moveToFront();
+
+    // Highlight the title background-color
+    const $vtxTitle = $(`#${this.id}`).find('.header_boundary');
+    const $headerConnectors = $(`#${this.id}`).find('.connect_header');
+    const colorByName = this.colorHash.hex(this.name);
+    for (let i = 0; i < 3; i += 1) {
+      setTimeout(() => {
+        $vtxTitle.css('background-color', 'white');
+        for (let i = 0; i < $headerConnectors.length; i += 1) {
+          $($headerConnectors[i]).attr('fill', 'white');
+        }
+      }, i * 400);
+      setTimeout(() => {
+        $vtxTitle.css('background-color', `${colorByName}`);
+        for (let i = 0; i < $headerConnectors.length; i += 1) {
+          $($headerConnectors[i]).attr('fill', `${colorByName}`);
+        }
+      }, 200 + i * 400);
+    }
+  }
 }
 
 export default Boundary

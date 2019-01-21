@@ -5,6 +5,7 @@ import VertexMgmt from '../common-objects/objects/vertex-mgmt';
 import BoundaryMgmt from '../common-objects/objects/boundary-mgmt';
 import EdgeMgmt from '../common-objects/objects/edge-mgmt';
 import MainMenu from '../common-objects/menu-context/main-menu';
+import FindMenu from '../common-objects/menu-context/find-menu';
 
 import {
 	comShowMessage,
@@ -89,6 +90,7 @@ class CltGraph {
 			edgeMgmt: this.edgeMgmt
 		});
 
+
 		this.initCustomFunctionD3();
 		this.objectUtils.initListenerContainerScroll(this.graphContainerId, this.edgeMgmt, [this.dataContainer]);
 		this.objectUtils.initListenerOnWindowResize(this.edgeMgmt, [this.dataContainer]);
@@ -140,7 +142,12 @@ class CltGraph {
 			parent: this,
 			vertexDefinition: this.vertexMgmt.vertexDefinition,
 			viewMode: this.viewMode
-		})
+		});
+
+		new FindMenu({
+			selector: `#${this.graphContainerId}`,
+			dataContainer: this.dataContainer,
+		});
 	}
 
 	initShortcutKeyEvent() {
@@ -161,7 +168,9 @@ class CltGraph {
 		$(window).keyup((e) => {
 			// Ctrl + F
       if ((e.keyCode == 70 || e.keyCode == 102)  && e.ctrlKey) {
-        $(`#${this.graphSvgId}`).contextMenu({x:this.mouseX, y: this.mouseY});
+				$(`#${this.graphContainerId}`).contextMenu({x:this.mouseX, y: this.mouseY});
+				$('.context-menu-root input').focus();
+				
       } else if ((e.keyCode == 67 || e.keyCode == 99)  && e.ctrlKey) {
 				// Ctrl+C
 				const $focusedObject = $(`#${this.graphSvgId} .${FOCUSED_CLASS}`);
