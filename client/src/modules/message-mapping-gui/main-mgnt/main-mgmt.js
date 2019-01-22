@@ -8,11 +8,12 @@ class MainMgmt {
 			selector: $('.wrap-container-area'),
 			mandatoryDataElementConfig: {
 				mandatoryEvaluationFunc: (dataElement) => {
-					if (!dataElement) return false
-					if (dataElement.usage && dataElement.usage !== '' && dataElement.usage !== 'M') return false
-					if (dataElement.mandatory !== undefined && !dataElement.mandatory) return false
+					if (!dataElement) return false;
+					if (dataElement.usage === undefined && dataElement.mandatory === undefined) return false;
+					if (dataElement.usage !== undefined && dataElement.usage !== '' && dataElement.usage !== 'M') return false;
+					if (dataElement.mandatory !== undefined && !dataElement.mandatory) return false;
 	
-					return true
+					return true;
 				},
 				colorWarning: '#ff8100', // Orange
 				colorAvailable: '#5aabff' // Light blue
