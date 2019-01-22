@@ -47,7 +47,7 @@ class Vertex {
     this.data = []; // type: array, require: false, default: empty array, purpose: define the content of vertex
     this.parent = null;
     this.mandatory = false;
-    this.repeat = 1;
+    this.repeat = "1";
     this.type;
     this.show;
 
@@ -75,9 +75,9 @@ class Vertex {
    */
   create(sOptions = {}, callbackDragVertex = () => {}, callbackDragConnection = () => {}) {
     const {
-      id, x, y, vertexType, name, parent, mandatory, repeat, isMenu, isImport,
+      id, x, y, vertexType, name, parent, mandatory, isMenu, isImport,
     } = sOptions;
-    let { groupType, data, description } = sOptions;
+    let { groupType, data, description, repeat } = sOptions;
 
     if (isMenu) {
       const vertexTypeInfo = _.cloneDeep(_.find(this.vertexDefinition.vertex, { vertexType }));
@@ -96,7 +96,11 @@ class Vertex {
     this.data = data || [];
     this.parent = parent || null;
     this.mandatory = mandatory || false;
-    this.repeat = repeat || 1;
+    if (repeat) {
+      // convert to string type
+      repeat = repeat + '';
+      this.repeat = repeat === '' ? '1' : repeat;
+    }
     this.type = 'V';
     this.show = true;
 
@@ -141,7 +145,11 @@ class Vertex {
     const hasLeftConnector = (this.connectSide === CONNECT_SIDE.LEFT || this.connectSide === CONNECT_SIDE.BOTH) ? ' has_left_connect' : '';
     const hasRightConnector = (this.connectSide === CONNECT_SIDE.RIGHT || this.connectSide === CONNECT_SIDE.BOTH) ? ' has_right_connect' : '';
     for (let i = 0; i < countData; i += 1) {
-      const item = this.data[i];
+      let item = this.data[i];
+      if (item.repeat) {
+        item.repeat = item.repeat + '';
+      }
+
       htmlContent += `
         <div class="property" prop="${this.id}${CONNECT_KEY}${i}" style="height: ${VERTEX_ATTR_SIZE.PROP_HEIGHT}px">
           <label class="key${hasLeftConnector}" id="${this.id}${presentation.key}${i}" title="${item[presentation.keyTooltip] || 'No data to show'}">${htmlEncode(getKeyPrefix(item, this.vertexDefinition, this.groupType))}${item[presentation.key] || ''}</label>

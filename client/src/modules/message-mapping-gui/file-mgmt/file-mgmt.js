@@ -1,4 +1,4 @@
-import {readDataFileJson, comShowMessage} from '../../../common/utilities/common.util';
+import {readDataFileJson, hideFileChooser} from '../../../common/utilities/common.util';
 import popupUtil from '../../../common/utilities/popup.util';
 
 const ID_FOLDER_OPEN_FILE_MGMT = 'folderOpenFileMgmt';
@@ -123,7 +123,10 @@ class FileMgmt {
 			position: 'center',
 			width: 500
 		}
-		popupUtil.metSetShowPopup(options)
+
+		popupUtil.metSetShowPopup(options);
+
+		hideFileChooser();
 	}
 
 	/**

@@ -100,7 +100,7 @@ class SegmentMgmt {
                     <tr>
                       <th>Name</th>
                       <td>
-                        <input type="text" class="form-control" id="vertexName_${this.svgId}" name="vertexName">
+                        <input type="text" class="form-control" id="vertexName_${this.svgId}" name="vertexName" onfocus="this.select();">
                       </td>
                     </tr>
                     <tr>
@@ -113,10 +113,12 @@ class SegmentMgmt {
                 </table>
               </div>
             </form>
-            <div class="dialog-button-top" id="${HTML_GROUP_BTN_DYNAMIC_DATASET}_${this.svgId}">
+						<div class="dialog-button-top" id="${HTML_GROUP_BTN_DYNAMIC_DATASET}_${this.svgId}">
+							<div class="row" style="float:left;">
+								<button id="vertexBtnDelete_${this.svgId}" class="btn-etc">Delete</button>
+							</div>
               <div class="row text-right">
                 <button id="vertexBtnAdd_${this.svgId}" class="btn-etc">Add</button>
-                <button id="vertexBtnDelete_${this.svgId}" class="btn-etc">Delete</button>
               </div>
             </div>
             <form id="vertexForm_${this.svgId}" action="#" method="post">

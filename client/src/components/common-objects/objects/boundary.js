@@ -42,7 +42,7 @@ class Boundary {
     this.height;
     this.parent;
     this.mandatory;
-    this.repeat;
+    this.repeat = "1";
     this.type;
     this.show;
     this.isShowReduced = false;
@@ -83,6 +83,7 @@ class Boundary {
    */
   create(options = {}, callbackDragBoundary = () => { },  callbackDragConnection = ()=>{}) {
     let { id, x, y, name, description, member, width, height, parent, mandatory, repeat, isImport} = options;
+    
     this.id = id || generateObjectId('B');
     this.x = x || 0;
     this.y = y || 0;
@@ -93,7 +94,11 @@ class Boundary {
     this.height = height || BOUNDARY_ATTR_SIZE.BOUND_HEIGHT;
     this.parent = parent || null;
     this.mandatory = mandatory || false;
-    this.repeat = repeat || 1;
+    if (repeat) {
+      // convert to sting type
+      repeat = repeat + '';
+      this.repeat = repeat === '' ? '1' : repeat;
+    }
     this.type = "B";
     this.show = true;
 
@@ -140,9 +145,10 @@ class Boundary {
           </div>
     `);
 
+    const connectSide = this.boundaryMgmt.vertexMgmt.connectSide;
     if (checkModePermission(this.viewMode.value, "isEnableItemVisibleMenu")) {
 
-      const offset = this.boundaryMgmt.vertexMgmt.connectSide === CONNECT_SIDE.LEFT ? 0 : 7;
+      const offset = (connectSide === CONNECT_SIDE.NONE || connectSide === CONNECT_SIDE.LEFT) ? 0 : 7;
       group.append("text")
         .attr("id", `${this.id}Text`)
         .attr("x", this.width - 20 - offset)
@@ -164,7 +170,7 @@ class Boundary {
     }
 
     // Rect connect title INPUT
-    if (this.boundaryMgmt.vertexMgmt.connectSide === CONNECT_SIDE.BOTH || this.boundaryMgmt.vertexMgmt.connectSide === CONNECT_SIDE.LEFT) {
+    if (connectSide === CONNECT_SIDE.BOTH || connectSide === CONNECT_SIDE.LEFT) {
       group.append("rect")
       .attr("class", `drag_connect connect_header drag_connect_${this.svgId}`)
       .attr("type", TYPE_CONNECT.INPUT)
@@ -180,7 +186,7 @@ class Boundary {
     }
 
     // Rect connect title OUTPUT
-    if (this.boundaryMgmt.vertexMgmt.connectSide === CONNECT_SIDE.BOTH || this.boundaryMgmt.vertexMgmt.connectSide === CONNECT_SIDE.RIGHT) {
+    if (connectSide === CONNECT_SIDE.BOTH || connectSide === CONNECT_SIDE.RIGHT) {
       group.append("rect")
         .attr("class", `drag_connect connect_header drag_connect_${this.svgId}`)
         .attr("prop", `${this.id}${CONNECT_KEY}boundary_title`)
@@ -269,7 +275,9 @@ class Boundary {
     if (width < BOUNDARY_ATTR_SIZE.BOUND_WIDTH)
       width = BOUNDARY_ATTR_SIZE.BOUND_WIDTH;
 
-    const offset = this.boundaryMgmt.vertexMgmt.connectSide === CONNECT_SIDE.LEFT ? 0 : 7;
+    const connectSide = this.boundaryMgmt.vertexMgmt.connectSide;
+
+    const offset = (connectSide === CONNECT_SIDE.NONE || connectSide === CONNECT_SIDE.LEFT) ? 0 : 7;
 
     $(`#${this.id}Content`).attr('width', width);
     $(`#${this.id}Button`).attr('x', width - 25 - offset);

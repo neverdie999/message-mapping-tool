@@ -1,4 +1,4 @@
-import { readDataFileJson } from '../../../common/utilities/common.util';
+import { readDataFileJson, hideFileChooser } from '../../../common/utilities/common.util';
 
 const ID_FOLDER_OPEN_FILE_MGMT = 'folderOpenFileMgmt';
 const ID_CONTAINER_FILE_MGMT = 'containerFileMgmt';
@@ -34,7 +34,9 @@ class FileMgmt {
 		// Handle event click on button Download
 		$(`#${ID_BUTTON_DOWNLOAD_FILE}`).click((event) => {
 			let fileName = $(`#${ID_OUTPUT_FILE_NAME}`).val();
-			this.parent.save(fileName);
+			if (this.parent.save(fileName)) {
+				hideFileChooser();
+			}
 		});
 
 		// Handle event press enter on input file name
@@ -48,7 +50,9 @@ class FileMgmt {
 		
 		$(`#${ID_BUTTON_EXPORT_IMAGE}`).click(()=>{
 			let fileName = $(`#${ID_OUTPUT_FILE_NAME}`).val();
-			this.parent.saveToImage(fileName);
+			if (this.parent.saveToImage(fileName)) {
+				hideFileChooser();
+			}
 		});
 
 		$(`#${ID_BUTTON_LOAD}`).click(()=>{

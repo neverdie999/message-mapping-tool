@@ -12,10 +12,11 @@ import {
 	setSizeGraph,
 	setMinBoundaryGraph,
 	setAddressTabName,
+	hideFileChooser,
 } from '../../common/utilities/common.util';
 
 import { 
-	DEFAULT_CONFIG_GRAPH, VIEW_MODE,
+	DEFAULT_CONFIG_GRAPH, VIEW_MODE, CONNECT_SIDE,
 } from '../../common/const/index';
 
 const ID_TAB_SEGMENT_SET = 'addressSegmentSet';
@@ -76,6 +77,7 @@ class CltGraph {
 			containerId : this.graphContainerId,
 			svgId : this.graphSvgId,
 			viewMode: this.viewMode,
+			connectSide: CONNECT_SIDE.NONE,
 			edgeMgmt : this.edgeMgmt,
 			mandatoryDataElementConfig: this.mandatoryDataElementConfig
 		});
@@ -342,6 +344,9 @@ class CltGraph {
 			$('body').append(downLink);
 			downLink[0].click();
 			downLink.remove();
+
+			hideFileChooser();
+			
 		}).catch(err => {
 			comShowMessage(err);
 		})

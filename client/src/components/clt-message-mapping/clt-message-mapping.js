@@ -13,7 +13,8 @@ import {
 	comShowMessage,
 	setMinBoundaryGraph,
 	setAddressTabName,
-	unsetAddressTabName
+	unsetAddressTabName,
+	hideFileChooser
 } from '../../common/utilities/common.util';
 
 import { 
@@ -358,37 +359,40 @@ class CltMessageMapping {
 	save(fileName) {
 
 		if (!fileName) {
-			comShowMessage('Please input file name')
-			return
+			comShowMessage('Please input file name');
+			return;
 		}
 		
 		if (!this.outputMgmt.validateConnectionByUsage()) {
 			if (!confirm('You missed mandatory things without any connection.\nContinue saving?'))
-				return
+				return;
 		} 
 
 		this.getContentGraphAsJson().then(content => {
 			if (!content) {
-				comShowMessage('No content to export')
-				return
+				comShowMessage('No content to export');
+				return;
 			}
 			// stringify with tabs inserted at each level
-			let graph = JSON.stringify(content, null, '\t')
-			let blob = new Blob([graph], {type: 'application/json', charset: 'utf-8'})
+			let graph = JSON.stringify(content, null, '\t');
+			let blob = new Blob([graph], {type: 'application/json', charset: 'utf-8'});
 
 			if (navigator.msSaveBlob) {
-				navigator.msSaveBlob(blob, fileName)
-				return
+				navigator.msSaveBlob(blob, fileName);
+				return;
 			}
 
-			let fileUrl = window.URL.createObjectURL(blob)
-			let downLink = $('<a>')
-			downLink.attr('download', `${fileName}.json`)
-			downLink.attr('href', fileUrl)
-			downLink.css('display', 'none')
-			$('body').append(downLink)
-			downLink[0].click()
-			downLink.remove()
+			let fileUrl = window.URL.createObjectURL(blob);
+			let downLink = $('<a>');
+			downLink.attr('download', `${fileName}.json`);
+			downLink.attr('href', fileUrl);
+			downLink.css('display', 'none');
+			$('body').append(downLink);
+			downLink[0].click();
+			downLink.remove();
+
+			hideFileChooser();
+
 		}).catch(err => {
 			comShowMessage(err)
 		})

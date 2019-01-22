@@ -19,7 +19,7 @@ import {
 } from '../../../common/utilities/common.util';
 
 import {
-  REPEAT_RANGE, BOUNDARY_ATTR_SIZE,
+  REPEAT_RANGE, BOUNDARY_ATTR_SIZE, CONNECT_SIDE,
 } from '../../../common/const/index';
 
 const CONNECT_KEY = 'Connected';
@@ -106,7 +106,7 @@ class BoundaryMgmt {
                     <tr>
                       <th>Name</th>
                       <td>
-                        <input type="text" class="form-control" id="boundaryName_${this.svgId}" name="boundaryName">
+                        <input type="text" class="form-control" id="boundaryName_${this.svgId}" name="boundaryName" onfocus="this.select();">
                       </td>
                     </tr>
                     ${checkModePermission(this.viewMode.value, 'maxBoundaryRepeat') ? repeatHtml : ''}
@@ -183,6 +183,10 @@ class BoundaryMgmt {
     });
 
     newBoundary.create(sOptions, this.callbackDragBoundary, this.edgeMgmt.handleDragConnection);
+
+    if (!sOptions.isImport) {
+      this.makeEditBoundaryInfo(newBoundary.id);
+    }
   }
 
   startDrag(main) {

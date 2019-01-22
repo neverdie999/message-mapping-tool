@@ -11,7 +11,8 @@ import {
 	setSizeGraph,
 	setMinBoundaryGraph,
 	unsetAddressTabName,
-	setAddressTabName
+	setAddressTabName,
+	hideFileChooser
 } from '../../common/utilities/common.util';
 
 import { 
@@ -292,7 +293,6 @@ class CltSegment {
 	}
 
 	save(fileName) {
-
 		if (!fileName) {
 			comShowMessage('Please input file name');
 			return;
@@ -324,9 +324,14 @@ class CltSegment {
 			$('body').append(downLink);
 			downLink[0].click();
 			downLink.remove();
+
+			hideFileChooser();
+
 		}).catch(err => {
 			comShowMessage(err);
-		})
+		});
+
+		return flag;
 	}
 
 	/**
@@ -390,6 +395,7 @@ class CltSegment {
 
 		setTimeout(()=>{
 			this.doSaveToImage(fileName);
+			hideFileChooser();
 		}, 300);
 	}
 
@@ -543,7 +549,9 @@ class CltSegment {
 		resObj.description = vertex.description;
 		resObj.data = [];
 
-		const arrPropNeedToSave = Object.keys(this.segmentMgmt.vertexGroup.dataElementFormat);
+		const vertexGroupData = _.find(this.segmentMgmt.vertexDefinition.vertexGroup, {groupType: vertex.groupType});
+
+		const arrPropNeedToSave = Object.keys(vertexGroupData.dataElementFormat);
 
 		vertex.data.forEach(e => {
 			let elementDataObj = {};
