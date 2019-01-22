@@ -327,6 +327,8 @@ class BoundaryMgmt {
 
     if (!checkModePermission(this.viewMode.value, 'boundaryBtnConfirm')) {
       $(`#boundaryBtnConfirm_${this.svgId}`).hide();
+    } else {
+      $(`#boundaryBtnConfirm_${this.svgId}`).show();
     }
   }
 

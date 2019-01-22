@@ -431,9 +431,18 @@ class VertexMgmt {
 		PopUtils.metSetShowPopup(options)
 
 		if (!checkModePermission(this.viewMode.value, 'vertexBtnConfirm')) {
-			$(`#vertexBtnAdd_${this.svgId}`).hide()
-			$(`#vertexBtnDelete_${this.svgId}`).hide()
-			$(`#vertexBtnConfirm_${this.svgId}`).hide()
+			if (isDynamicDataSet) {
+				$(`#vertexBtnAdd_${this.svgId}`).hide();
+				$(`#vertexBtnDelete_${this.svgId}`).hide();
+			}
+			$(`#vertexBtnConfirm_${this.svgId}`).hide();
+
+		} else {
+			if (isDynamicDataSet) {
+				$(`#vertexBtnAdd_${this.svgId}`).show();
+				$(`#vertexBtnDelete_${this.svgId}`).show();
+			}
+			$(`#vertexBtnConfirm_${this.svgId}`).show();
 		}
 		
 		if (isDynamicDataSet) {
