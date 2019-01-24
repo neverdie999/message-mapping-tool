@@ -871,6 +871,8 @@ class BoundaryMgmt {
   updateChildren() {
     const main = this;
     const dataTable = [];
+    let hasCreateNewObject = false;
+
     $(`#boundaryMember_${this.svgId} tbody tr`).each(function () {
       const dataRow = {};
       dataRow.id = $(this).find(`[name=${ATTR_ID}]`).text();
@@ -934,6 +936,7 @@ class BoundaryMgmt {
         }
 
         item.id = returnObject.id;
+        hasCreateNewObject = true;
       }
     });
 
@@ -946,6 +949,10 @@ class BoundaryMgmt {
         show: true,
       });
     });
+
+    if (hasCreateNewObject && this.mainParent.isShowReduced) {
+      this.mainParent.isShowReduced = false;
+    }
 
     const ancestor = this.editingBoundary.findAncestorOfMemberInNestedBoundary();
     ancestor.updateSize();
