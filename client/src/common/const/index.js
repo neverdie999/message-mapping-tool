@@ -61,6 +61,7 @@ export const VERTEX_FORMAT_TYPE = {
   ARRAY: 2,
   NUMBER: 3,
   STRING: 4,
+  LABEL: 5,
 };
 
 // Padding size left and top

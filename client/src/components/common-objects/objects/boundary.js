@@ -203,6 +203,8 @@ class Boundary {
 
     if(!isImport)
       setMinBoundaryGraph(this.dataContainer, this.svgId, this.viewMode.value);
+
+    return this;
   }
 
   updateHeightBoundary() {
@@ -835,6 +837,23 @@ class Boundary {
         }
       }, 200 + i * 400);
     }
+  }
+
+  updateInfo(info) {
+    const {name, mandatory, repeat, description} = info;
+
+    if (name) this.name = name;
+    if (mandatory !== undefined) this.mandatory = mandatory;
+    if (repeat) this.repeat = repeat;
+    if (description) this.description = description;
+    
+    const $header = d3.select(`#${this.id}Header`);
+    $header.text(segmentName(this, this.viewMode.value)).attr('title', this.description);
+    $header.style('background-color', `${this.colorHash.hex(this.name)}`);
+
+    d3.select(`#${this.id}Content`).style('border-color', `${this.colorHash.hex(this.name)}`);
+
+    d3.selectAll(`[prop='${this.id}${CONNECT_KEY}boundary_title']`).attr('fill', this.colorHash.hex(this.name));
   }
 }
 
