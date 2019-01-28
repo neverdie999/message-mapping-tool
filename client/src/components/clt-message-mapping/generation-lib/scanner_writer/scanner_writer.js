@@ -32,7 +32,7 @@ class ScannerWriter {
     return this._codeLines.join('\n');
   }
 
-  _writeLine(line, depth = 0, indentChar = '\t') {
+  _writeLine(line, depth=0, indentChar='\t') {
     const indent = indentChar.repeat(depth);
     this._codeLines.push(`${indent}${line}`);
   }
@@ -90,7 +90,7 @@ class ScannerWriter {
     };
   }
 
-  _writeScannerBody(currentGroup, parentGroupBound = '', groupDepth = 1) {
+  _writeScannerBody(currentGroup, parentGroupBound='', groupDepth=1) {
     const {
       segmentGroupBegin: currentGroupBegin,
       segmentGroupTag: currentGroupTag,
@@ -100,6 +100,9 @@ class ScannerWriter {
     const currentGroupEnd = this._messageGroupFormat.groupEnd(currentGroup.name);
     const currentGroupEndCondition = currentGroupEnd && `, ${this._scanningTag(lineSeparator, currentGroupEnd)}`;
     const parentGroupBoundCondition = parentGroupBound && `, ${this._scanningTag(lineSeparator, parentGroupBound)}`;
+    if (groupDepth > 1) {
+      this._writeLine('');
+    }
     this._writeLine(`while (LoopConst(${currentGroupBeginCondition}${currentGroupEndCondition}${parentGroupBoundCondition})) {`, groupDepth);
 
     const memberDepth = groupDepth + 1;
