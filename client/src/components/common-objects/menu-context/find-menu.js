@@ -42,7 +42,7 @@ class FindMenu {
             events2: {
               enter: this.onSelectVertex(this),
             },
-          }
+          },
         },
         events: {
           show: (opt) => {
@@ -76,7 +76,7 @@ class FindMenu {
 
   onSelectVertex(main) {
     return function () {
-      const vertex = _.find([].concat(main.dataContainer.vertex).concat(main.dataContainer.boundary), { name: this.value});
+      const vertex = _.find([].concat(main.dataContainer.vertex).concat(main.dataContainer.boundary), { name: this.value });
 
       if (vertex) {
         vertex.showToUser();
@@ -88,13 +88,11 @@ class FindMenu {
     const options = {};
 
     const vertices = [];
-    [].concat(this.dataContainer.vertex).concat(this.dataContainer.boundary).forEach(item => {
+    [].concat(this.dataContainer.vertex).concat(this.dataContainer.boundary).forEach((item) => {
       vertices.push(item.name);
-    })
+    });
 
-    const uniqueVertices = vertices.filter(function(item, pos) {
-      return vertices.indexOf(item) == pos;
-    })
+    const uniqueVertices = vertices.filter((item, pos) => vertices.indexOf(item) == pos);
 
     uniqueVertices.sort((a, b) => (a.toUpperCase()).localeCompare((b.toUpperCase())));
 

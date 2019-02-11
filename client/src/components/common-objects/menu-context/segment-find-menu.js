@@ -42,7 +42,7 @@ class SegmentFindMenu {
             events2: {
               enter: this.onSelectVertex(this),
             },
-          }
+          },
         },
         events: {
           show: (opt) => {
@@ -76,7 +76,7 @@ class SegmentFindMenu {
 
   onSelectVertex(main) {
     return function () {
-      const vertex = _.find(main.dataContainer.vertex, { vertexType: this.value});
+      const vertex = _.find(main.dataContainer.vertex, { vertexType: this.value });
 
       if (vertex) {
         vertex.showToUser();

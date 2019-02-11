@@ -284,52 +284,51 @@ class VertexMgmt {
    * @param vertexId
    */
 	makePopupEditVertex(vertexId) {
-		// Use in function updateVertexInfo()
-		let {name, description, repeat, mandatory, data, id, groupType} = _.find(this.dataContainer.vertex, {'id': vertexId})
+		let {name, description, repeat, mandatory, data, id, groupType} = _.find(this.dataContainer.vertex, {'id': vertexId});
 		// Get vertex group with group type
-		let group = _.find(this.vertexDefinition.vertexGroup, {'groupType': groupType})
+		let group = _.find(this.vertexDefinition.vertexGroup, {'groupType': groupType});
 
-		this.currentId = id
+		this.currentId = id;
 		// Append content to popup
-		$(`#vertexName_${this.svgId}`).val(name)
-		$(`#vertexDesc_${this.svgId}`).val(description)
+		$(`#vertexName_${this.svgId}`).val(name);
+		$(`#vertexDesc_${this.svgId}`).val(description);
 
 		if (checkModePermission(this.viewMode.value, 'vertexRepeat')) {
-			$(`#vertexRepeat_${this.svgId}`).val(repeat)
-			$(`#isVertexMandatory_${this.svgId}`).prop('checked', mandatory)
+			$(`#vertexRepeat_${this.svgId}`).val(repeat);
+			$(`#isVertexMandatory_${this.svgId}`).prop('checked', mandatory);
 		}
 
 		// Generate properties vertex
-		let columnTitle = Object.keys(group.dataElementFormat)
-		let cols = columnTitle.length
-		let rows = data.length
-		const dataType = group.elementDataType
+		let columnTitle = Object.keys(group.dataElementFormat);
+		let cols = columnTitle.length;
+		let rows = data.length;
+		const dataType = group.elementDataType;
 
-		let $table = $(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId}`).empty()
-		let $contentHeader = $('<thead>')
+		let $table = $(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId}`).empty();
+		let $contentHeader = $('<thead>');
 		// Generate header table
-		let $headerRow = $('<tr>')
+		let $headerRow = $('<tr>');
 		//let $colGroup = $('<colgroup>')
-		let $popWidth = 0
+		let $popWidth = 0;
 		
 		//Append hidden column 'id'
-		let $colId = $('<th>').text('id')
-		$colId.attr('class', 'col_header')
-		$colId.css('display', 'none')
-		$colId.appendTo($headerRow)
+		let $colId = $('<th>').text('id');
+		$colId.attr('class', 'col_header');
+		$colId.css('display', 'none');
+		$colId.appendTo($headerRow);
 
 		// Store column width for table data
 		let arrColumnWidth = [];
 
 		// init delcheck column if isDynamicDataSet
-		const option = group.option
-		const isDynamicDataSet = option.indexOf(VERTEX_GROUP_OPTION.DYNAMIC_DATASET) > -1
+		const option = group.option;
+		const isDynamicDataSet = option.indexOf(VERTEX_GROUP_OPTION.DYNAMIC_DATASET) > -1;
 		// Set show hide group button dynamic data set
 		if (!isDynamicDataSet) {
-			$(`#${HTML_GROUP_BTN_DYNAMIC_DATASET}_${this.svgId}`).hide()
+			$(`#${HTML_GROUP_BTN_DYNAMIC_DATASET}_${this.svgId}`).hide();
 		}
 		else {
-			$(`#${HTML_GROUP_BTN_DYNAMIC_DATASET}_${this.svgId}`).show()
+			$(`#${HTML_GROUP_BTN_DYNAMIC_DATASET}_${this.svgId}`).show();
 			// Prepend col group del check
 			arrColumnWidth.push(POPUP_CONFIG.WIDTH_COL_DEL_CHECK);
 			
@@ -339,41 +338,41 @@ class VertexMgmt {
 				'checked': false,
 				'colType': '<th>',
 				'isCheckAll': true,
-			})
-			$colHdr.appendTo($headerRow)
+			});
+			$colHdr.appendTo($headerRow);
 			
 		}
 
 		for (let i = 0; i < cols; i++) {
-			let $colHdr = $('<th>').text(this.capitalizeFirstLetter(columnTitle[i]))
-			$colHdr.attr('class', 'col_header')
-			$colHdr.appendTo($headerRow)
+			let $colHdr = $('<th>').text(this.capitalizeFirstLetter(columnTitle[i]));
+			$colHdr.attr('class', 'col_header');
+			$colHdr.appendTo($headerRow);
 
 			// Init col in col group
-			let prop = columnTitle[i]
-			let type = dataType[prop]
-			let value = group.dataElementFormat[prop]
-			let width = this.findLongestContent({data, prop, type, value})
-			$popWidth += width
+			let prop = columnTitle[i];
+			let type = dataType[prop];
+			let value = group.dataElementFormat[prop];
+			let width = this.findLongestContent({data, prop, type, value});
+			$popWidth += width;
 			arrColumnWidth.push(width);
 		}
 
 		//$colGroup.appendTo($table)
-		$headerRow.appendTo($contentHeader)
-		$contentHeader.appendTo($table)
+		$headerRow.appendTo($contentHeader);
+		$contentHeader.appendTo($table);
 
 		// Generate content table
-		let $contentBody = $('<tbody>')
+		let $contentBody = $('<tbody>');
 		for (let i = 0; i < rows; i++) {
-			const dataRow = data[i]
-			const $row = $('<tr>')
+			const dataRow = data[i];
+			const $row = $('<tr>');
 
 			// id
-			let $colId = $('<td>')
-			$colId.attr('name', 'id')
-			$colId.text(i)
-			$colId.hide()
-			$colId.appendTo($row)
+			let $colId = $('<td>');
+			$colId.attr('name', 'id');
+			$colId.text(i);
+			$colId.hide();
+			$colId.appendTo($row);
 
 			// Checkbox
 			if (isDynamicDataSet) {
@@ -383,41 +382,41 @@ class VertexMgmt {
 					'name': `${ATTR_DEL_CHECK}_${this.svgId}` ,
 					'checked': false,
 					'colType': '<td>'
-				})
-				$col.appendTo($row)
+				});
+				$col.appendTo($row);
 			}
 
 			//data
 			for (let j = 0; j < cols; j++) {
-				let prop = columnTitle[j]
-				let type = dataType[prop]
-				let val = dataRow[prop]
-				let opt = []
+				let prop = columnTitle[j];
+				let type = dataType[prop];
+				let val = dataRow[prop];
+				let opt = [];
 
 				const $col = $('<td>')
 				// Get option if type is array
 				if (type === VERTEX_FORMAT_TYPE.ARRAY) {
-					opt = group.dataElementFormat[prop]
+					opt = group.dataElementFormat[prop];
 				} else if (type === VERTEX_FORMAT_TYPE.BOOLEAN) {
-					$col.attr('class', 'checkbox_center')
+					$col.attr('class', 'checkbox_center');
 				}
 
-				let $control = this.generateControlByType({i, type, val, prop, opt, groupType})
-				$control.appendTo($col)
-				$col.appendTo($row)
+				let $control = this.generateControlByType({i, type, val, prop, opt, groupType});
+				$control.appendTo($col);
+				$col.appendTo($row);
 			}
 			
-			$row.appendTo($contentBody)
+			$row.appendTo($contentBody);
 		}
 
-		$contentBody.appendTo($table)
+		$contentBody.appendTo($table);
 
 		// Set column with for table data
 		for(let i = 0; i < arrColumnWidth.length; i += 1) {
 			if (i === arrColumnWidth.length - 1) {
-				$(`.fixed-headers th:nth-child(${i+2}),td:nth-child(${i+2})`).css('width', '100%');
+				$(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId} th:nth-child(${i+2}),td:nth-child(${i+2})`).css('width', '100%');
 			} else {
-				$(`.fixed-headers th:nth-child(${i+2}),td:nth-child(${i+2})`).css('min-width', arrColumnWidth[i]);
+				$(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId} th:nth-child(${i+2}),td:nth-child(${i+2})`).css('min-width', arrColumnWidth[i]);
 			}
 		}
 
@@ -428,7 +427,7 @@ class VertexMgmt {
 			position: 'center',
 			width: $popWidth + POPUP_CONFIG.PADDING_CHAR + (!isDynamicDataSet ? 0 : 45)
 		}
-		PopUtils.metSetShowPopup(options)
+		PopUtils.metSetShowPopup(options);
 
 		if (!checkModePermission(this.viewMode.value, 'vertexBtnConfirm')) {
 			if (isDynamicDataSet) {
@@ -446,7 +445,7 @@ class VertexMgmt {
 		}
 		
 		if (isDynamicDataSet) {
-			$(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId}`).find('tbody').sortable()
+			$(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId}`).find('tbody').sortable();
 		}
 	}
 
@@ -624,16 +623,17 @@ class VertexMgmt {
 		$row.appendTo($appendTo)
 
 		// Set column with for table data
+		const main = this;
 		let columnHeaderCount = 0;
-		$(`.fixed-headers thead tr th`).each(function () {
+		$(`#${HTML_VERTEX_PROPERTIES_ID}_${main.svgId} thead tr th`).each(function () {
 			columnHeaderCount += 1;
 
 			if ($(this).css('display') !== 'none') {
-				$(`.fixed-headers td:nth-child(${columnHeaderCount})`).css('min-width', parseInt($(this).css('min-width').replace('px','')));
+				$(`#${HTML_VERTEX_PROPERTIES_ID}_${main.svgId} td:nth-child(${columnHeaderCount})`).css('min-width', parseInt($(this).css('min-width').replace('px','')));
 			}
 		});
 
-		$(`.fixed-headers td:nth-child(${columnHeaderCount})`).css('width', '100%');
+		$(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId} td:nth-child(${columnHeaderCount})`).css('width', '100%');
 	}
 
 	removeDataElement() {
@@ -644,7 +644,7 @@ class VertexMgmt {
 		})
 
 		// Uncheck all
-		$(`#${ATTR_DEL_CHECK_ALL}_${this.svgId}`).prop('checked', false)
+		$(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId} #${ATTR_DEL_CHECK_ALL}_${this.svgId}`).prop('checked', false)
 	}
 
 	initCellDelCheck(options) {
@@ -666,7 +666,7 @@ class VertexMgmt {
 					$(this).closest('table').find(`tbody :checkbox[name=${ATTR_DEL_CHECK}_${main.svgId}]`)
 						.prop('checked', this.checked)
 				else {
-					$(`#${ATTR_DEL_CHECK_ALL}_${main.svgId}`).prop('checked',
+					$(`#${HTML_VERTEX_PROPERTIES_ID}_${main.svgId} #${ATTR_DEL_CHECK_ALL}_${main.svgId}`).prop('checked',
 						($(this).closest('table').find(`tbody :checkbox[name=${ATTR_DEL_CHECK}_${main.svgId}]:checked`).length ==
               $(this).closest('table').find(`tbody :checkbox[name=${ATTR_DEL_CHECK}_${main.svgId}]`).length))
 				}

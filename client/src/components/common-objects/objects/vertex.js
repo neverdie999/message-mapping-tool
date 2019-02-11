@@ -47,7 +47,7 @@ class Vertex {
     this.data = []; // type: array, require: false, default: empty array, purpose: define the content of vertex
     this.parent = null;
     this.mandatory = false;
-    this.repeat = "1";
+    this.repeat = '1';
     this.type;
     this.show;
 
@@ -77,7 +77,9 @@ class Vertex {
     const {
       id, x, y, vertexType, name, parent, mandatory, isMenu, isImport,
     } = sOptions;
-    let { groupType, data, description, repeat } = sOptions;
+    let {
+      groupType, data, description, repeat,
+    } = sOptions;
 
     if (isMenu) {
       const vertexTypeInfo = _.cloneDeep(_.find(this.vertexDefinition.vertex, { vertexType }));
@@ -98,7 +100,7 @@ class Vertex {
     this.mandatory = mandatory || false;
     if (repeat) {
       // convert to string type
-      repeat = repeat + '';
+      repeat += '';
       this.repeat = repeat === '' ? '1' : repeat;
     }
     this.type = 'V';
@@ -145,9 +147,9 @@ class Vertex {
     const hasLeftConnector = (this.connectSide === CONNECT_SIDE.LEFT || this.connectSide === CONNECT_SIDE.BOTH) ? ' has_left_connect' : '';
     const hasRightConnector = (this.connectSide === CONNECT_SIDE.RIGHT || this.connectSide === CONNECT_SIDE.BOTH) ? ' has_right_connect' : '';
     for (let i = 0; i < countData; i += 1) {
-      let item = this.data[i];
+      const item = this.data[i];
       if (item.repeat) {
-        item.repeat = item.repeat + '';
+        item.repeat += '';
       }
 
       htmlContent += `
@@ -550,6 +552,26 @@ class Vertex {
     for (let i = componentIndex - 1; i >= 0; i -= 1) {
       if (this.data[i].type === DATA_ELEMENT_TYPE.COMPOSITE) return this.data[i];
     }
+  }
+
+  updateInfo(info) {
+    const {
+      name, description, repeat, mandatory,
+    } = info;
+
+    if (name) this.name = name;
+    if (mandatory !== undefined) this.mandatory = mandatory;
+    if (repeat) this.repeat = repeat;
+    if (description) this.description = description;
+
+    // Update properties
+    const $header = d3.select(`#${this.id}Name`);
+    $header.text(segmentName(this, this.viewMode.value)).attr('title', this.description);
+    d3.select($header.node().parentNode).style('background-color', `${this.colorHash.hex(this.name)}`);
+
+    // update color for "rect"
+    d3.select(`#${this.id}`).selectAll('.drag_connect:not(.connect_header)').attr('fill', this.colorHashConnection.hex(this.name));
+    d3.select(`#${this.id}`).selectAll('.drag_connect.connect_header').attr('fill', this.colorHash.hex(this.name));
   }
 }
 

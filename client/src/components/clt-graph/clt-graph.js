@@ -286,8 +286,9 @@ class CltGraph {
 		if(resMessage.type !== 'ok') {
 			comShowMessage(resMessage.message);
 
-			if(resMessage.type === 'error')
+			if(resMessage.type === 'error'){
 				return;
+			}
 		}
 
 		//clear data
@@ -313,6 +314,8 @@ class CltGraph {
 
 		setAddressTabName(ID_TAB_MESSAGE_SPEC, fileName);
 		this.showFileNameOnApplicationTitleBar();
+
+		hideFileChooser();
 	}
 
 	save(fileName) {
@@ -358,6 +361,8 @@ class CltGraph {
 
 			setAddressTabName(ID_TAB_SEGMENT_SET, fileName);
 			this.showFileNameOnApplicationTitleBar();
+
+			hideFileChooser();
 		}
 	}
 

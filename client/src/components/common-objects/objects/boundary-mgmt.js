@@ -16,14 +16,25 @@ import {
   checkModePermission,
   segmentName,
   hideFileChooser,
+  checkIsMatchRegexNumber,
+  comShowMessage,
 } from '../../../common/utilities/common.util';
 
 import {
-  REPEAT_RANGE, BOUNDARY_ATTR_SIZE, CONNECT_SIDE,
+  REPEAT_RANGE, BOUNDARY_ATTR_SIZE, VERTEX_FORMAT_TYPE, PADDING_POSITION_SVG,
 } from '../../../common/const/index';
 
 const CONNECT_KEY = 'Connected';
 const FOCUSED_CLASS = 'focused-object';
+
+const ATTR_ID = 'id';
+const ATTR_DEL_CHECK_ALL = 'delCheckAll';
+const ATTR_DEL_CHECK = 'delCheck';
+const ATTR_VERTEX_TYPE = 'vertexType';
+const ATTR_NAME = 'name';
+const ATTR_TYPE = 'type';
+const ATTR_MANDATORY = 'mandatory';
+const ATTR_REPEAT = 'repeat';
 
 class BoundaryMgmt {
   constructor(props) {
@@ -87,6 +98,18 @@ class BoundaryMgmt {
       </td>
     </tr>`;
 
+    const editMemberHtml = `
+    <div class="dialog-button-top">
+      <div class="row" style="float:left;">
+        <button id="boundaryBtnDelete_${this.svgId}" class="btn-etc">Delete</button>
+      </div>
+
+      <div class="row text-right">
+        <button id="boundaryBtnAddBoundary_${this.svgId}" class="btn-etc">Add Boundary</button>
+        <button id="boundaryBtnAddVertex_${this.svgId}" class="btn-etc">Add Vertex</button>
+      </div>
+    </div>`;
+
     const sHtml = `<!-- Boundary Info Popup (S)-->
     <div id="boundaryInfo_${this.svgId}" class="modal fade" role="dialog" tabindex="-1">
       <div class="modal-dialog">
@@ -120,6 +143,16 @@ class BoundaryMgmt {
                 </table>
               </div>
             </form>
+
+            ${checkModePermission(this.viewMode.value, 'boundaryBtnConfirm') ? editMemberHtml : ''}
+							
+            <form id="boundaryForm_${this.svgId}" action="#" method="post">
+              <div class="dialog-search form-inline">
+                <table class="fixed-headers vertex-properties" id="boundaryMember_${this.svgId}" border="1">
+                </table>
+              </div>
+						</form>
+           
             <div class="dialog-button-top">
               <div class="row text-right">
                 <button id="boundaryBtnConfirm_${this.svgId}" class="btn-etc">Confirm</button>
@@ -140,6 +173,24 @@ class BoundaryMgmt {
    */
   bindEventForPopupBoundary() {
     const main = this;
+
+    if (checkModePermission(this.viewMode.value, 'boundaryBtnConfirm')) {
+      $(`#boundaryBtnDelete_${main.svgId}`).click(() => {
+        this.removeMemberHtml();
+      });
+    }
+
+    if (checkModePermission(this.viewMode.value, 'boundaryBtnConfirm')) {
+      $(`#boundaryBtnAddVertex_${main.svgId}`).click(() => {
+        this.addMember('V');
+      });
+    }
+
+    if (checkModePermission(this.viewMode.value, 'boundaryBtnConfirm')) {
+      $(`#boundaryBtnAddBoundary_${main.svgId}`).click(() => {
+        this.addMember('B');
+      });
+    }
 
     if (checkModePermission(this.viewMode.value, 'boundaryBtnConfirm')) {
       $(`#boundaryBtnConfirm_${main.svgId}`).click(() => {
@@ -187,6 +238,8 @@ class BoundaryMgmt {
     if (!sOptions.isImport) {
       this.makeEditBoundaryInfo(newBoundary.id);
     }
+
+    return newBoundary;
   }
 
   startDrag(main) {
@@ -316,44 +369,41 @@ class BoundaryMgmt {
       $(`#isBoundaryMandatory_${this.svgId}`).prop('checked', boundary.mandatory);
     }
 
-    hideFileChooser();
+    this.generateTable();
 
     const options = {
       popupId: `boundaryInfo_${this.svgId}`,
       position: 'center',
-      width: 430,
+      width: checkModePermission(this.viewMode.value, 'maxBoundaryRepeat') ? 650 : 450,
     };
     PopUtils.metSetShowPopup(options);
+
+    hideFileChooser();
 
     if (!checkModePermission(this.viewMode.value, 'boundaryBtnConfirm')) {
       $(`#boundaryBtnConfirm_${this.svgId}`).hide();
     } else {
       $(`#boundaryBtnConfirm_${this.svgId}`).show();
     }
+
+    $(`#boundaryMember_${this.svgId}`).find('tbody').sortable();
   }
 
   /**
    * Update data boundary change
    */
   confirmEditBoundaryInfo() {
-    const name = $(`#boundaryName_${this.svgId}`).val();
-    this.editingBoundary.name = name;
-
+    const info = {};
+    info.name = $(`#boundaryName_${this.svgId}`).val();
     if (checkModePermission(this.viewMode.value, 'maxBoundaryRepeat')) {
-      this.editingBoundary.repeat = $(`#maxBoundaryRepeat_${this.svgId}`).val();
-      this.editingBoundary.mandatory = $(`#isBoundaryMandatory_${this.svgId}`).prop('checked');
+      info.repeat = $(`#maxBoundaryRepeat_${this.svgId}`).val();
+      info.mandatory = $(`#isBoundaryMandatory_${this.svgId}`).prop('checked');
     }
+    info.description = $(`#boundaryDesc_${this.svgId}`).val();
 
-    const description = $(`#boundaryDesc_${this.svgId}`).val();
-    this.editingBoundary.description = description;
+    this.editingBoundary.updateInfo(info);
 
-    const header = d3.select(`#${this.editingBoundary.id}Header`);
-    header.text(segmentName(this.editingBoundary, this.viewMode.value)).attr('title', description);
-    header.style('background-color', `${this.colorHash.hex(name)}`);
-
-    d3.select(`#${this.editingBoundary.id}Content`).style('border-color', `${this.colorHash.hex(name)}`);
-
-    d3.selectAll(`[prop='${this.editingBoundary.id}${CONNECT_KEY}boundary_title']`).attr('fill', this.colorHash.hex(name));
+    this.updateChildren();
 
     // Check mandatary for member
     this.editingBoundary.validateConnectionByUsage();
@@ -408,6 +458,516 @@ class BoundaryMgmt {
 
     $(window).on('mouseup', (e) => {
       $(`#boundaryInfo_${main.svgId} .draggable`).removeClass('draggable');
+    });
+  }
+
+  initCellDelCheck(options) {
+    const {
+      className, name, checked, colType, isCheckAll,
+    } = options;
+
+    const $col = $(colType);
+    $col.attr('class', className);
+    const $chk = $('<input>');
+    $chk.attr('type', 'checkbox');
+    if (isCheckAll) {
+      $chk.attr('id', name);
+    }
+    $chk.prop('checked', checked);
+
+    const main = this;
+    $chk.attr('name', name)
+      .on('click', function () {
+        if (isCheckAll) {
+          $(this).closest('table').find(`tbody :checkbox[name=${ATTR_DEL_CHECK}]`)
+            .prop('checked', this.checked);
+        } else {
+          $(this).closest('table').find(`#${ATTR_DEL_CHECK_ALL}`).prop('checked',
+            ($(this).closest('table').find(`tbody :checkbox[name=${ATTR_DEL_CHECK}]:checked`).length
+              === $(this).closest('table').find(`tbody :checkbox[name=${ATTR_DEL_CHECK}]`).length));
+        }
+      });
+    $chk.appendTo($col);
+
+    return $col;
+  }
+
+  /**
+   * Generate control with options
+   * @param options
+   * @returns {*}
+   */
+  generateControlByType(options) {
+    let $control = null;
+
+    const {
+      controlType, controlName, dataOptions, val,
+    } = options;
+    switch (controlType) {
+      case VERTEX_FORMAT_TYPE.LABEL:
+        $control = $('<label>');
+        $control.attr('name', `${controlName}`);
+        $control.attr('value', val);
+        $control.text(val);
+        break;
+
+      case VERTEX_FORMAT_TYPE.BOOLEAN:
+        $control = $('<input>');
+        $control.attr('type', 'checkbox');
+        $control.attr('name', `${controlName}`);
+        $control.prop('checked', typeof (val) === 'boolean' ? val : false);
+        $control.attr('value', val);
+        break;
+
+      case VERTEX_FORMAT_TYPE.ARRAY:
+        const firstOpt = dataOptions[0];
+        $control = $('<select>');
+        $control.attr('name', `${controlName}`);
+        $control.attr('class', 'form-control');
+        $.each(dataOptions, (key, value) => {
+          $control
+            .append($('<option></option>')
+              .attr('value', value || firstOpt)
+              .prop('selected', value === (val || firstOpt))
+              .text(value));
+        });
+        $control.change(function () {
+          $(this).closest('tr').find('[name="name"]').val($(this).val());
+        });
+        break;
+
+      case VERTEX_FORMAT_TYPE.NUMBER:
+        $control = $('<input>');
+        $control.attr('type', 'text');
+        $control.attr('name', `${controlName}`);
+        $control.attr('value', !isNaN(val) ? val : '1');
+        $control.attr('class', 'form-control');
+        $control
+          .on('keydown', (e) => {
+            allowInputNumberOnly(e);
+          })
+          .on('focusout', function (e) {
+            if (this.value && !checkIsMatchRegexNumber(this.value)) {
+              comShowMessage('Input invalid');
+              this.value = '';
+            } else if (isNaN(this.value)) {
+              comShowMessage('Input invalid');
+              this.value = '';
+            }
+          });
+        break;
+
+      default:
+        $control = $('<input>');
+        $control.attr('type', 'text');
+        $control.attr('autocomplete', 'off');
+        $control.attr('name', `${controlName}`);
+        $control.attr('value', val != undefined ? val : '');
+        $control.attr('class', 'form-control');
+    }
+
+    return $control;
+  }
+
+  generateTable() {
+    const $table = $(`#boundaryMember_${this.svgId}`).empty();
+
+    // Init table header
+    const $thead = $('<thead>');
+    const $headerRow = $('<tr>');
+
+    // id
+    let $colHdr = $('<th>').text('id');
+    $colHdr.attr('class', 'col_header');
+    $colHdr.attr('name', ATTR_ID);
+    $colHdr.css('display', 'none');
+    $colHdr.appendTo($headerRow);
+
+    // Del check all
+    $colHdr = this.initCellDelCheck({
+      className: 'col_header',
+      name: `${ATTR_DEL_CHECK_ALL}`,
+      checked: false,
+      colType: '<th>',
+      isCheckAll: true,
+    });
+    $colHdr.appendTo($headerRow);
+
+    // vertex type
+    $colHdr = $('<th>').text('Vertex Type');
+    $colHdr.attr('class', 'col_header');
+    $colHdr.attr('name', 'vertexType');
+    $colHdr.appendTo($headerRow);
+
+    // name
+    $colHdr = $('<th>').text('Name');
+    $colHdr.attr('class', 'col_header');
+    $colHdr.attr('name', 'name');
+    $colHdr.appendTo($headerRow);
+
+    // type
+    $colHdr = $('<th>').text('Type');
+    $colHdr.attr('class', 'col_header');
+    $colHdr.attr('name', 'type');
+    $colHdr.appendTo($headerRow);
+
+
+    if (checkModePermission(this.viewMode.value, 'maxBoundaryRepeat')) {
+      // mandatory
+      $colHdr = $('<th>').text('Mandatory');
+      $colHdr.attr('class', 'col_header');
+      $colHdr.attr('name', 'mandatory');
+      $colHdr.appendTo($headerRow);
+
+      // repeat
+      $colHdr = $('<th>').text('Repeat\n(max or min, max)');
+      $colHdr.attr('class', 'col_header');
+      $colHdr.attr('name', 'repeat');
+      $colHdr.css('white-space', 'pre-line');
+      $colHdr.appendTo($headerRow);
+    }
+
+    $headerRow.appendTo($thead);
+    $thead.appendTo($table);
+
+    // Init table body
+    const $tbody = $('<tbody>');
+
+    const listOfVertexType = [];
+    this.vertexMgmt.vertexDefinition.vertex.forEach((vertex) => {
+      listOfVertexType.push(vertex.vertexType);
+    });
+
+    let $bodyRow = null;
+    let $bodyCol = null;
+    for (let i = 0; i < this.editingBoundary.member.length; i += 1) {
+      const member = this.editingBoundary.member[i];
+      const object = _.find([].concat(this.dataContainer.vertex).concat(this.dataContainer.boundary), { id: member.id });
+      let options = {};
+      let $control = null;
+
+      $bodyRow = $('<tr>');
+
+      // id
+      $bodyCol = $('<td>');
+      $bodyCol.attr('name', 'id');
+      $bodyCol.text(`${member.id}`);
+      $bodyCol.hide();
+      $bodyCol.appendTo($bodyRow);
+
+      // del-check
+      $bodyCol = this.initCellDelCheck({
+        className: 'checkbox_center',
+        name: `${ATTR_DEL_CHECK}`,
+        checked: false,
+        colType: '<td>',
+      });
+      $bodyCol.appendTo($bodyRow);
+
+      // vertex type
+      $bodyCol = $('<td>');
+      options = {};
+      options.controlType = VERTEX_FORMAT_TYPE.STRING;
+      options.controlName = 'vertexType';
+      if (object.type === 'V') {
+        options.val = object.vertexType;
+      } else {
+        options.val = '';
+      }
+
+      $control = this.generateControlByType(options);
+      $control.prop('disabled', true);
+      $control.appendTo($bodyCol);
+      $bodyCol.appendTo($bodyRow);
+
+      // name
+      $bodyCol = $('<td>');
+      options = {};
+      options.controlType = VERTEX_FORMAT_TYPE.STRING;
+      options.controlName = 'name';
+      options.val = object.name;
+      $control = this.generateControlByType(options);
+      $control.appendTo($bodyCol);
+      $bodyCol.appendTo($bodyRow);
+
+      // type
+      $bodyCol = $('<td>');
+      $bodyCol.attr('name', 'type');
+      $bodyCol.text(member.type);
+      $bodyCol.css('text-align', 'center');
+      $bodyCol.css('color', '#555');
+      $bodyCol.appendTo($bodyRow);
+
+      if (checkModePermission(this.viewMode.value, 'maxBoundaryRepeat')) {
+        // mandatory
+        $bodyCol = this.initCellDelCheck({
+          className: 'checkbox_center',
+          name: 'mandatory',
+          checked: object.mandatory,
+          colType: '<td>',
+        });
+        $bodyCol.appendTo($bodyRow);
+
+        // repeat
+        $bodyCol = $('<td>');
+        options = {};
+        options.controlType = VERTEX_FORMAT_TYPE.NUMBER;
+        options.controlName = 'repeat';
+        options.val = object.repeat;
+        $control = this.generateControlByType(options);
+        $control.appendTo($bodyCol);
+        $bodyCol.appendTo($bodyRow);
+      }
+
+      $bodyRow.appendTo($tbody);
+    }
+
+    $tbody.appendTo($table);
+
+    // Set column with for table data
+    if (checkModePermission(this.viewMode.value, 'maxBoundaryRepeat')) {
+      $(`#boundaryMember_${this.svgId} th:nth-child(1),td:nth-child(1)`).css('min-width', '45px'); // id
+      $(`#boundaryMember_${this.svgId} th:nth-child(2),td:nth-child(2)`).css('min-width', '45px'); // del check
+      $(`#boundaryMember_${this.svgId} th:nth-child(3),td:nth-child(3)`).css('min-width', '100px'); // vertexType
+      $(`#boundaryMember_${this.svgId} th:nth-child(4),td:nth-child(4)`).css('min-width', '150px'); // name
+      $(`#boundaryMember_${this.svgId} th:nth-child(5),td:nth-child(5)`).css('min-width', '60px'); // type
+      $(`#boundaryMember_${this.svgId} th:nth-child(6),td:nth-child(6)`).css('min-width', '100px'); // mandatory
+      $(`#boundaryMember_${this.svgId} th:nth-child(7),td:nth-child(7)`).css('width', '100%'); // repeat
+    } else {
+      $(`#boundaryMember_${this.svgId} th:nth-child(1),td:nth-child(1)`).css('min-width', '45px'); // id
+      $(`#boundaryMember_${this.svgId} th:nth-child(2),td:nth-child(2)`).css('min-width', '45px'); // del check
+      $(`#boundaryMember_${this.svgId} th:nth-child(3),td:nth-child(3)`).css('min-width', '100px'); // vertexType
+      $(`#boundaryMember_${this.svgId} th:nth-child(4),td:nth-child(4)`).css('min-width', '150px'); // name
+      $(`#boundaryMember_${this.svgId} th:nth-child(5),td:nth-child(5)`).css('width', '100%'); // type
+    }
+  }
+
+  removeMemberHtml() {
+    $(`#boundaryMember_${this.svgId} > tbody`).find(`input[name=${ATTR_DEL_CHECK}]`).each(function () {
+      if ($(this).is(':checked')) {
+        $(this).parents('tr').remove();
+      }
+    });
+
+    // Uncheck all
+    $(`#boundaryMember_${this.svgId} #${ATTR_DEL_CHECK_ALL}_${this.svgId}`).prop('checked', false);
+  }
+
+  addMember(memberType) {
+    if (!this.editingBoundary) return;
+
+    const $tbody = $(`#boundaryMember_${this.svgId} > tbody`);
+
+    const listOfVertexType = [];
+    this.vertexMgmt.vertexDefinition.vertex.forEach((vertex) => {
+      listOfVertexType.push(vertex.vertexType);
+    });
+
+    let $bodyRow = null;
+    let $bodyCol = null;
+    let options = {};
+    let $control = null;
+
+    $bodyRow = $('<tr>');
+
+    // id
+    $bodyCol = $('<td>');
+    $bodyCol.attr('name', 'id');
+    $bodyCol.text('');
+    $bodyCol.hide();
+    $bodyCol.appendTo($bodyRow);
+
+    // del-check
+    $bodyCol = this.initCellDelCheck({
+      className: 'checkbox_center',
+      name: `${ATTR_DEL_CHECK}`,
+      checked: false,
+      colType: '<td>',
+    });
+    $bodyCol.appendTo($bodyRow);
+
+    // vertex type
+    if (memberType === 'V') {
+      $bodyCol = $('<td>');
+      options.controlType = VERTEX_FORMAT_TYPE.ARRAY;
+      options.controlName = 'vertexType';
+      options.dataOptions = listOfVertexType;
+      options.val = '';
+      $control = this.generateControlByType(options);
+      $control.appendTo($bodyCol);
+      $bodyCol.appendTo($bodyRow);
+    } else {
+      $bodyCol = $('<td>');
+      options = {};
+      options.controlType = VERTEX_FORMAT_TYPE.STRING;
+      options.controlName = 'vertexType';
+      options.val = '';
+      $control = this.generateControlByType(options);
+      $control.prop('disabled', true);
+      $control.appendTo($bodyCol);
+      $bodyCol.appendTo($bodyRow);
+    }
+
+    // name
+    $bodyCol = $('<td>');
+    options = {};
+    options.controlType = VERTEX_FORMAT_TYPE.STRING;
+    options.controlName = 'name';
+    if (memberType === 'V') {
+      options.val = listOfVertexType[0];
+    } else {
+      options.val = 'Boundary';
+    }
+
+    $control = this.generateControlByType(options);
+    $control.appendTo($bodyCol);
+    $bodyCol.appendTo($bodyRow);
+
+    // type
+    $bodyCol = $('<td>');
+    $bodyCol.attr('name', 'type');
+    $bodyCol.text(memberType);
+    $bodyCol.css('text-align', 'center');
+    $bodyCol.css('color', '#555');
+    $bodyCol.appendTo($bodyRow);
+
+    if (checkModePermission(this.viewMode.value, 'maxBoundaryRepeat')) {
+      // mandatory
+      $bodyCol = this.initCellDelCheck({
+        className: 'checkbox_center',
+        name: 'mandatory',
+        checked: false,
+        colType: '<td>',
+      });
+      $bodyCol.appendTo($bodyRow);
+
+      // repeat
+      $bodyCol = $('<td>');
+      options = {};
+      options.controlType = VERTEX_FORMAT_TYPE.NUMBER;
+      options.controlName = 'repeat';
+      options.val = '1';
+      $control = this.generateControlByType(options);
+      $control.appendTo($bodyCol);
+      $bodyCol.appendTo($bodyRow);
+    }
+
+    $bodyRow.appendTo($tbody);
+
+    // Set column with for table data
+    const main = this;
+    let columnHeaderCount = 0;
+    $(`#boundaryMember_${main.svgId} thead tr th`).each(function () {
+      columnHeaderCount += 1;
+
+      // if ($(this).css('display') !== 'none') {
+      $(`#boundaryMember_${main.svgId} td:nth-child(${columnHeaderCount})`).css('min-width', parseInt($(this).css('min-width').replace('px', '')));
+      // }
+    });
+
+    $(`#boundaryMember_${this.svgId} td:nth-child(${columnHeaderCount})`).css('width', '100%');
+  }
+
+  updateChildren() {
+    const main = this;
+    const dataTable = [];
+    let hasCreateNewObject = false;
+
+    $(`#boundaryMember_${this.svgId} tbody tr`).each(function () {
+      const dataRow = {};
+      dataRow.id = $(this).find(`[name=${ATTR_ID}]`).text();
+      dataRow.vertexType = $(this).find(`[name="${ATTR_VERTEX_TYPE}"]`).val();
+      dataRow.name = $(this).find(`[name="${ATTR_NAME}"]`).val();
+      dataRow.type = $(this).find(`[name="${ATTR_TYPE}"]`).text();
+      if (checkModePermission(main.viewMode.value, 'maxBoundaryRepeat')) {
+        dataRow.mandatory = $(this).find(`[name="${ATTR_MANDATORY}"]`)[0].checked;
+        dataRow.repeat = $(this).find(`[name="${ATTR_REPEAT}"]`).val();
+      }
+
+      dataTable.push(dataRow);
+    });
+
+    // for members were deleted
+    const members = this.editingBoundary.member;
+    for (let i = members.length - 1; i >= 0; i -= 1) {
+      const mem = members[i];
+      if (!_.find(dataTable, { id: mem.id })) {
+        if (mem.type === 'V') {
+          const vertex = _.find(main.dataContainer.vertex, { id: mem.id });
+          vertex.delete();
+        } else {
+          const boundary = _.find(main.dataContainer.boundary, { id: mem.id });
+          boundary.doDeleteAll();
+        }
+      }
+    }
+
+    // for members were updated or added new
+    dataTable.forEach((item) => {
+      let object = {};
+
+      if (item.id !== '') {
+        if (item.type === 'V') {
+          object = _.find(main.dataContainer.vertex, { id: item.id });
+        } else {
+          object = _.find(main.dataContainer.boundary, { id: item.id });
+        }
+        object.updateInfo(item);
+      } else {
+        let returnObject = {};
+        if (item.type === 'V') {
+          returnObject = main.vertexMgmt.create({
+            isImport: true,
+            isMenu: true,
+            parent: main.editingBoundary.id,
+            name: item.name,
+            vertexType: item.vertexType,
+            mandatory: item.mandatory,
+            repeat: item.repeat,
+          });
+        } else {
+          returnObject = main.create({
+            isImport: true,
+            parent: main.editingBoundary.id,
+            name: item.name,
+            mandatory: item.mandatory,
+            repeat: item.repeat,
+          });
+        }
+
+        item.id = returnObject.id;
+        hasCreateNewObject = true;
+      }
+    });
+
+    // update members data
+    this.editingBoundary.member = [];
+    dataTable.forEach((item) => {
+      this.editingBoundary.member.push({
+        id: item.id,
+        type: item.type,
+        show: true,
+      });
+    });
+
+    if (hasCreateNewObject && this.mainParent.isShowReduced) {
+      this.mainParent.isShowReduced = false;
+    }
+
+    const ancestor = this.editingBoundary.findAncestorOfMemberInNestedBoundary();
+    ancestor.updateSize();
+    ancestor.reorderPositionMember();
+    this.edgeMgmt.updatePathConnectForVertex(ancestor);
+
+    setMinBoundaryGraph(this.dataContainer, this.svgId, this.viewMode.value);
+  }
+
+  setHeaderWidth() {
+    let columnCount = 0;
+    $(`#boundaryMember_${this.svgId} tbody tr`).first().find('td').each(function () {
+      columnCount += 1;
+
+      $(`table thead th:nth-child(${columnCount})`).css('min-width', this.getBoundingClientRect().width);
     });
   }
 }

@@ -67,9 +67,6 @@ class FileMgmt {
 		const options = $(`#${ID_OPTION_FILE_TYPE_INPUT}`).val();
 
 		this.parent.separateDataToManagement(data, options, file.name);
-
-		//Hide file managememnt area
-		$(`#${ID_CONTAINER_FILE_MGMT}`).slideToggle();
 	}
 
 	clearInputFile() {
