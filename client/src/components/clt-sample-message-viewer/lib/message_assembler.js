@@ -1,5 +1,3 @@
-
-
 const MessageElementType = require('./message/message_element_type');
 const ResultType = require('./message/result_type');
 /**
@@ -19,9 +17,11 @@ class MessageAssembler {
     if (MessageElementType.isSegmentGroup(messageElement.elementType)) {
       assembledMessage = assembledMessage.concat(this._assembleMessageSegmentGroup(messageElement, delimiter, lineSeparator));
     }
+
     if (MessageElementType.isSegment(messageElement.elementType)) {
       assembledMessage = assembledMessage.concat(this._assembleMessageSegment(messageElement, delimiter));
     }
+
     if (MessageElementType.isDataElement(messageElement.elementType)) {
       assembledMessage = assembledMessage.concat(this._assembleMessageDataElement(messageElement, delimiter));
     }
@@ -33,7 +33,7 @@ class MessageAssembler {
     const sampleMessageSegmentGroup = [];
 
     if (Array.isArray(children)) {
-      children.forEach((each) => {
+      children.forEach((each                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     ) => {
         if (MessageElementType.isSegmentGroup(each.elementType)) {
           if (this.messageType === 'DICTIONARY') {
             sampleMessageSegmentGroup.push(`${delimiter.groupOpenDelimiter}${each.name}${delimiter.segmentTerminator}`);
@@ -82,11 +82,12 @@ class MessageAssembler {
 
   _assembleMessageDataElement(dataSpecs, delimiter, lastMessageDataElementFlag = false) {
     let sampleDataElement = '';
+
     if (dataSpecs.length > 1) {
       dataSpecs.forEach((each, index) => {
         if (index === dataSpecs.length - 1) {
           if (lastMessageDataElementFlag) {
-            sampleDataElement += this._assembleLastDataSpec(each);
+            sampleDataElement += this._assembleLastDataSpec(each, delimiter);
           } else {
             sampleDataElement += this._assembleNotLastDataSpec(each, delimiter);
           }
@@ -97,27 +98,30 @@ class MessageAssembler {
       return sampleDataElement;
     }
 
+    const processedDataSpecValue = this._isReleasedCharacter(dataSpecs[0].value, delimiter);
     if (lastMessageDataElementFlag) {
       if (dataSpecs[0].matchResult.resultType !== ResultType.SUCCESS) {
-        sampleDataElement += `<mark title=${dataSpecs[0].spec.format}>${dataSpecs[0].value}</mark>`;
+        sampleDataElement += `<mark title=${dataSpecs[0].spec.format}>${processedDataSpecValue}</mark>`;
       } else {
-        sampleDataElement += dataSpecs[0].value;
+        sampleDataElement += processedDataSpecValue;
       }
       return sampleDataElement;
     }
 
     if (dataSpecs[0].matchResult.resultType !== ResultType.SUCCESS) {
-      sampleDataElement += `<mark title=${dataSpecs[0].spec.format}>${dataSpecs[0].value}</mark>${delimiter.dataElementSeparator}`;
+      sampleDataElement += `<mark title=${dataSpecs[0].spec.format}>${processedDataSpecValue}</mark>${delimiter.dataElementSeparator}`;
     } else {
-      sampleDataElement += (dataSpecs[0].value + delimiter.dataElementSeparator);
+      sampleDataElement += (processedDataSpecValue + delimiter.dataElementSeparator);
     }
+
     return sampleDataElement;
   }
 
-  _assembleLastDataSpec(dataSpec) {
+  _assembleLastDataSpec(dataSpec, delimiter) {
     let sampledataElement = '';
+    const processedDataSpecValue = this._isReleasedCharacter(dataSpec.value, delimiter);
     if (dataSpec.matchResult.resultType !== ResultType.SUCCESS) {
-      sampledataElement += `<mark title=${dataSpec.spec.format}>${dataSpec.value}</mark>`;
+      sampledataElement += `<mark title=${dataSpec.spec.format}>${processedDataSpecValue}</mark>`;
     } else {
       sampledataElement += dataSpec.value;
     }
@@ -126,22 +130,36 @@ class MessageAssembler {
 
   _assembleNotLastDataSpec(dataSpec, delimiter) {
     let sampledataElement = '';
+    const processedDataSpecValue = this._isReleasedCharacter(dataSpec.value, delimiter);
     if (dataSpec.matchResult.resultType !== ResultType.SUCCESS) {
-      sampledataElement += `<mark title=${dataSpec.spec.format}>${dataSpec.value}</mark>${delimiter.dataElementSeparator}`;
+      sampledataElement += `<mark title=${dataSpec.spec.format}>${processedDataSpecValue}</mark>${delimiter.dataElementSeparator}`;
     } else {
-      sampledataElement += dataSpec.value + delimiter.dataElementSeparator;
+      sampledataElement += processedDataSpecValue + delimiter.dataElementSeparator;
     }
     return sampledataElement;
   }
 
   _assembleNotLastMessageDataElement(dataElement, delimiter) {
     let sampledataElement = '';
+    const processedDataElementValue = this._isReleasedCharacter(dataElement.value, delimiter);
     if (dataElement.matchResult.resultType !== ResultType.SUCCESS) {
-      sampledataElement += `<mark title=${dataElement.spec.format}>${dataElement.value}${delimiter.componentDataSeparator}</mark>`;
+      sampledataElement += `<mark title=${dataElement.spec.format}>${processedDataElementValue}${delimiter.componentDataSeparator}</mark>`;
     } else {
-      sampledataElement += dataElement.value + delimiter.componentDataSeparator;
+      sampledataElement += processedDataElementValue + delimiter.componentDataSeparator;
     }
     return sampledataElement;
+  }
+
+  _isReleasedCharacter(data, delimiter) {
+    const splitedData = data.split('');
+    for (let i = 0; i < splitedData.length; i += 1) {
+      if (splitedData[i] === delimiter.segmentTerminator || splitedData[i] === delimiter.dataElementSeparator || splitedData[i] === delimiter.componentDataSeparator) {
+        splitedData.splice(i, 0, delimiter.releaseCharacter);
+        i += 1;
+      }
+    }
+
+    return splitedData.join('');
   }
 }
 

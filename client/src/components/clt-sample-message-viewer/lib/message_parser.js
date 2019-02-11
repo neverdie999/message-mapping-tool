@@ -38,7 +38,7 @@ class MessageParser {
    * parse message
    */
   parseMessage(message) {
-    const removedCrlfMessage = this._removeCrLf(message, this.messageType);
+    const newLineReducedMessage = this._reduceLineSeparator(message, this._delimiter._segmentTerminator);
     const rootMessageSegmentGroup = new MessageSegmentGroup();
     rootMessageSegmentGroup.name = this._lastMatchedSegmentGroup.name;
     rootMessageSegmentGroup.id = 'ROOT';
@@ -48,7 +48,7 @@ class MessageParser {
     rootMessageSegmentGroup.spec = this._lastMatchedSegmentGroup;
     this._currentMatchedMessageSegmentGroup = rootMessageSegmentGroup;
     this._lastMatchedMessageSegmentGroup = rootMessageSegmentGroup;
-    return this._parseSegmentGroup(removedCrlfMessage, rootMessageSegmentGroup);
+    return this._parseSegmentGroup(newLineReducedMessage, rootMessageSegmentGroup);
   }
 
   _parseSegmentGroup(message, root) {
@@ -101,7 +101,8 @@ class MessageParser {
       this._lastMatchedSegmentGroup = this._currentMatchedSegmentGroup;
       this._lastMatchedSegment = this._currentMatchedSegment;
     }
-    this._groupTreeBranch(root);
+
+    // this._groupTreeBranch(root);
     return root;
   }
 
@@ -153,7 +154,7 @@ class MessageParser {
     }
 
     if (this._lastMatchedSegmentGroup.depth > this._currentMatchedSegmentGroup.depth) { // ancestor, ancestor-sibling case
-      const depthDiff = this._lastMatchedSegmentGroup.depth - this._currentMatchedSegmentGroup.depth;
+      const depthDiff = this._lastMatchedSegmentGroup.depth - this._currentMatchedSegmentGroup.depth;//3
       let messageSegmentGroupParent;
       if (depthDiff > 1) {
         messageSegmentGroupParent = this._lastMatchedMessageSegmentGroup;
@@ -163,14 +164,16 @@ class MessageParser {
           }
           messageSegmentGroupParent = messageSegmentGroupParent.parent;
         }
-      } else if (this._lastMatchedMessageSegmentGroup.parent.parent) {
-        messageSegmentGroupParent = this._lastMatchedMessageSegmentGroup.parent;
       } else {
-        messageSegmentGroupParent = this._lastMatchedMessageSegmentGroup;
+        if (this._lastMatchedMessageSegmentGroup.parent.parent) {
+          messageSegmentGroupParent = this._lastMatchedMessageSegmentGroup.parent;
+        } else {
+          messageSegmentGroupParent = this._lastMatchedMessageSegmentGroup;
+        }
       }
-
       if (matchResult.matchedSegment.parent.name === messageSegmentGroupParent.parent.name) {
         messageSegmentGroupParent.parent.children.push(this._parseSegment(eachMessageSampleSegment, this._currentMatchedSegment.name, messageSegmentGroupParent.parent));
+
         this._lastMatchedMessageSegmentGroup = messageSegmentGroupParent.parent;
         this._lastMatchedSegmentGroup = matchResult.matchedSegment.parent;
         return messageSegmentGroupParent.parent;
@@ -182,7 +185,8 @@ class MessageParser {
       newMessageSegmentGroup.parent = messageSegmentGroupParent.parent;
       newMessageSegmentGroup.order = this._currentMatchedSegmentGroup._instances.length;
       newMessageSegmentGroup.id = `[${newMessageSegmentGroup.parent.id}[${newMessageSegmentGroup.name}#${newMessageSegmentGroup.order}]]`;
-      newMessageSegmentGroup.children.push(this._parseSegment(eachMessageSampleSegment, this._currentMatchedSegment.name, newMessageSegmentGroup, newMessageSegmentGroup));
+      newMessageSegmentGroup.children.push(this._parseSegment(eachMessageSampleSegment, this._currentMatchedSegment.name, newMessageSegmentGroup));
+
       messageSegmentGroupParent.parent.children.push(newMessageSegmentGroup);
       this._lastMatchedMessageSegmentGroup = newMessageSegmentGroup;
       this._lastMatchedSegmentGroup = matchedSegmentGroup;
@@ -289,13 +293,14 @@ class MessageParser {
     return messageDataElements;
   }
 
-  _removeCrLf(message, messageType) {
-    const delimiterTypeStreamingRegex = new RegExp(/\n|\r/, 'g');
-    let removedMessage = message;
-    if (messageType === 'DELIMITER') {
-      removedMessage = message.replace(delimiterTypeStreamingRegex, '');
+  _reduceLineSeparator(message, segmentTerminator) {
+    if (segmentTerminator === '\n') {
+      const newLineRegex  = new RegExp(/\r(\n)?/, 'g');
+      return message.replace(newLineRegex, '\n');
     }
-    return removedMessage;
+
+    const redundantNewLineRegex  = new RegExp(`(?<=${segmentTerminator})(\n|\r(\n)?)+`, 'g');
+    return message.replace(redundantNewLineRegex, '');
   }
 
   _createSegmentGroupSpec(segmentGroup) {
@@ -506,7 +511,7 @@ class MessageParser {
 
             child2.parent = newGroup;
             child2.existingCount = duplicateGroupCount;
-            newGroup._children.splice(0, 0, segmentGroup._children.splice(k, 1)[0]);
+            newGroup.children.splice(0, 0, segmentGroup.children.splice(k, 1)[0]);
           }
         }
       }
@@ -516,13 +521,13 @@ class MessageParser {
   _findDuplicateGroupName(segmentGroup) {
     const arrayDuplicateGroup = [];
 
-    for (let i = 0; i < segmentGroup._children.length; i += 1) {
-      const child = segmentGroup._children[i];
+    for (let i = 0; i < segmentGroup.children.length; i += 1) {
+      const child = segmentGroup.children[i];
 
       if (child.constructor.name === MessageSegmentGroup.name && arrayDuplicateGroup.indexOf(child.name) === -1) {
         let count = 0;
-        for (let j = 0; j < segmentGroup._children.length; j += 1) {
-          const child2 = segmentGroup._children[j];
+        for (let j = 0; j < segmentGroup.children.length; j += 1) {
+          const child2 = segmentGroup.children[j];
           if (child2.name === child.name) {
             count += 1;
           }
