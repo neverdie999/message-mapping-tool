@@ -49,7 +49,7 @@ class SampleMessageViewer {
       delimiter = Delimiter.createOpusFlatFile();
       messageParser = new MessageParser(delimiter, messageGroupType, this.specGroupList[0]);
     } else if (messageGroupType === 'DELIMITER') {
-      delimiter = Delimiter.createEdifact();
+      delimiter = Delimiter.createDelimiter('\n', '|', '^');
       messageParser = new MessageParser(delimiter, messageGroupType, this.specGroupList[0]);
     }
     this.delimiter = delimiter;

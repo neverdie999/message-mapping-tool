@@ -241,7 +241,7 @@ class CltSegment {
 	}
 
 	LoadVertexGroupDefinition(vertexDefinitionData, fileName) {
-		if (this.segmentMgmt.LoadVertexGroupDefinition(vertexDefinitionData)) {			
+		if (this.segmentMgmt.LoadVertexGroupDefinition(vertexDefinitionData)) {
 			if (this.dataContainer.vertex.length > 0 && !confirm('The current data will be cleared, do you want to continue ?')) {
 				return;
 			}
@@ -252,6 +252,8 @@ class CltSegment {
 			this.initMenuContext();
 			setAddressTabName(ID_TAB_VERTEX_GROUP_DEFINITION, fileName);
 			this.showFileNameOnApplicationTitleBar();
+
+			hideFileChooser();
 		}
 	}
 
@@ -274,7 +276,7 @@ class CltSegment {
 
 		if (!this.validateSegmentSpecStructure(segmentData)) {
 			comShowMessage('Format or data in Segment Set is corrupted. You should check it!');
-			return false;
+			return;
 		}
 
 		this.segmentMgmt.processDataVertexTypeDefine(segmentData);
@@ -290,6 +292,8 @@ class CltSegment {
 
 		setAddressTabName(ID_TAB_SEGMENT_SET, fileName);
 		this.showFileNameOnApplicationTitleBar();
+
+		hideFileChooser();
 	}
 
 	save(fileName) {

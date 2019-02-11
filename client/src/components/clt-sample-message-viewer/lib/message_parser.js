@@ -290,12 +290,12 @@ class MessageParser {
   }
 
   _removeCrLf(message, messageType) {
-    const delimiterTypeStreamingRegex = new RegExp(/\n|\r/, 'g');
-    let removedMessage = message;
-    if (messageType === 'DELIMITER') {
-      removedMessage = message.replace(delimiterTypeStreamingRegex, '');
-    }
-    return removedMessage;
+    const delimiterTypeStreamingRegex = new RegExp(/\r(\n)?/, 'g');
+    // let removedMessage = message;
+    // if (messageType === 'DELIMITER') {
+    return message.replace(delimiterTypeStreamingRegex, '\n');
+    // }
+    // return removedMessage;
   }
 
   _createSegmentGroupSpec(segmentGroup) {

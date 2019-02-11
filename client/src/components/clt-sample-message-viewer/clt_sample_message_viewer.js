@@ -124,17 +124,7 @@ class CltSampleMessageViewer {
     $('#btnViewFullText').hide();
     $('#tableContent').hide();
     $('#tableContent').empty();
-    $('#jstree').empty();
-
-    // for loading new jstree, need to clear all attributes
-    const attrs = $('#jstree')[0].attributes;
-    const length = attrs.length;
-    for (let i = length - 1; i >= 0; i -= 1) {
-      const attr = attrs[i];
-      if (attr.name !== 'id') {
-        $('#jstree').removeAttr(attr.name);
-      }
-    }
+    $('#jstree').jstree("destroy");
 
     // Print error message if existed
     this.makeErrorLogContent(result);
