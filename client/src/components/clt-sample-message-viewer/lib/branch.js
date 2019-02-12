@@ -12,7 +12,7 @@ class Branch {
    * @param {String} li_attr
    * @param {String} a_attr
    */
-  constructor(id, parent, text, icon, state, li_attr, a_attr) {
+  constructor(id, parent, text, icon, state, li_attr, a_attr, type) {
     this.id = id;
     this.parent = parent;
     this.text = text;
@@ -20,6 +20,7 @@ class Branch {
     this.state = state;
     this.li_attr = li_attr;
     this.a_attr = a_attr;
+    this.type = type;
   }
 }
 

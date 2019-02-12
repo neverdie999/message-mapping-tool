@@ -29,6 +29,7 @@ class JsTreeItemConverter {
     this._treeItems.length = 0;
     this._messageElementMap.clear();
     const root = new Branch(messageStructure.id, this._rootId, `${messageStructure.name}[${messageStructure.order}/${messageStructure.spec.maxRepeat}]`);
+
     this._treeItems.push(root);
     this._messageElementMap.set(messageStructure.id, messageStructure);
     messageStructure.children.forEach((child) => {
@@ -48,7 +49,7 @@ class JsTreeItemConverter {
     const hasSameParentBranchMap = this._createHasSameParentBranchMap();
     const sameNameBranchMap = this._createSameNameBranchMap(hasSameParentBranchMap);
     this._createGroupBranch(sameNameBranchMap);
-
+    
     return {
       treeItems: this._treeItems,
       itemMap: this._messageElementMap,
@@ -59,6 +60,7 @@ class JsTreeItemConverter {
     if (!this._messageElementMap.get(messageSegmentGroup.id)) {
       const branchName = `${messageSegmentGroup.name}[${messageSegmentGroup.order}/${messageSegmentGroup.existingCount !== -1 ? messageSegmentGroup.existingCount : messageSegmentGroup.spec.maxRepeat}]`;
       const branch = new Branch(messageSegmentGroup.id, parentId, branchName);
+      branch.type = 'SEGMENT_GROUP';
       this._treeItems.push(branch);
       this._messageElementMap.set(messageSegmentGroup.id, messageSegmentGroup);
     }
@@ -83,6 +85,7 @@ class JsTreeItemConverter {
     if (!this._messageElementMap.get(messageSegmentId)) {
       const branchName = `${messageSegment.name}[${messageSegment.order}/${messageSegment.spec.maxRepeat}]`;
       branch = new Branch(messageSegmentId, parentId, branchName);
+      branch.type = 'SEGMENT';
       if (branch.parent === '') {
         branch.parent = this._rootId;
       }
@@ -95,14 +98,18 @@ class JsTreeItemConverter {
     if (dataSpecs.length > 1) {
       dataSpecs.forEach((eachDataSpec, index) => {
         const id = `${parentId}-${index}`;
-        this._treeItems.push(new Branch(id, parentId, eachDataSpec.name));
+        const branch = new Branch(id, parentId, eachDataSpec.name);
+        branch.type = 'DATA_ELEMENT';
+        this._treeItems.push(branch);
         this._messageElementMap.set(id, dataSpecs[index]);
       });
       return;
     }
 
     const id = `${parentId}-${dataSpecs[0].spec.name}`;
-    this._treeItems.push(new Branch(id, parentId, dataSpecs[0].name));
+    const branch = new Branch(id, parentId, dataSpecs[0].name);
+    branch.type = 'DATA_ELEMENT';
+    this._treeItems.push(branch);
     this._messageElementMap.set(id, [dataSpecs[0], dataSpecs[0].value]);
   }
 
@@ -113,7 +120,7 @@ class JsTreeItemConverter {
         return;
       }
 
-      if (branch.id.slice(-1) !== ']') { // segmentGroup
+      if (branch.type !== 'SEGMENT_GROUP') { // segmentGroup
         return;
       }
 
@@ -138,15 +145,18 @@ class JsTreeItemConverter {
     while (keyValue) {
       const branches = keyValue[1];
       branches.forEach((branch) => {
-        const branchName = branch.text.split('[');
-        if (!sameNameBranchMap.get(branchName[0])) {
+        const branchNameRegex  = new RegExp(/\.*#\d+$/, 'g');
+        const branchName = branch.id.replace(branchNameRegex, '');
+        if (!sameNameBranchMap.get(branchName)) {
           const newBranches = [];
           newBranches.push(branch);
-          sameNameBranchMap.set(branchName[0], newBranches);
+          
+          sameNameBranchMap.set(branchName, newBranches);
         } else {
-          const existBranches = sameNameBranchMap.get(branchName[0]);
+          const existBranches = sameNameBranchMap.get(branchName);
           existBranches.push(branch);
-          sameNameBranchMap.set(branchName[0], existBranches);
+          
+          sameNameBranchMap.set(branchName, existBranches);
         }
       });
 
@@ -160,14 +170,14 @@ class JsTreeItemConverter {
     const mapIter = map.entries();
     let keyValue = mapIter.next().value;
     while (keyValue) {
-      const [groupName, branches] = keyValue;      
+      const [groupId, branches] = keyValue;      
       if (branches.length < 2) {
         keyValue = mapIter.next().value;
         continue;
       }
-
-      const newBranch = new Branch(`G${branches[0].id}`, branches[0].parent, `${branches[0].text}`);
-      const processedMap = this._pushBranchToTreeItems(newBranch);
+      
+      const newBranch = new Branch(`G|${groupId}`, branches[0].parent, `${branches[0].text}`);
+      const processedMap = this._pushBranchToTreeItems(newBranch);      
       this._setGroupText(processedMap);
       branches.forEach((branch) => {
         branch.parent = newBranch.id;
@@ -179,23 +189,26 @@ class JsTreeItemConverter {
   _pushBranchToTreeItems(branch) {
     let processedMap = new Map();
     this._treeItems.forEach((item, index) => {
-      const idRegex  = new RegExp(/#\d+/, 'g');      
-      const compareBranchId = branch.id.slice(1).replace(idRegex, '');
-      const compareItemId = item.id.replace(idRegex, '');
-      
-      if (compareBranchId !== compareItemId) {
+      if (item.type !== 'SEGMENT_GROUP') {
+        return;
+      }
+
+      const groupPrefixRemovedId = branch.id.slice(2);
+      const idRegex = new RegExp(/\.*#\d+$/, 'g');
+      const lastGroupOrderRemovedId = item.id.replace(idRegex, '');      
+      if (groupPrefixRemovedId !== lastGroupOrderRemovedId) {
         return;
       }
       
-      if (processedMap.get(compareItemId.id)) {
-        let counter = processedMap.get(compareItemId.id).counter;
+      if (processedMap.get(lastGroupOrderRemovedId)) {
+        let counter = processedMap.get(lastGroupOrderRemovedId).counter;
         counter += 1;        
-        processedMap.set(compareItemId.id, { branch: branch, counter: counter });
+        processedMap.set(lastGroupOrderRemovedId, { branch: branch, counter: counter });
         return;
       }
       
       this._treeItems.splice(index, 0, branch);
-      processedMap.set(compareItemId.id, { branch: branch, counter: 0 });
+      processedMap.set(lastGroupOrderRemovedId, { branch: branch, counter: 0 });
     });
     
     return processedMap

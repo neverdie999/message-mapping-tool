@@ -103,7 +103,7 @@ class CltSampleMessageViewer {
 
     const messageGroupType = $('#messageGroupType').val();
 
-    this.main.jsTree = null;
+    this.main._jsTree = null;
     const result = this.main.makeTree(this.specFile, this.sampleFile, messageGroupType);
     // Load data failed
     if (result && result.length > 0 && !result[0].isValid()) {
@@ -180,7 +180,6 @@ class CltSampleMessageViewer {
 
   treeNodeClickEvent() {
     $('#jstree').on('changed.jstree', (e, data) => {
-      // element가 ?�니??messageElementd�?가?�올 ???�도�?!
       const id = (data.instance.get_node(data.selected).id);
       const nodeDetail = this.main.getDetail(id);
 
@@ -216,7 +215,7 @@ class CltSampleMessageViewer {
 
   editSampleClickEvent() {
     this.setMessageElement();
-    const result = this.main.reMatch(this.main.messageStructure);
+    const result = this.main.reMatch(this.main._messageStructure);
     this.makeErrorLogContent(result);
     this.showInvalidSegmentOnTreeView();
     this.hideAllInsideButton();
@@ -371,11 +370,10 @@ class CltSampleMessageViewer {
               if (eachSampleDataElement.whiteSpace < 0) {
                 eachSampleDataElement.whiteSpace = 0;
               }
-              console.log(eachSampleDataElement.whiteSpace);
               eachSampleDataElement.value = $(`#editValue${seqTextBox}`).val() + ' '.repeat(Number(eachSampleDataElement.whiteSpace));
               eachSampleDataElement.matchResult = true;
 
-              const result = this.main.reMatch(this.main.messageStructure);
+              const result = this.main.reMatch(this.main._messageStructure);
               this.makeErrorLogContent(result);
               return true;
             }
@@ -389,7 +387,6 @@ class CltSampleMessageViewer {
 
     return false;
   }
-
 
   makeErrorLogContent(results) {
     if (!results || results.length === 0) {
@@ -519,7 +516,7 @@ class CltSampleMessageViewer {
   }
 
   showSpecifyInvalidSegmentOnTreeView(segmentId) {
-    if (this.main.jsTree !== undefined && this.main.jsTree !== null && this.main.messageElementMap !== undefined && this.main.messageElementMap !== null) {
+    if (this.main._jsTree !== undefined && this.main._jsTree !== null && this.main._messageElementMap !== undefined && this.main._messageElementMap !== null) {
       this.isNodeOpenedByFunction = true;
 
       // Reset invalid segment effect
@@ -531,7 +528,7 @@ class CltSampleMessageViewer {
         }
       });
 
-      for (const [key, messageElement] of this.main.messageElementMap) {
+      for (const [key, messageElement] of this.main._messageElementMap) {
         if (messageElement.constructor.name === 'MessageSegment') {
           if (messageElement.id === segmentId && !this.validateSegment(messageElement.id)) {
             this.expandNode(messageElement.id, messageElement.id);
@@ -546,7 +543,7 @@ class CltSampleMessageViewer {
   }
 
   showInvalidSegmentOnTreeView() {
-    if (this.main.jsTree !== undefined && this.main.jsTree !== null && this.main.messageElementMap !== undefined && this.main.messageElementMap !== null) {
+    if (this.main._jsTree !== undefined && this.main._jsTree !== null && this.main._messageElementMap !== undefined && this.main._messageElementMap !== null) {
       this.isNodeOpenedByFunction = true;
 
       // Reset invalid segment effect
@@ -554,7 +551,7 @@ class CltSampleMessageViewer {
         $(this).removeClass('invalid-segment');
       });
 
-      for (const [key, messageElement] of this.main.messageElementMap) {
+      for (const [key, messageElement] of this.main._messageElementMap) {
         if (messageElement.constructor.name === 'MessageSegment') {
           if (!this.validateSegment(messageElement.id)) {
             this.expandNode(messageElement.id, messageElement.id);
@@ -568,25 +565,22 @@ class CltSampleMessageViewer {
   }
 
   expandNode(nodeId, leafId) {
-    const parent = _.find(this.main.jsTree, { id: nodeId }).parent;
+    const parent = _.find(this.main._jsTree, { id: nodeId }).parent;
     if (parent != '#') {
       this.expandNode(parent, leafId);
     }
 
     if (nodeId !== leafId) {
-      const selectorId = nodeId.replace(/\[/g, '\\[')
-        .replace(/\]/g, '\\]')
-        .replace(/\#/g, '\\#');
+      const selectorId = nodeId
+        .replace(/\#/g, '\\#')
+        .replace(/\|/g, '\\|');
       $('#jstree').jstree('open_node', $(`#${selectorId}`));
     }
   }
 
   showWarningColorToSegmentOnTreeView(segmentId) {
-    const selectorId = segmentId.replace(/\[/g, '\\[')
-      .replace(/\]/g, '\\]')
-      .replace(/\#/g, '\\#')
-      .replace(/\{/g, '\\{')
-      .replace(/\}/g, '\\}');
+    const selectorId = segmentId.replace(/\#/g, '\\#')
+      .replace(/\|/g, '\\|');
 
     $($(`#${selectorId}`).find('a')[0]).addClass('invalid-segment');
   }

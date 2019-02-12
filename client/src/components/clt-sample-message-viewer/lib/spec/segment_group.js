@@ -101,9 +101,7 @@ class SegmentGroup {
         return matchResult;
       }
     }
-    // this._instances.length = 0;
     this._lastMatchedSegment = '';
-    // console.log(`[GROUP]: ${this.name}, No: ${messageSampleSegment}`);
     return new MatchResult(ResultType.FAIL_FIND_TARGET_SEGMENT, `[${this.name}]NOT_FOUND_IN_SEGMENT_LIST`);
   }
 
@@ -166,7 +164,7 @@ class SegmentGroup {
   addMemberToGroupList(groupList, depth) {
     const currentDepth = depth + 1;
     this.children.forEach((eachMember) => {
-      const currentEachMember = eachMember;
+      const currentEachMember = eachMember;      
       if (SpecElementType.isSegmentGroup(currentEachMember.elementType)) {
         currentEachMember.depth = currentDepth;
         groupList.push(currentEachMember);

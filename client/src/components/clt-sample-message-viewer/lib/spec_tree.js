@@ -67,6 +67,7 @@ class SpecTree {
     const root = this.makeTree(segments, segmentGroups);
     groupList.push(root);
     root.depth = 0;
+    
     depth += 1;
     root.children.forEach((member) => {
       if (SpecElementType.isSegmentGroup(member.elementType)) {
