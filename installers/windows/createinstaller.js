@@ -16,11 +16,11 @@ function getInstallerConfig () {
 
   return Promise.resolve({
     appDirectory: path.join(outPath, 'Algeta-mapping-app-win32-ia32/'),
-    authors: 'Hoang Pham',
+    authors: 'CyberLogitec',
     noMsi: true,
     outputDirectory: path.join(outPath, 'windows-installer'),
-    exe: 'algeta-mapping-app.exe',
-    setupExe: 'settup.exe'
+    exe: 'algeta-mapping-tool.exe',
+    setupExe: 'setup.exe'
     // setupIcon: path.join(rootPath, 'client', 'assets', 'icons', 'win', 'icon.ico')
   });
 }
