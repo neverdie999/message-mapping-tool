@@ -1,7 +1,7 @@
 {
   "name": "algeta-mapping-tool",
   "productName": "Algeta Mapping Tool",
-  "description": "Application for mapping EDI to Flat file",
+  "description": "Multi functional tool for message mapping",
   "version": "0.0.1",
   "main": "electron/app.js",
   "author": "DOU",
@@ -9,7 +9,7 @@
   "scripts": {
     "start-app-dev": "cross-env HOT=1 NODE_ENV=development electron ./electron/app",
     "watch": "webpack --watch",
-    "package-win": "electron-packager . algeta-mapping-app --overwrite --asar=true --platform=win32 --arch=ia32 --icon=client/assets/icons/win/icon.ico --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"Algeta Mapping App\"",
+    "package-win": "electron-packager . algeta-mapping-app --overwrite --asar --platform=win32 --arch=ia32 --icon=client/assets/icons/win/icon.ico --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"Algeta Mapping Tool\"",
     "create-installer-win": "node installers/windows/createinstaller.js",
     "eslint": "eslint ./client/src"
   },
@@ -29,7 +29,7 @@
     "babel-register": "^6.26.0",
     "cross-env": "^5.1.1",
     "css-loader": "^0.28.7",
-    "electron": "^4.0.2",
+    "electron": "^4.0.4",
     "electron-devtools-installer": "^2.2.1",
     "electron-packager": "^12.1.0",
     "electron-winstaller": "^2.7.0",

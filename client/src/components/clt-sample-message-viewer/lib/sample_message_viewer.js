@@ -18,12 +18,13 @@ class SampleMessageViewer {
    * @param {Object} specGroupList
    */
   contructor(jsTree, messageElementMap, messageStructure, specGroupList = []) {
-    this.jsTree = jsTree;
-    this.messageElementMap = messageElementMap;
-    this.messageStructure = messageStructure;
-    this.specGroupList = specGroupList;
-    this.messageGroupType = '';
-    this.delimiter = '';
+    this._jsTree = jsTree;
+    this._messageElementMap = messageElementMap;
+    this._messageStructure = messageStructure;
+    this._specGroupList = specGroupList;
+    this._messageGroupType = '';
+    this._delimiter = '';
+    this._messageParser;
   }
 
   /**
@@ -35,27 +36,26 @@ class SampleMessageViewer {
     const specParser = new SpecParser(specFile);
     const parsedSpec = specParser.parse();
     const specTree = new SpecTree();
-    this.specGroupList = specTree.makeGroupList(parsedSpec.segment, parsedSpec.group);
+    this._specGroupList = specTree.makeGroupList(parsedSpec.segment, parsedSpec.group);
 
     let delimiter = '';
-    let messageParser = '';
     if (messageGroupType === 'EDIFACT') {
       delimiter = Delimiter.createEdifact();
-      messageParser = new MessageParser(delimiter, messageGroupType, this.specGroupList[0]);
+      this._messageParser = new MessageParser(delimiter, messageGroupType, this._specGroupList[0]);
     } else if (messageGroupType === 'FIXEDLENGTH') {
       delimiter = Delimiter.createFixedLength();
-      messageParser = new MessageParser(delimiter, messageGroupType, this.specGroupList[0]);
+      this._messageParser = new MessageParser(delimiter, messageGroupType, this._specGroupList[0]);
     } else if (messageGroupType === 'DICTIONARY') {
       delimiter = Delimiter.createOpusFlatFile();
-      messageParser = new MessageParser(delimiter, messageGroupType, this.specGroupList[0]);
+      this._messageParser = new MessageParser(delimiter, messageGroupType, this._specGroupList[0]);
     } else if (messageGroupType === 'DELIMITER') {
       delimiter = Delimiter.createDelimiter('\n', '|', '^');
-      messageParser = new MessageParser(delimiter, messageGroupType, this.specGroupList[0]);
+      this._messageParser = new MessageParser(delimiter, messageGroupType, this._specGroupList[0]);
     }
-    this.delimiter = delimiter;
-    this.messageGroupType = messageGroupType;
+    this._delimiter = delimiter;
+    this._messageGroupType = messageGroupType;
 
-    const parseResult = messageParser.parseMessage(sampleFile);
+    const parseResult = this._messageParser.parseMessage(sampleFile);
     if (parseResult.constructor.name === 'ValidationResult') {
       return parseResult;
     }
@@ -65,9 +65,9 @@ class SampleMessageViewer {
       return finalResult;
     }
 
-    this.messageStructure = parseResult;
-    const messageSpec = new MessageSpec(delimiter, this.messageStructure, this.specGroupList[0]);
-    messageSpec.match(this.messageStructure);
+    this._messageStructure = parseResult;
+    const messageSpec = new MessageSpec(delimiter, this._messageStructure, this._specGroupList[0]);
+    messageSpec.match(this._messageStructure);
     const validationResult = messageSpec._validationResult;
     this._setTreeData();
     if (validationResult) {
@@ -82,13 +82,13 @@ class SampleMessageViewer {
    * get dataElement data to present
    */
   getDetail(id) {
-    return this.messageElementMap.get(id);
+    return this._messageElementMap.get(id);
   }
 
   _setTreeData() {
-    const converted = new JsTreeItemConverter().convert(this.messageStructure);
-    this.jsTree = converted.treeItems;
-    this.messageElementMap = converted.itemMap;
+    const converted = new JsTreeItemConverter().convert(this._messageStructure);
+    this._jsTree = converted.treeItems;
+    this._messageElementMap = converted.itemMap;
   }
 
   /**
@@ -96,17 +96,20 @@ class SampleMessageViewer {
    * assemble messageStructure to full text
    */
   getAssembledMessage(lineSeparator) {
-    const messageAssembler = new MessageAssembler(this.messageGroupType);
-    return messageAssembler.assemble(this.messageStructure, this.delimiter, lineSeparator);
+    const messageAssembler = new MessageAssembler(this._messageGroupType);
+    if (this._delimiter._segmentTerminator === '\n') {
+      lineSeparator = '';
+    }
+
+    return messageAssembler.assemble(this._messageStructure, this._delimiter, lineSeparator);
   }
 
   /**
    * rematch the revised messagaStructure
    */
   reMatch() {
-    const messageSpec = new MessageSpec(this.delimiter, this.messageStructure, this.specGroupList[0]);
-    messageSpec.match(this.messageStructure);
-
+    const messageSpec = new MessageSpec(this._delimiter, this._messageStructure, this._specGroupList[0]);
+    messageSpec.match(this._messageStructure);
     if (messageSpec._validationResult) {
       return messageSpec._validationResult;
     }

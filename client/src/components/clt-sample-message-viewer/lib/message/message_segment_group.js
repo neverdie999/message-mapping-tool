@@ -19,87 +19,19 @@ class MessageSegmentGroup {
    * @param {Object} elementType
    */
   constructor(name = '', children = [], parent, order = 0, matchResult = true, spec = null, id = null, existingCount = -1) {
-    this._name = name;
-    this._children = children;
-    this._parent = parent;
-    this._order = order;
-    this._matchResult = matchResult;
-    this._spec = spec;
-    this._id = id;
-    this._existingCount = existingCount;
-    this._elementType = MessageElementType.SegmentGroup;
+    this.name = name;
+    this.children = children;
+    this.parent = parent;
+    this.order = order;
+    this.matchResult = matchResult;
+    this.spec = spec;
+    this.id = id;
+    this.existingCount = existingCount;
+    this.elementType = MessageElementType.SegmentGroup;
   }
 
-  get name() {
-    return this._name;
-  }
-
-  set name(name) {
-    this._name = name;
-  }
-
-  get children() {
-    return this._children;
-  }
-
-  set children(children) {
-    this._children = children;
-  }
-
-  get parent() {
-    return this._parent;
-  }
-
-  set parent(parent) {
-    this._parent = parent;
-  }
-
-  get order() {
-    return this._order;
-  }
-
-  set order(order) {
-    this._order = order;
-  }
-
-  get matchResult() {
-    return this._matchResult;
-  }
-
-  set matchResult(matchResult) {
-    this._matchResult = matchResult;
-  }
-
-  get spec() {
-    return this._spec;
-  }
-
-  set spec(spec) {
-    this._spec = spec;
-  }
-
-  get id() {
-    return this._id;
-  }
-
-  set id(id) {
-    this._id = id;
-  }
-
-  get existingCount() {
-    return this._existingCount;
-  }
-
-  set existingCount(existingCount) {
-    this._existingCount = existingCount;
-  }
-
-  get elementType() {
-    return this._elementType;
-  }
-
-  /**
-   * clear MessageSegmentGroup children
+   /*
+    clear MessageSegmentGroup children
    */
   resetMessageSegmentGroup() {
     this.children.length = 0;
