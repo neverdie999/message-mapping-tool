@@ -2,7 +2,7 @@
   "name": "algeta-mapping-tool",
   "productName": "Algeta Mapping Tool",
   "description": "Multi functional tool for message mapping",
-  "version": "0.8",
+  "version": "0.8.0",
   "main": "electron/app.js",
   "author": "CyberLogitec",
   "license": "MIT",
