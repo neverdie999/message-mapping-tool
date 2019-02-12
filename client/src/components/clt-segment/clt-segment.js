@@ -322,7 +322,7 @@ class CltSegment {
 
 			let fileUrl = window.URL.createObjectURL(blob);
 			let downLink = $('<a>');
-			downLink.attr('download', `${fileName}.json`);
+			downLink.attr('download', `${fileName}.vtd`);
 			downLink.attr('href', fileUrl);
 			downLink.css('display', 'none');
 			$('body').append(downLink);
