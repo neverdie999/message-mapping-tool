@@ -13,6 +13,7 @@ import {
 } from '../../../common/utilities/common.util';
 
 const CONNECT_KEY = 'Connected';
+const FOCUSED_CLASS = 'focused-object';
 
 class EdgeMgmt {
   constructor(props) {
@@ -444,6 +445,11 @@ class EdgeMgmt {
     });
   }
 
+  cancelAllEmphasizePathConnect() {
+    d3.selectAll('.emphasizePath').classed('emphasizePath', false);
+    d3.selectAll('.emphasizeArrow').classed('emphasizeArrow', false);
+  }
+
   clearAll() {
     this.dataContainer.edge = [];
     d3.select(`#${this.svgId}`).selectAll(`.${this.selectorClass}`).remove();
@@ -537,6 +543,10 @@ class EdgeMgmt {
    * @param target
    */
   handlerOnClickEdge(edge) {
+    // unfocus to object if existed focused object
+    d3.select(`.${FOCUSED_CLASS}`).classed(FOCUSED_CLASS, false);
+    this.cancelAllEmphasizePathConnect();
+    
     this.selectingEdge = edge;
 
     const selected = d3.select(`#${edge.id}`);
