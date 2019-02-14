@@ -1773,7 +1773,7 @@ class CltMessageMapping {
 		}
 		
 		const result = scannerWriter.write(messageSpecTree.rootSegmentGroup);
-		console.log(result)
+		// console.log(result)
 
 		// Create download dialog
 		if (!result) {
@@ -1826,7 +1826,7 @@ class CltMessageMapping {
 
 		const mapperWriter = new MapperWriter(inputMessageGroupType, outputMessageGroupType);
 		const result = mapperWriter.write(this.storeInputMessage, this.storeOutputMessage, this.storeOperations, this.storeConnect.edge);
-		console.log(result)
+		// console.log(result)
 		
 		// Create download dialog
 		if (!result) {

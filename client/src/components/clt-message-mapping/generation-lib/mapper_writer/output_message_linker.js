@@ -5,6 +5,7 @@ const {
 class OutputMessageLinker {
   constructor(outputSegmentDataMap, outputSegmentGroupDataMap) {
     this._outputSegmentDataMap = outputSegmentDataMap;
+    this._outputSegmentGroupDataMap = outputSegmentGroupDataMap;
     const { segmentGroupIndexMap } = SegmentGroupIndexMap.make(outputSegmentGroupDataMap);
     this._outputSegmentGroupIndexMap = segmentGroupIndexMap;
   }
@@ -14,6 +15,10 @@ class OutputMessageLinker {
     const outputMessageElementsByInputSegmentMap = this._convertToOutputMessageElements(arrangedDataMappingRoutes, bizVariableSetter);
     outputMessageElementsByInputSegmentMap.forEach((outputMessageElements, inputSegmentId) => {
       const inputSegment = inputSegments.get(inputSegmentId);
+      if (inputSegment === undefined) {
+        return;
+      }
+      
       const targetOutputMessageSegmentGroups = this._findTopTierParentOfSegment(outputMessageElements);
       targetOutputMessageSegmentGroups.forEach((targetOutputSegmentGroup) => {
         inputSegment.addChild(targetOutputSegmentGroup);
@@ -72,7 +77,8 @@ class OutputMessageLinker {
           outputSegmentGroupMap.set(outputSegmentGroupId, outputSegmentGroup);
           outputSegmentGroup.addChild(child);
           child = outputSegmentGroup;
-          outputSegmentGroupId = child.parent;
+          const parentOutputSegmentGroup = this._outputSegmentGroupDataMap.get(outputSegmentGroupId);
+          outputSegmentGroupId = parentOutputSegmentGroup.parent;
         }
       });
       outputMessageElementsByInputSegmentMap.set(inputSegmentId, outputSegmentGroupMap);
@@ -89,11 +95,11 @@ class OutputMessageLinker {
       }
 
       let depth = -1;
-      let parentSegmentGroup;
+      let parentSegmentGroup = outputSegmentGroup;
       do {
-        parentSegmentGroup = outputSegmentGroup.parent;
+        parentSegmentGroup = parentSegmentGroup.parent;
         depth += 1;
-      } while (parentSegmentGroup !== null);
+      } while (parentSegmentGroup !== null && depth < 10);
 
       if (depth < minDepth) {
         minDepth = depth;
