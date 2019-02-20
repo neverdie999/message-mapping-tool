@@ -3,13 +3,15 @@ import _ from 'lodash';
 import Edge from './edge';
 import ObjectUtils from '../../../common/utilities/object.util';
 import EdgeMenu from '../menu-context/edge-menu';
+import State from '../../../common/new-type-define/state';
+import HistoryElement from '../../../common/new-type-define/historyElement';
 
 import {
-  TYPE_CONNECT,
+  CONNECT_TYPE, ACTION_TYPE, OBJECT_TYPE,
 } from '../../../common/const/index';
 
 import {
-  createPath,
+  createPath, filterPropertyData,
 } from '../../../common/utilities/common.util';
 
 const CONNECT_KEY = 'Connected';
@@ -20,6 +22,7 @@ class EdgeMgmt {
     this.dataContainer = props.dataContainer;
     this.svgId = props.svgId;
     this.vertexContainer = props.vertexContainer;
+    this.history = props.history;
 
     this.initialize();
   }
@@ -62,6 +65,7 @@ class EdgeMgmt {
       selector: `.${this.selectorClass}`,
       dataContainer: this.dataContainer,
       edgeMgmt: this,
+      history: this.history,
     });
   }
 
@@ -111,7 +115,7 @@ class EdgeMgmt {
     groupPoint.append('circle')
       .attr('id', this.pointStartId)
       .attr('class', `dragPoint dragPoint_${this.svgId}`)
-      .attr('type', TYPE_CONNECT.OUTPUT)
+      .attr('type', CONNECT_TYPE.OUTPUT)
       .attr('fill', '#2795EE')
       .attr('pointer-events', 'all')
       .attr('r', 4)
@@ -124,7 +128,7 @@ class EdgeMgmt {
     groupPoint.append('circle')
       .attr('id', this.pointEndId)
       .attr('class', `dragPoint dragPoint_${this.svgId}`)
-      .attr('type', TYPE_CONNECT.INPUT)
+      .attr('type', CONNECT_TYPE.INPUT)
       .attr('fill', '#2795EE')
       .attr('pointer-events', 'all')
       .attr('r', 4)
@@ -153,7 +157,7 @@ class EdgeMgmt {
       edgeMgmt: this,
     });
 
-    newEdge.create(sOptions);
+    return newEdge.create(sOptions);
   }
 
   dragPointStarted(main) {
@@ -214,6 +218,11 @@ class EdgeMgmt {
           main.handlerOnClickEdge(main.selectingEdge);
           return;
         }
+        
+        const oldEdgeObj = {
+          source: _.cloneDeep(main.selectingEdge.source),
+          target: _.cloneDeep(main.selectingEdge.target),
+        };
 
         let vertices = [];
         main.vertexContainer.forEach((arrVertex) => {
@@ -243,14 +252,30 @@ class EdgeMgmt {
 
           // check mandatory data element for target vertex only (Output message of Message Mapping GUI)
 
-          if (oldObj.type == 'V') {
+          if (oldObj.type == OBJECT_TYPE.VERTEX) {
             oldObj.validateConnectionByUsage();
           }
 
           // If move target connection to another vertex then checking for new vertex
-          if (targetObj.id != oldObj.id && targetObj.type == 'V') {
+          if (targetObj.id != oldObj.id && targetObj.type == OBJECT_TYPE.VERTEX) {
             targetObj.validateConnectionByUsage();
           }
+        }
+
+        // Create history
+        if (main.history) {
+          const state = new State();
+          const he = new HistoryElement();
+          he.actionType = ACTION_TYPE.CONNECTOR_CHANGE;
+          he.oldObject = oldEdgeObj;
+          he.dataObject = {
+            source: _.cloneDeep(main.selectingEdge.source),
+            target: _.cloneDeep(main.selectingEdge.target),
+          };
+          he.realObject = main.selectingEdge;
+
+          state.add(he);
+          main.history.add(state);
         }
       }
 
@@ -284,7 +309,7 @@ class EdgeMgmt {
         obj = _.find(vertices, { id: vertexId });
       }
 
-      const src = main.objectUtils.getCoordPropRelativeToParent(obj, prop, TYPE_CONNECT.OUTPUT);
+      const src = main.objectUtils.getCoordPropRelativeToParent(obj, prop, CONNECT_TYPE.OUTPUT);
       src.vertexId = vertexId;
       src.prop = prop;
       src.svgId = obj.svgId;
@@ -322,22 +347,29 @@ class EdgeMgmt {
         });
 
         const obj = _.find(vertices, { id: vertextId });
-        const des = main.objectUtils.getCoordPropRelativeToParent(obj, prop, TYPE_CONNECT.INPUT);
+        const des = main.objectUtils.getCoordPropRelativeToParent(obj, prop, CONNECT_TYPE.INPUT);
         des.vertexId = vertextId;
         des.prop = prop;
         des.svgId = obj.svgId;
         const options = { source: main.tmpSource, target: des };
 
-        main.create(options);
-        if (obj.type == 'V') {
-          obj.validateConnectionByUsage();
+        const edgeObj = main.create(options);
+
+        if (main.history) {
+          const state = new State();
+          const he = new HistoryElement();
+          he.actionType = ACTION_TYPE.CREATE;
+          he.dataObject = edgeObj.getObjectInfo();
+          he.realObject = edgeObj;
+          state.add(he);
+          main.history.add(state);
         }
       }
 
       d3.select(`#${main.dummyPathId}`).attr('d', null);
       d3.select(`#${main.dummyPathId}`).style('display', 'none');
       main.tmpSource = null;
-    };
+    }
   }
 
   /**
@@ -355,7 +387,7 @@ class EdgeMgmt {
 
     arrSrcPaths.forEach((src) => {
       const prop = src.source.prop;
-      const newPos = this.objectUtils.getCoordPropRelativeToParent(vertex, prop, TYPE_CONNECT.OUTPUT);
+      const newPos = this.objectUtils.getCoordPropRelativeToParent(vertex, prop, CONNECT_TYPE.OUTPUT);
       src.source.x = newPos.x;
       src.source.y = newPos.y;
       const options = { source: src.source };
@@ -365,7 +397,7 @@ class EdgeMgmt {
 
     arrDesPaths.forEach((des) => {
       const prop = des.target.prop;
-      const newPos = this.objectUtils.getCoordPropRelativeToParent(vertex, prop, TYPE_CONNECT.INPUT);
+      const newPos = this.objectUtils.getCoordPropRelativeToParent(vertex, prop, CONNECT_TYPE.INPUT);
       des.target.x = newPos.x;
       des.target.y = newPos.y;
       const options = { target: des.target };
@@ -426,7 +458,7 @@ class EdgeMgmt {
     });
 
     boundary.member.forEach((e) => {
-      if (e.type === 'V') {
+      if (e.type === OBJECT_TYPE.VERTEX) {
         let vertices = [];
         this.vertexContainer.forEach((e) => {
           vertices = vertices.concat(e.vertex);
@@ -445,25 +477,41 @@ class EdgeMgmt {
     });
   }
 
+  /**
+   *
+   * @param {*} vertex
+   */
   cancelAllEmphasizePathConnect() {
     d3.selectAll('.emphasizePath').classed('emphasizePath', false);
     d3.selectAll('.emphasizeArrow').classed('emphasizeArrow', false);
   }
 
-  clearAll() {
+  clearAll(state) {
+    const oldDataContainer = {
+      edge: filterPropertyData(this.dataContainer.edge, [], ['dataContainer'])
+    }
+
     this.dataContainer.edge = [];
     d3.select(`#${this.svgId}`).selectAll(`.${this.selectorClass}`).remove();
     d3.select(`#${this.svgId}`).select('defs').selectAll(`marker:not(#${this.arrowId})`).remove();
     d3.selectAll('.marked_connector').classed('marked_connector', false);
+
+    if (state) {
+      let he = new HistoryElement();
+			he.actionType = ACTION_TYPE.CLEAR_ALL_EDGE;
+			he.dataObject = oldDataContainer;
+			he.realObject = this;
+			state.add(he);
+    }
   }
 
   /**
    * Remove edge connect to this vertexs
    * @param vertex vertex list
    */
-  removeAllEdgeConnectToVertex(vertex) {
+  removeAllEdgeConnectToVertex(vertex, state) {
     this.findEdgeRelateToVertex(vertex.id).forEach((edge) => {
-      edge.remove();
+      edge.remove(state);
     });
   }
 
@@ -512,7 +560,7 @@ class EdgeMgmt {
     arrSrcPaths.forEach((src) => {
       const { source: { prop, vertexId } } = src;
 
-      if (prop.indexOf('title') == -1 && this.objectUtils.findIndexPropInVertex(vertexId, prop) === null) { src.remove();}
+      if (prop.indexOf('title') == -1 && this.objectUtils.findIndexPropInVertex(vertexId, prop) === null) { src.remove() }
     });
 
     arrDesPaths.forEach((des) => {
@@ -522,13 +570,57 @@ class EdgeMgmt {
     });
   }
 
-  hideAllEdgeRelatedToVertex(vertexId, flag) {
-    // Find all edge relate
-    const edges = _.filter(this.dataContainer.edge, e => e.source.vertexId === vertexId || e.target.vertexId === vertexId);
+  setVisibleAllEdgeRelatedToObject(vertexId, flag) {
+    // Edges connect to this vertexId
+    const edgesConnectTo = _.filter(this.dataContainer.edge, e => e.target.vertexId === vertexId);
 
-    edges.forEach((e) => {
-      const node = d3.select(`#${e.id}`);
-      if (node.node()) { d3.select(node.node().parentNode).classed('hide-edge-on-menu-items', !flag);}
+    // Edges connect from this vertexId
+    const edgesConnectFrom = _.filter(this.dataContainer.edge, e => e.source.vertexId === vertexId);
+
+    // All vertex and boundary
+    let vertices = [];
+    this.vertexContainer.forEach((arrVertex) => {
+    vertices = vertices.concat(arrVertex.vertex);
+    vertices = vertices.concat(arrVertex.boundary);
+    });
+
+    // list of object that connect to this vertexId
+    let listOfObject = [];
+    edgesConnectTo.forEach((e) => {
+      if (flag) {
+        let sourceObject = _.find(listOfObject, {id: e.source.vertexId});
+        if (!sourceObject) {
+          sourceObject = _.find(vertices, {id: e.source.vertexId});
+          listOfObject.push(sourceObject);
+        }
+
+        // just show an edge when both source object and target object are showed
+        if (sourceObject.show) {
+          e.visible(flag);  
+        }
+
+      } else {
+        e.visible(flag);
+      }
+    });
+
+    listOfObject = [];
+    edgesConnectFrom.forEach((e) => {
+      if (flag) {
+        let targetObject = _.find(listOfObject, {id: e.target.vertexId});
+        if (!targetObject) {
+          targetObject = _.find(vertices, {id: e.target.vertexId});
+          listOfObject.push(targetObject);
+        }
+
+        // just show an edge when both source object and target object are showed
+        if (targetObject.show) {
+          e.visible(flag);  
+        }
+
+      } else {
+        e.visible(flag);
+      }
     });
   }
 
@@ -546,7 +638,7 @@ class EdgeMgmt {
     // unfocus to object if existed focused object
     d3.select(`.${FOCUSED_CLASS}`).classed(FOCUSED_CLASS, false);
     this.cancelAllEmphasizePathConnect();
-    
+
     this.selectingEdge = edge;
 
     const selected = d3.select(`#${edge.id}`);
@@ -592,7 +684,7 @@ class EdgeMgmt {
 	 * @param {*} vertexId
 	 * @param {*} arrPosition array connectors were changed position
 	 */
-  updateConnectorPositionRelatedToVertex(vertexId, arrPosition) {
+  updateConnectorPositionRelatedToVertex(vertexId, arrPosition, state) {
     // Find edge start from this vertex
     const arrSrcPaths = _.filter(this.dataContainer.edge, e => e.source.vertexId === vertexId && e.source.prop.indexOf('title') == -1);
 
@@ -604,9 +696,23 @@ class EdgeMgmt {
       const newIndex = arrPosition.indexOf(oldIndex);
 
       if (newIndex == -1) {
-        edge.remove();
+        edge.remove(state);
       } else if (newIndex != parseInt(oldIndex)) {
+        const oldEdgeObj = edge.getObjectInfo();
+
         edge.source.prop = `${vertexId}${CONNECT_KEY}${newIndex}`;
+
+        if (state) {
+          const he = new HistoryElement();
+          he.actionType = ACTION_TYPE.CONNECTOR_CHANGE;
+          he.oldObject = oldEdgeObj;
+          he.dataObject = {
+            source: _.cloneDeep(edge.source),
+            target: _.cloneDeep(edge.target),
+          };
+          he.realObject = edge;
+          state.add(he);
+        }
       }
     });
 
@@ -615,11 +721,33 @@ class EdgeMgmt {
       const newIndex = arrPosition.indexOf(oldIndex);
 
       if (newIndex == -1) {
-        edge.remove();
+        edge.remove(state);
       } else if (newIndex != parseInt(oldIndex)) {
+        const oldEdgeObj = edge.getObjectInfo();
+
         edge.target.prop = `${vertexId}${CONNECT_KEY}${newIndex}`;
+
+        if (state) {
+          const he = new HistoryElement();
+          he.actionType = ACTION_TYPE.CONNECTOR_CHANGE;
+          he.oldObject = oldEdgeObj;
+          he.dataObject = {
+            source: _.cloneDeep(edge.source),
+            target: _.cloneDeep(edge.target),
+          };
+          he.realObject = edge;
+          state.add(he);
+        }
       }
     });
+  }
+
+  restore(dataContainer) {
+    dataContainer.edge.forEach((e) => {
+      this.create(e);
+    });
+
+    this.objectUtils.updatePathConnectOnWindowResize(this, this.vertexContainer);
   }
 }
 

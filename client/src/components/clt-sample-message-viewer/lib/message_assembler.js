@@ -33,7 +33,7 @@ class MessageAssembler {
     const sampleMessageSegmentGroup = [];
 
     if (Array.isArray(children)) {
-      children.forEach((each                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     ) => {
+      children.forEach((each) => {
         if (MessageElementType.isSegmentGroup(each.elementType)) {
           if (this.messageType === 'DICTIONARY') {
             sampleMessageSegmentGroup.push(`${delimiter.groupOpenDelimiter}${each.name}${delimiter.segmentTerminator}`);

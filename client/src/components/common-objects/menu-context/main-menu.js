@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import { getCoorMouseClickRelativeToParent, checkModePermission } from '../../../common/utilities/common.util';
+import State from '../../../common/new-type-define/state';
 
 class MainMenu {
   constructor(props) {
@@ -8,6 +9,7 @@ class MainMenu {
     this.parent = props.parent;
     this.vertexDefinition = props.vertexDefinition;
     this.viewMode = props.viewMode;
+    this.history = props.history;
 
     this.initMainMenu();
   }
@@ -23,15 +25,22 @@ class MainMenu {
           switch (key) {
             case 'createBoundary':
               const params = {
-                x: options.x,
-                y: options.y,
+                x: this.opt.x,
+                y: this.opt.y,
+                isMenu: this.opt.isMenu,
+                isImport: false,
               };
               this.parent.createBoundary(params);
               break;
 
             case 'clearAll':
-              this.parent.edgeMgmt.clearAll();
-              this.parent.clearAll();
+              const state = new State();
+              this.parent.edgeMgmt.clearAll(state);
+              this.parent.clearAll(state);
+
+              if (this.history) {
+                this.history.add(state);
+              }
               break;
 
             case 'autoAlignment':
@@ -39,7 +48,7 @@ class MainMenu {
               break;
 
             case 'showReduced':
-              this.parent.isShowReduced ? this.parent.showFull(options) : this.parent.showReduced(options);
+              this.parent.isShowReduced ? this.parent.showFull() : this.parent.showReduced();
               break;
 
             default:
@@ -83,7 +92,7 @@ class MainMenu {
           show: (opt) => {
             if (!event) { return; }
 
-            const { x, y } = getCoorMouseClickRelativeToParent(opt, this.containerId);
+            const { x, y } = getCoorMouseClickRelativeToParent(event, this.containerId);
             opt.x = x;
             opt.y = y;
             opt.isMenu = true;

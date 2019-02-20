@@ -6,6 +6,9 @@ import BoundaryMgmt from '../common-objects/objects/boundary-mgmt';
 import EdgeMgmt from '../common-objects/objects/edge-mgmt';
 import MainMenu from '../common-objects/menu-context/main-menu';
 import FindMenu from '../common-objects/menu-context/find-menu';
+import History from '../../common/new-type-define/history';
+import HistoryElement from '../../common/new-type-define/historyElement';
+import State from '../../common/new-type-define/state';
 
 import {
 	comShowMessage,
@@ -13,10 +16,11 @@ import {
 	setMinBoundaryGraph,
 	setAddressTabName,
 	hideFileChooser,
+	filterPropertyData,
 } from '../../common/utilities/common.util';
 
 import { 
-	DEFAULT_CONFIG_GRAPH, VIEW_MODE, CONNECT_SIDE,
+	DEFAULT_CONFIG_GRAPH, VIEW_MODE, CONNECT_SIDE, ACTION_TYPE, OBJECT_TYPE,
 } from '../../common/const/index';
 
 const ID_TAB_SEGMENT_SET = 'addressSegmentSet';
@@ -27,6 +31,7 @@ class CltGraph {
 	constructor(props) {
 		this.selector = props.selector;
 		this.viewMode = {value: props.viewMode || VIEW_MODE.EDIT};
+		this.history = new History();
 		
 		this.mandatoryDataElementConfig = props.mandatoryDataElementConfig // The configuration for Data element validation
 		if (!this.mandatoryDataElementConfig) {
@@ -64,11 +69,12 @@ class CltGraph {
 		};
 
 		this.edgeMgmt = new EdgeMgmt({
-			dataContainer    : this.dataContainer,
-			svgId            : this.connectSvgId,
-			vertexContainer  : [
+			dataContainer: this.dataContainer,
+			svgId: this.connectSvgId,
+			vertexContainer: [
 				this.dataContainer
-			]
+			],
+			history: this.history
 		});
 
 		this.vertexMgmt = new VertexMgmt({
@@ -79,7 +85,8 @@ class CltGraph {
 			viewMode: this.viewMode,
 			connectSide: CONNECT_SIDE.NONE,
 			edgeMgmt : this.edgeMgmt,
-			mandatoryDataElementConfig: this.mandatoryDataElementConfig
+			mandatoryDataElementConfig: this.mandatoryDataElementConfig,
+			history: this.history
 		});
 
 		this.boundaryMgmt = new BoundaryMgmt({
@@ -89,7 +96,8 @@ class CltGraph {
 			svgId: this.graphSvgId,
 			viewMode: this.viewMode,
 			vertexMgmt: this.vertexMgmt,
-			edgeMgmt: this.edgeMgmt
+			edgeMgmt: this.edgeMgmt,
+			history: this.history
 		});
 
 
@@ -143,7 +151,8 @@ class CltGraph {
 			containerId: `#${this.graphContainerId}`,
 			parent: this,
 			vertexDefinition: this.vertexMgmt.vertexDefinition,
-			viewMode: this.viewMode
+			viewMode: this.viewMode,
+			history: this.history
 		});
 
 		new FindMenu({
@@ -181,7 +190,7 @@ class CltGraph {
 					const id = $focusedObject[0].id;
 
 					let object = null;
-					if (id.substr(0,1) === 'V') {
+					if (id.substr(0,1) === OBJECT_TYPE.VERTEX) {
 						object = _.find(this.dataContainer.vertex, {"id": id});
 						object.copy();
 					} else {
@@ -198,7 +207,7 @@ class CltGraph {
 					const id = $focusedObject[0].id;
 
 					let object = null;
-					if (id.substr(0,1) === 'V') {
+					if (id.substr(0,1) === OBJECT_TYPE.VERTEX) {
 						object = _.find(this.dataContainer.vertex, {"id": id});
 						object.remove();
 					} else {
@@ -206,16 +215,20 @@ class CltGraph {
 						object.deleteAll();
 					}
 				}
+			} else if ((e.keyCode == 90 || e.keyCode == 122)  && e.ctrlKey) {
+				// Ctrl + Z
+				this.history.undo();
+			} else if ((e.keyCode == 89 || e.keyCode == 121)  && e.ctrlKey) {
+				// Ctrl + Y
+				this.history.redo();
 			}
-  	});
+		});
+		
+		
 	}
 
 	createVertex(opt) {
-		if (opt.isMenu) {
-			this.isShowReduced = false;
-		}
-		
-		this.vertexMgmt.create(opt)
+		this.vertexMgmt.create(opt);
 	}
 
 	createBoundary(opt) {
@@ -226,21 +239,54 @@ class CltGraph {
    * Clear all element on graph
    * And reinit marker def
    */
-	clearAll() {
+	clearAll(state) {
+		let oldDataContainer = {
+			vertex: filterPropertyData(this.dataContainer.vertex, [], ['dataContainer']),
+			boundary: filterPropertyData(this.dataContainer.boundary, [], ['dataContainer']),
+		}
+
 		this.vertexMgmt.clearAll();
 		this.boundaryMgmt.clearAll();
+
+		if (state) {
+			let he = new HistoryElement();
+			he.actionType = ACTION_TYPE.CLEAR_ALL_VERTEX_BOUNDARY;
+			he.dataObject = oldDataContainer;
+			he.realObject = this;
+			state.add(he);
+		}
 
 		setSizeGraph({ width: DEFAULT_CONFIG_GRAPH.MIN_WIDTH, height: DEFAULT_CONFIG_GRAPH.MIN_HEIGHT }, this.graphSvgId);
 	}
 
 	showReduced() {
+		let state = new State();
+
 		this.isShowReduced = true;
-		this.objectUtils.showReduced(this.dataContainer, this.edgeMgmt.dataContainer, this.vertexMgmt.vertexDefinition, this.graphSvgId, this.viewMode.value);
+		this.objectUtils.showReduced(this.dataContainer, this.graphSvgId, this.viewMode.value, state);
+
+		if (this.history) {
+			let he = new HistoryElement();
+			he.actionType = ACTION_TYPE.UPDATE_SHOW_REDUCED_STATUS;
+			he.realObject = this;
+			state.add(he);
+			this.history.add(state);
+		}
 	}
 
 	showFull() {
+		let state = new State();
+		
 		this.isShowReduced = false;
-		this.objectUtils.showFull(this.dataContainer, this.vertexMgmt.vertexDefinition, this.graphSvgId, this.viewMode.value);
+		this.objectUtils.showFull(this.dataContainer, this.graphSvgId, this.viewMode.value, state);
+
+		if (this.history) {
+			let he = new HistoryElement();
+			he.actionType = ACTION_TYPE.UPDATE_SHOW_FULL_STATUS;
+			he.realObject = this;
+			state.add(he);
+			this.history.add(state);
+		}
 	}
 
 	async drawObjects(data) {
@@ -289,6 +335,10 @@ class CltGraph {
 			if(resMessage.type === 'error'){
 				return;
 			}
+		}
+
+		if (this.history) {
+			this.history.clear();
 		}
 
 		//clear data
@@ -509,7 +559,11 @@ class CltGraph {
 		// Purpose prevent reference data.
 
 		//Vertex and Boundary data
-		const cloneData = _.cloneDeep(this.dataContainer)
+		const cloneData = {
+			vertex: filterPropertyData(this.dataContainer.vertex, [], ['dataContainer']),
+			boundary: filterPropertyData(this.dataContainer.boundary, [], ['dataContainer']),
+			edge: filterPropertyData(this.dataContainer.edge, [], ['dataContainer']),
+		}
 		cloneData.vertex.forEach(vertex => {
 			let pos = new Object({
 				'id': vertex.id,
@@ -721,6 +775,22 @@ class CltGraph {
 		}
 
 		$('head title').text(`${applicationTitle} | ${fileNameList} |`);
+	}
+
+	restore(dataContainer) {
+		const { boundary: boundaries, vertex: vertices} = dataContainer;
+		// Draw boundary
+		boundaries.forEach(e => {
+			e.isImport = true;
+			this.boundaryMgmt.create(e);
+		})
+		// Draw vertex
+		vertices.forEach(e => {
+			e.isImport = true;
+			this.vertexMgmt.create(e);
+		})
+
+		setMinBoundaryGraph(this.dataContainer, this.svgId, this.viewMode.value);
 	}
 }
   

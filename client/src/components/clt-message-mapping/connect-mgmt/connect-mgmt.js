@@ -6,10 +6,11 @@ class ConnectMgmt {
   constructor(props) {
     this.mainSelector = props.mainSelector;
     this.svgId = props.svgId;
-    this.storeConnect = props.storeConnect;
+    this.dataContainer = props.dataContainer;
     this.storeInputMessage = props.storeInputMessage;
     this.storeOperations = props.storeOperations;
     this.storeOutputMessage = props.storeOutputMessage;
+    this.history = props.history;
 
     this.initialize();
   }
@@ -18,13 +19,14 @@ class ConnectMgmt {
     this.objectUtils = new ObjectUtils();
 
     this.edgeMgmt = new EdgeMgmt({
-      dataContainer: this.storeConnect,
+      dataContainer: this.dataContainer,
       svgId: this.svgId,
       vertexContainer: [
         this.storeInputMessage,
         this.storeOperations,
         this.storeOutputMessage,
       ],
+      history: this.history,
     });
   }
 
@@ -56,14 +58,14 @@ class ConnectMgmt {
    * Remove edge connect to input graph
    */
   clearInputEdges() {
-    this.edgeMgmt.removeAllEdgeConnectToTheseVertex(this.storeInputMessage.vertex);
+    this.edgeMgmt.removeAllEdgeConnectToTheseVertex([].concat(this.storeInputMessage.vertex).concat(this.storeInputMessage.boundary));
   }
 
   /**
    * Remove edge connect to output graph
    */
   clearOutputEdges() {
-    this.edgeMgmt.removeAllEdgeConnectToTheseVertex(this.storeOutputMessage.vertex);
+    this.edgeMgmt.removeAllEdgeConnectToTheseVertex([].concat(this.storeOutputMessage.vertex).concat(this.storeOutputMessage.boundary));
   }
 }
 

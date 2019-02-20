@@ -164,7 +164,7 @@ class SegmentGroup {
   addMemberToGroupList(groupList, depth) {
     const currentDepth = depth + 1;
     this.children.forEach((eachMember) => {
-      const currentEachMember = eachMember;      
+      const currentEachMember = eachMember;
       if (SpecElementType.isSegmentGroup(currentEachMember.elementType)) {
         currentEachMember.depth = currentDepth;
         groupList.push(currentEachMember);

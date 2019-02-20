@@ -5,6 +5,8 @@ import Vertex from './vertex';
 import PopUtils from '../../../common/utilities/popup.util';
 import ObjectUtils from '../../../common/utilities/object.util';
 import VertexMenu from '../menu-context/vertex-menu';
+import HistoryElement from '../../../common/new-type-define/historyElement';
+import State from '../../../common/new-type-define/state';
 
 import {
 	REPEAT_RANGE,
@@ -12,6 +14,7 @@ import {
 	POPUP_CONFIG,
 	VERTEX_GROUP_OPTION,
 	CONNECT_SIDE,
+	ACTION_TYPE,
 
 } from '../../../common/const/index';
 
@@ -48,6 +51,7 @@ class VertexMgmt {
 		this.edgeMgmt = props.edgeMgmt;
 		this.connectSide = props.connectSide || CONNECT_SIDE.BOTH;
 		this.mandatoryDataElementConfig	= props.mandatoryDataElementConfig; // The configuration for Data element validation
+		this.history = props.history;
 
 		this.vertexDefinition = {
 			vertexGroup: [],  // Group vertex
@@ -69,7 +73,8 @@ class VertexMgmt {
 			selector: `.${this.selectorClass}`,
 			vertexMgmt: this,
 			dataContainer: this.dataContainer,
-			viewMode: this.viewMode
+			viewMode: this.viewMode,
+			history: this.history
 		})
 
 		this.initVertexPopupHtml()
@@ -210,18 +215,42 @@ class VertexMgmt {
 		this.initDialogDragEvent()
 	}
 
-	create(sOptions) {
-		let {vertexType} = sOptions
+	create(sOptions, state) {
+		let {vertexType, isMenu} = sOptions;
 
 		if (!vertexType)
-			return null
+			return null;
 
+		sOptions.isShowReduced = this.mainParent.isShowReduced;
 		let newVertex = new Vertex({
 			mainParent: this.mainParent,
 			vertexMgmt: this
 		})
 
-		return newVertex.create(sOptions, this.handleDragVertex, this.edgeMgmt.handleDragConnection)
+		newVertex.create(sOptions, this.handleDragVertex, this.edgeMgmt.handleDragConnection);
+
+		if (isMenu) {
+			if (this.history) {
+				state = new State();
+				let he = new HistoryElement();
+				he.actionType = ACTION_TYPE.CREATE;
+				he.dataObject = newVertex.getObjectInfo();
+				he.realObject = newVertex;
+				state.add(he);
+				this.history.add(state);
+			}
+		} else {
+			if (state) {
+				// create vertex by Boundary update info popup
+				let he = new HistoryElement();
+				he.actionType = ACTION_TYPE.CREATE;
+				he.dataObject = newVertex.getObjectInfo();
+				he.realObject = newVertex;
+				state.add(he);
+			}
+		}
+
+		return newVertex;
 	}
 
 	startDrag(main) {
@@ -237,6 +266,9 @@ class VertexMgmt {
 
 			main.edgeMgmt.emphasizePathConnectForVertex(this);
 
+			d.startX = d.x;
+			d.startY = d.y;
+			
 			d.moveToFront();
 			
 			d3.select(`.${FOCUSED_CLASS}`).classed(FOCUSED_CLASS, false);
@@ -261,21 +293,42 @@ class VertexMgmt {
 
 	endDrag(main) {
 		return function (d) {
-			if (d.parent) {
-				//If object not out boundary parent , object change postion in boundary parent, so change index object
-				if (main.objectUtils.checkDragObjectOutsideBoundary(d) == false) {
-					main.objectUtils.changeIndexInBoundaryForObject(d)
+			// If really move
+			if (d.startX !== d.x || d.startY !== d.y) {
+
+				let state = new State()
+
+				if (d.parent) {
+					//If object not out boundary parent , object change postion in boundary parent, so change index object
+					if (main.objectUtils.checkDragObjectOutsideBoundary(d, state)) {
+						d.validateConnectionByUsage()
+					} else {
+						main.objectUtils.changeIndexInBoundaryForObject(d, state)
+					}
 				} else {
-					d.validateConnectionByUsage()
+					if (main.objectUtils.checkDragObjectInsideBoundary(d, state)) {
+						d.validateConnectionByUsage()
+					}
+
+					main.objectUtils.restoreSizeBoundary(d)
 				}
-			} else {
-				if (main.objectUtils.checkDragObjectInsideBoundary(d)) {
-					d.validateConnectionByUsage()
+	
+				if (main.history) {
+					// none parent mean it moved out of boundary or moving itself
+					if (!d.parent) {
+						let he = new HistoryElement()
+						he.actionType = ACTION_TYPE.MOVE
+						he.dataObject = d.getObjectInfo()
+						he.realObject = d
+
+						state.add(he)
+					}
+					
+					main.history.add(state)
 				}
-				main.objectUtils.restoreSizeBoundary(d)
+				
+				setMinBoundaryGraph(main.dataContainer, main.svgId, main.viewMode.value)
 			}
-      
-			setMinBoundaryGraph(main.dataContainer, main.svgId, main.viewMode.value)
 		}
 	}
 
@@ -680,9 +733,9 @@ class VertexMgmt {
    * Close popup edit vertex info
    */
 	closePopVertexInfo() {
-		this.currentId = null
-		let options = {popupId: `${HTML_VERTEX_INFO_ID}_${this.svgId}`}
-		PopUtils.metClosePopup(options)
+		this.currentId = null;
+		let options = {popupId: `${HTML_VERTEX_INFO_ID}_${this.svgId}`};
+		PopUtils.metClosePopup(options);
 	}
 
 	/**
@@ -690,54 +743,65 @@ class VertexMgmt {
    */
 	confirmEditVertexInfo() {
 		// Get data on form
-		let forms = {}
-		forms.id = this.currentId
-		forms.name = $(`#vertexName_${this.svgId}`).val()
-		forms.description = $(`#vertexDesc_${this.svgId}`).val()
+		let forms = {};
+		forms.id = this.currentId;
+		forms.name = $(`#vertexName_${this.svgId}`).val();
+		forms.description = $(`#vertexDesc_${this.svgId}`).val();
 
 		if (checkModePermission(this.viewMode.value, 'vertexRepeat')) {
-			forms.repeat = $(`#vertexRepeat_${this.svgId}`).val()
-			forms.mandatory = $(`#isVertexMandatory_${this.svgId}`).prop('checked')
+			forms.repeat = $(`#vertexRepeat_${this.svgId}`).val();
+			forms.mandatory = $(`#isVertexMandatory_${this.svgId}`).prop('checked');
 		}
 
-		const vertex = _.find(this.dataContainer.vertex, {'id': this.currentId})
-		const {groupType} = vertex
+		let vertex = _.find(this.dataContainer.vertex, {'id': this.currentId});
+		let oldVertex = vertex.getObjectInfo(); // for history
+		const {groupType} = vertex;
     
-		const dataType = _.find(this.vertexDefinition.vertexGroup, {'groupType': groupType}).elementDataType
-		let elements = []
+		const dataType = _.find(this.vertexDefinition.vertexGroup, {'groupType': groupType}).elementDataType;
+		let elements = [];
 		// Get data element
-		let arrPosition = []
+		let arrPosition = [];
 		$(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId}`).find('tr').each(function (rowIndex) {
 			// Skip for header row
 			if (rowIndex > 0) {
-				let row = {}
+				let row = {};
 
 				//array of new position of connectors
-				arrPosition.push($(this).find('td[name=\'id\']').text())
+				arrPosition.push($(this).find('td[name=\'id\']').text());
 
 				$(this).find('td input:text, td input:checkbox, td select').each(function () {
-					let prop = $(this).attr('name')
-					let type = dataType[prop]
-					if (prop != `${ATTR_DEL_CHECK}_${this.svgId}`)
-						row[prop] = type === VERTEX_FORMAT_TYPE.BOOLEAN ? ($(this).is(':checked') ? true : false) : this.value
-				})
-				elements.push(row)
+					let prop = $(this).attr('name');
+					let type = dataType[prop];
+					if (prop != `${ATTR_DEL_CHECK}_${this.svgId}`) {
+						row[prop] = type === VERTEX_FORMAT_TYPE.BOOLEAN ? ($(this).is(':checked') ? true : false) : this.value;
+					}
+				});
+				elements.push(row);
 			}
-		})
+		});
 		
-		forms.data = elements
-		forms.groupType = groupType
+		forms.data = elements;
+		forms.groupType = groupType;
 
-		this.edgeMgmt.updateConnectorPositionRelatedToVertex(this.currentId, arrPosition)
-		this.updateVertexInfo(forms)
+		// For histrory
+		let state = new State();
 
-		//Check and mark connector if has connection
-		vertex.markedAllConnector()
-		
-		// Check mandatory for Data element
-		vertex.validateConnectionByUsage()
+		this.edgeMgmt.updateConnectorPositionRelatedToVertex(this.currentId, arrPosition, state);
+		this.updateVertexInfo(forms);
 
-		this.closePopVertexInfo()
+		// Create history
+		if (this.history) {
+			let he = new HistoryElement();
+			he.actionType = ACTION_TYPE.UPDATE_INFO;
+			he.oldObject = oldVertex;
+			he.dataObject = vertex.getObjectInfo();
+			he.realObject = vertex;
+
+			state.add(he);
+			this.history.add(state);
+		}
+
+		this.closePopVertexInfo();
 	}
 
 	/**
@@ -746,80 +810,85 @@ class VertexMgmt {
    * Update name, type, ...
    * Update present (DOM)
    */
-	updateVertexInfo(forms) {
-		const {id, name, description, repeat, mandatory, data, groupType} = forms
-		let vertex = _.find(this.dataContainer.vertex, {'id': id})
-		vertex.name = name
-		vertex.description = description
-		vertex.repeat = repeat
-		vertex.mandatory = mandatory
-		vertex.data = data
+	updateVertexInfo(forms, isEffectToParent = true) {
+		const {id, name, description, repeat, mandatory, data, groupType} = forms;
+		let vertex = _.find(this.dataContainer.vertex, {'id': id});
+		vertex.name = name;
+		vertex.description = description;
+		vertex.repeat = repeat;
+		vertex.mandatory = mandatory;
+		vertex.data = data;
 
-		const group = _.find(this.vertexDefinition.vertexGroup, {'groupType': groupType})
-		const option = group.option
-		const isDynamicDataSet = option.indexOf(VERTEX_GROUP_OPTION.DYNAMIC_DATASET) > -1
+		const group = _.find(this.vertexDefinition.vertexGroup, {'groupType': groupType});
+		const option = group.option;
+		const isDynamicDataSet = option.indexOf(VERTEX_GROUP_OPTION.DYNAMIC_DATASET) > -1;
 		if (isDynamicDataSet) {
-			d3.select(`#${id}`).selectAll('*').remove()
-			this.reRenderContentInsideVertex(vertex)
+			d3.select(`#${id}`).selectAll('*').remove();
+			this.reRenderContentInsideVertex(vertex, isEffectToParent);
 		} else {
 			// Update properties
-			let header = d3.select(`#${id}Name`)
-			header.text(segmentName(vertex, this.viewMode.value)).attr('title', description)
-			d3.select(header.node().parentNode).style('background-color', `${this.colorHash.hex(name)}`)
-			let rows = data.length
-			let presentation = group.vertexPresentation
+			let header = d3.select(`#${id}Name`);
+			header.text(segmentName(vertex, this.viewMode.value)).attr('title', description);
+			d3.select(header.node().parentNode).style('background-color', `${this.colorHash.hex(name)}`);
+			let rows = data.length;
+			let presentation = group.vertexPresentation;
 			for (let i = 0; i < rows; i++) {
-				let dataRow = data[i]
+				let dataRow = data[i];
 
 				//Key
 				d3.select(`#${replaceSpecialCharacter(`${id}${presentation.key}${i}`)}`)
 					.html(htmlEncode(getKeyPrefix(dataRow, this.vertexDefinition, groupType)) + dataRow[presentation.key])
-					.attr('title', dataRow[presentation.keyTooltip])
+					.attr('title', dataRow[presentation.keyTooltip]);
 
 				//Value
 				d3.select(`#${replaceSpecialCharacter(`${id}${presentation.value}${i}`)}`)
 					.text(dataRow[presentation.value])
-					.attr('title', dataRow[presentation.valueTooltip])
+					.attr('title', dataRow[presentation.valueTooltip]);
 			}
 
 			//update color for "rect"
-			d3.select(`#${id}`).selectAll('.drag_connect:not(.connect_header)').attr('fill', this.colorHashConnection.hex(name))
-			d3.select(`#${id}`).selectAll('.drag_connect.connect_header').attr('fill', this.colorHash.hex(name))
+			d3.select(`#${id}`).selectAll('.drag_connect:not(.connect_header)').attr('fill', this.colorHashConnection.hex(name));
+			d3.select(`#${id}`).selectAll('.drag_connect.connect_header').attr('fill', this.colorHash.hex(name));
 		}
 	}
 
-	async reRenderContentInsideVertex(vertex) {
-		const {vertexType, parent} = vertex
+	async reRenderContentInsideVertex(vertex, isEffectToParent = true) {
+		const {vertexType, parent} = vertex;
 
 		if (!vertexType)
-			return
+			return;
 
-		vertex.generateContent(this.edgeMgmt.handleDragConnection)
+		vertex.generateContent(this.edgeMgmt.handleDragConnection);
 
-		if (parent) {
-			let parentObj = _.find(this.dataContainer.boundary, {'id': parent})
-			let ancesstor = await parentObj.findAncestorOfMemberInNestedBoundary()
-			await ancesstor.updateSize()
-			await ancesstor.reorderPositionMember()
+		this.edgeMgmt.updatePathConnectForVertex(vertex);
+
+		//Check and mark connector if has connection
+		vertex.markedAllConnector();
+		
+		// Check mandatory for Data element
+		vertex.validateConnectionByUsage();
+
+		if (isEffectToParent && parent) {
+			let parentObj = _.find(this.dataContainer.boundary, {'id': parent});
+			let ancesstor = await parentObj.findAncestorOfMemberInNestedBoundary();
+			await ancesstor.updateSize();
+			await ancesstor.reorderPositionMember();
 		}
     
-		setMinBoundaryGraph(this.dataContainer, this.svgId, this.viewMode.value)
-
-		//this.edgeMgmt.removeEdgeLostPropOnVertex(vertex);
-		this.edgeMgmt.updatePathConnectForVertex(vertex)
+		setMinBoundaryGraph(this.dataContainer, this.svgId, this.viewMode.value);
 	}
 
-	hideAllEdgeRelatedToVertex(vertexId, status) {
-		this.edgeMgmt.hideAllEdgeRelatedToVertex(vertexId, status)
+	setVisibleAllEdgeRelatedToObject(vertexId, status) {
+		this.edgeMgmt.setVisibleAllEdgeRelatedToObject(vertexId, status);
 	}
 
 	updatePathConnectForVertex(vertex) {
-		this.edgeMgmt.updatePathConnectForVertex(vertex)
+		this.edgeMgmt.updatePathConnectForVertex(vertex);
 	}
 
 	clearAll() {
-		d3.select(`#${this.svgId}`).selectAll(`.${this.selectorClass}`).remove()
-		this.dataContainer.vertex = []
+		d3.select(`#${this.svgId}`).selectAll(`.${this.selectorClass}`).remove();
+		this.dataContainer.vertex = [];
 	}
 
 	LoadVertexDefinition(vertexDefinitionData) {
@@ -843,18 +912,18 @@ class VertexMgmt {
 		//Validate data exists
 		if(data===undefined)
 		{
-			return false
+			return false;
 		}
 
 		if (!data.VERTEX_GROUP || !data.VERTEX) {
-			return false
+			return false;
 		}
 
 		if (Object.keys(data).length > 2) {
-			return false
+			return false;
 		}
 
-		return true
+		return true;
 	}
 
 	processDataVertexTypeDefine(data) {

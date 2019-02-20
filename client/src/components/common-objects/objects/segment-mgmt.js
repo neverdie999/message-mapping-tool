@@ -5,12 +5,15 @@ import Vertex from './vertex';
 import PopUtils from '../../../common/utilities/popup.util';
 import ObjectUtils from '../../../common/utilities/object.util';
 import SegmentMenu from '../menu-context/segment-menu';
+import State from '../../../common/new-type-define/state';
+import HistoryElement from '../../../common/new-type-define/historyElement';
 
 import {
 	VERTEX_FORMAT_TYPE,
 	POPUP_CONFIG,
 	CONNECT_SIDE,
 	VIEW_MODE,
+	ACTION_TYPE,
 
 } from '../../../common/const/index';
 
@@ -43,6 +46,7 @@ class SegmentMgmt {
 		this.connectSide = CONNECT_SIDE.NONE;
 		this.mandatoryDataElementConfig = props.mandatoryDataElementConfig;
 		this.parent = props.parent;
+		this.history = props.history;
 
 		this.vertexDefinition = {
 			vertexGroup: [],  // Group vertex
@@ -167,17 +171,31 @@ class SegmentMgmt {
 	}
 
 	create(sOptions) {
-		let {vertexType} = sOptions
+		let {vertexType, isMenu, isCreateNewSegment} = sOptions;
 
 		if (!vertexType)
-			return
+			return;
 
 		let newVertex = new Vertex({
 			mainParent: this.mainParent,
 			vertexMgmt: this
-		})
+		});
 
-		return newVertex.create(sOptions, this.handleDragVertex)
+		newVertex.create(sOptions, this.handleDragVertex);
+
+		if (isMenu || isCreateNewSegment) {
+			if (this.history) {
+				let state = new State();
+				let he = new HistoryElement();
+				he.actionType = ACTION_TYPE.CREATE;
+				he.dataObject = newVertex.getObjectInfo();
+				he.realObject = newVertex;
+				state.add(he);
+				this.history.add(state);
+			}
+		}
+
+		return newVertex;
 	}
 
 	startDrag(main) {
@@ -185,6 +203,9 @@ class SegmentMgmt {
 			d.moveToFront();
 			d3.select(`.${FOCUSED_CLASS}`).classed(FOCUSED_CLASS, false);
 			d3.select(`#${d.id}`).classed(FOCUSED_CLASS, true);
+
+			d.startX = d.x;
+			d.startY = d.y;
 		}
 	}
 
@@ -204,6 +225,18 @@ class SegmentMgmt {
 
 	endDrag(main) {
 		return function (d) {
+			// If really move
+			if (d.startX !== d.x || d.startY !== d.y) {
+				if (main.history) {
+					let state = new State();
+					let he = new HistoryElement();
+					he.actionType = ACTION_TYPE.MOVE;
+					he.dataObject = d.getObjectInfo();
+					he.realObject = d;
+					state.add(he);
+					main.history.add(state);
+				}
+			}
 		}
 	}
 
@@ -557,12 +590,17 @@ class SegmentMgmt {
 	confirmEditVertexInfo() {
 
 		if ($(`#vertexName_${this.svgId}`).val() === '') {
-			comShowMessage('Please enter Name.')
-			$(`#vertexName_${this.svgId}`).focus()
-			return
+			comShowMessage('Please enter Name.');
+			$(`#vertexName_${this.svgId}`).focus();
+			return;
 		}
 		
 		if (!this.validateDataElementTable()) return;
+
+		let oldObject = null;
+		if (this.currentVertex.id) {
+			oldObject = this.currentVertex.getObjectInfo();
+		}
 
 		// Get data on form
 		this.currentVertex.name = this.currentVertex.vertexType = $(`#vertexName_${this.svgId}`).val();
@@ -589,18 +627,29 @@ class SegmentMgmt {
 		this.currentVertex.data = elements;
 		this.currentVertex.groupType = groupType;
 
-		// let newVertex = null;
-		// let updatedVertexId = this.currentVertex.id;
+		// update
 		if (this.currentVertex.id) {
 			this.updateVertexInfo(this.currentVertex);
-			this.currentVertex.validateConnectionByUsage();
+
+			if (this.history) {
+				let state = new State();
+				let he = new HistoryElement();
+				he.actionType = ACTION_TYPE.UPDATE_INFO;
+				he.oldObject = oldObject;
+				he.dataObject = this.currentVertex.getObjectInfo();
+				he.realObject = this.currentVertex;
+				state.add(he);
+				this.history.add(state);
+			}
+
 		} else {
 			//Create New
+			this.currentVertex.isCreateNewSegment = true;
+			this.currentVertex.isShowReduced = this.mainParent.isShowReduced;
 			this.create(this.currentVertex);
-			this.parent.isShowReduced = false;
 		}
 
-		this.closePopVertexInfo()
+		this.closePopVertexInfo();
 	}
 
 	/**
@@ -610,21 +659,27 @@ class SegmentMgmt {
    * Update present (DOM)
    */
 	updateVertexInfo(forms) {
-		const {id} = forms
+		const {id, name, description, data} = forms;
+		let vertex = _.find(this.dataContainer.vertex, {'id': id});
+		vertex.name = name;
+		vertex.description = description;
+		vertex.data = data;
 
-		d3.select(`#${id}`).selectAll('*').remove()
-		this.reRenderContentInsideVertex(this.currentVertex)
+		d3.select(`#${id}`).selectAll('*').remove();
+		this.reRenderContentInsideVertex(vertex);
 	}
 
 	async reRenderContentInsideVertex(vertex) {
-		const {vertexType} = vertex
+		const {vertexType} = vertex;
 
 		if (!vertexType)
-			return
+			return;
 
-		vertex.generateContent()
+		vertex.generateContent();
 
-		setMinBoundaryGraph(this.dataContainer, this.svgId, this.viewMode.value)
+		vertex.validateConnectionByUsage();
+
+		setMinBoundaryGraph(this.dataContainer, this.svgId, this.viewMode.value);
 	}
 
 	updatePathConnectForVertex(vertex) {

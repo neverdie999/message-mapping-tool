@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import { filterPropertyData } from '../../../common/utilities/common.util';
 
 class SegmentFindMenu {
   constructor(props) {
@@ -87,7 +88,7 @@ class SegmentFindMenu {
   createMenuOptions() {
     const options = {};
 
-    const vertices = _.cloneDeep(this.dataContainer.vertex);
+    const vertices = filterPropertyData(this.dataContainer.vertex, [], ['dataContainer']);
     vertices.sort((a, b) => (a.vertexType.toUpperCase()).localeCompare((b.vertexType.toUpperCase())));
 
     const len = vertices.length;

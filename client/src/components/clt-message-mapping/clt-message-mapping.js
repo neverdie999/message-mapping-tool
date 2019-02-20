@@ -8,20 +8,24 @@ import ObjectUtils from '../../common/utilities/object.util';
 const ScannerWriterFactory = require('./generation-lib/scanner_writer/scanner_writer_factory');
 const MessageSpecReader = require('./generation-lib/message_spec/message_spec_reader');
 const MapperWriter = require('./generation-lib/mapper_writer/mapper_writer');
+import History from '../../common/new-type-define/history'
 
 import {
 	comShowMessage,
 	setMinBoundaryGraph,
 	setAddressTabName,
 	unsetAddressTabName,
-	hideFileChooser
+	hideFileChooser,
+	filterPropertyData
 } from '../../common/utilities/common.util';
 
 import { 
-	VERTEX_ATTR_SIZE, BOUNDARY_ATTR_SIZE, TYPE_CONNECT
+	VERTEX_ATTR_SIZE, BOUNDARY_ATTR_SIZE, CONNECT_TYPE, ACTION_TYPE, OBJECT_TYPE
 } from '../../common/const/index';
 
 import { __await } from 'tslib';
+import State from '../../common/new-type-define/state';
+import HistoryElement from '../../common/new-type-define/historyElement';
 
 const ID_TAB_INPUT_MESSAGE = 'addressInputMessage';
 const ID_TAB_OUTPUT_MESSAGE = 'addressOutputMessage';
@@ -55,8 +59,8 @@ class CltMessageMapping {
 	initialize() {
 
 		this.objectUtils = new ObjectUtils()
+		this.history = new History()
 		this.initSvgHtml()
-
 		this.storeConnect = {
 			edge: [],
 		}
@@ -76,10 +80,11 @@ class CltMessageMapping {
 		this.connectMgmt = new ConnectMgmt({
 			mainSelector: this.selector,
 			svgId: this.connectSvgId,
-			storeConnect: this.storeConnect,
+			dataContainer: this.storeConnect,
 			storeInputMessage: this.storeInputMessage,
 			storeOperations: this.storeOperations,
 			storeOutputMessage: this.storeOutputMessage,
+			history: this.history
 
 		});
 
@@ -88,7 +93,8 @@ class CltMessageMapping {
 			containerId: this.inputMessageContainerId,
 			svgId: this.inputMessageSvgId,
 			edgeMgmt: this.connectMgmt.edgeMgmt,
-			dataContainer: this.storeInputMessage
+			dataContainer: this.storeInputMessage,
+			history: this.history
 		});
 
 		this.outputMgmt = new OutputMgmt({
@@ -97,7 +103,8 @@ class CltMessageMapping {
 			svgId: this.outputMessageSvgId,
 			edgeMgmt: this.connectMgmt.edgeMgmt,
 			dataContainer: this.storeOutputMessage,
-			mandatoryDataElementConfig: this.mandatoryDataElementConfig
+			mandatoryDataElementConfig: this.mandatoryDataElementConfig,
+			history: this.history
 		});
 
 		this.operationsMgmt = new OperationsMgmt({
@@ -106,7 +113,8 @@ class CltMessageMapping {
 			svgId: this.operationsSvgId,
 			edgeMgmt: this.connectMgmt.edgeMgmt,
 			dataContainer: this.storeOperations,
-			parent: this
+			parent: this,
+			history: this.history
 		});
 
 		this.initCustomFunctionD3();
@@ -129,6 +137,8 @@ class CltMessageMapping {
 			this.operationsMgmt.setWindowMousePoint(e.pageX, e.pageY);
 			this.outputMgmt.setWindowMousePoint(e.pageX, e.pageY);
 		});
+
+		this.initShortcutKeyEvent();
 	}
 
 	initSvgHtml() {
@@ -154,6 +164,18 @@ class CltMessageMapping {
       <svg id="${this.connectSvgId}" class="connect-svg"></svg>`
 
 		this.selector.append(sHtml)
+	}
+
+	initShortcutKeyEvent() {
+		$(window).keyup((e) => {
+      if ((e.keyCode == 90 || e.keyCode == 122)  && e.ctrlKey) {
+				// Ctrl + Z
+				this.history.undo();
+      } else if ((e.keyCode == 89 || e.keyCode == 121)  && e.ctrlKey) {
+				// Ctrl + Y
+				this.history.redo();
+      }
+  	});
 	}
 
 	initCustomFunctionD3() {
@@ -228,6 +250,10 @@ class CltMessageMapping {
 			return;
 		}
 
+		if (this.history) {
+			this.history.clear();
+		}
+
 		//clear data
 		this.connectMgmt.clearInputEdges();
 		this.inputMgmt.clearAll();
@@ -260,6 +286,10 @@ class CltMessageMapping {
 		if (isError) {
 			comShowMessage('There was duplicate data with Iutput graph.\nYou should check it or choose another one!');
 			return;
+		}
+
+		if (this.history) {
+			this.history.clear();
 		}
 
 		//clear data
@@ -311,6 +341,10 @@ class CltMessageMapping {
 
 			if(resMessage.type === 'error')
 				return;
+		}
+
+		if (this.history) {
+			this.history.clear();
 		}
 
 		//Clear all data
@@ -590,7 +624,11 @@ class CltMessageMapping {
 		// Purpose prevent reference data.
 
 		//Input data
-		const cloneInputData = _.cloneDeep(this.storeInputMessage)
+		const cloneInputData = {
+			vertex: filterPropertyData(this.storeInputMessage.vertex, [], ['dataContainer']),
+			boundary: filterPropertyData(this.storeInputMessage.boundary, [], ['dataContainer'])
+		}
+
 		cloneInputData.vertex.forEach(vertex => {
 			let pos = new Object({
 				'id': vertex.id,
@@ -626,7 +664,11 @@ class CltMessageMapping {
 
 		//Output data
 
-		const cloneOutputData = _.cloneDeep(this.storeOutputMessage)
+		const cloneOutputData = {
+			vertex: filterPropertyData(this.storeOutputMessage.vertex, [], ['dataContainer']),
+			boundary: filterPropertyData(this.storeOutputMessage.boundary, [], ['dataContainer'])
+		}
+		
 		cloneOutputData.vertex.forEach(vertex => {
 			let pos = new Object({
 				'id': vertex.id,
@@ -661,7 +703,11 @@ class CltMessageMapping {
 		outputMessage.vertexTypes = outputVertexDefine
 
 		//Operations data
-		const cloneOperationsData = _.cloneDeep(this.storeOperations)
+		const cloneOperationsData = {
+			vertex: filterPropertyData(this.storeOperations.vertex, [], ['dataContainer']),
+			boundary: filterPropertyData(this.storeOperations.boundary, [], ['dataContainer'])
+		}
+
 		cloneOperationsData.vertex.forEach(vertex => {
 			let pos = new Object({
 				'id': vertex.id,
@@ -696,7 +742,10 @@ class CltMessageMapping {
 
 		//Edges    
 		let edges = []
-		const cloneEdgesData = _.cloneDeep(this.storeConnect)
+		const cloneEdgesData = {
+			edge: filterPropertyData(this.storeConnect.edge, [], ['dataContainer'])
+		}
+
 		cloneEdgesData.edge.forEach(edge => {
 			edges.push(this.getSaveDataEdge(edge))
 		})
@@ -812,9 +861,15 @@ class CltMessageMapping {
 	}
 
 	operationsAutoAlignment() {
+		// for history
+		let oldPositionStore = {
+			vertex: filterPropertyData(this.storeOperations.vertex, ['id', 'x', 'y']),
+			boundary: filterPropertyData(this.storeOperations.boundary, ['id', 'x', 'y'])
+		};
+
 		// Calculate for arranging branch
 		let arrRes = []
-		let operationsContainer = _.cloneDeep(this.storeOperations)
+		let operationsContainer = _.cloneDeep(this.storeOperations);
 		
 		// All edge start from input message
 		let arrEdgeStartFromInput = []
@@ -830,7 +885,7 @@ class CltMessageMapping {
 		// Find all object connect to input area
 		arrEdgeStartFromInput.forEach(e => {
 			let object = null
-			if (e.target.vertexId[0] == 'V') {
+			if (e.target.vertexId[0] == OBJECT_TYPE.VERTEX) {
 				object = _.find(operationsContainer.vertex, el => {
 					return el.id == e.target.vertexId
 				})
@@ -881,7 +936,7 @@ class CltMessageMapping {
 				let childBranch = branch[j]
 				for (let k = 0; k < childBranch.length; k++) {
 					let level = childBranch[k][0].level
-					if (childBranch[k][0].type == 'V') {
+					if (childBranch[k][0].type == OBJECT_TYPE.VERTEX) {
 						childBranch[k][0] = _.find(this.storeOperations.vertex, {'id': childBranch[k][0].id})
 					} else {
 						childBranch[k][0] = _.find(this.storeOperations.boundary, {'id': childBranch[k][0].id})
@@ -898,7 +953,7 @@ class CltMessageMapping {
 		this.storeConnect.edge.forEach(e => {
 			if (e.target.svgId == this.outputMessageSvgId && e.source.svgId == this.operationsSvgId) {
 				let object = null
-				if (e.source.vertexId[0] == 'V') {
+				if (e.source.vertexId[0] == OBJECT_TYPE.VERTEX) {
 					object = _.find(operationsContainer.vertex, el => {
 						return el.id == e.source.vertexId
 					})
@@ -934,7 +989,7 @@ class CltMessageMapping {
 
 		// link to real object
 		for (let i = 0; i < arrMappingConstObj.length; i++) {
-			if (arrMappingConstObj[i].type == 'V') {
+			if (arrMappingConstObj[i].type == OBJECT_TYPE.VERTEX) {
 				arrMappingConstObj[i] = _.find(this.storeOperations.vertex, {'id': arrMappingConstObj[i].id})
 			} else {
 				arrMappingConstObj[i] = _.find(this.storeOperations.boundary, {'id': arrMappingConstObj[i].id})
@@ -946,15 +1001,15 @@ class CltMessageMapping {
 		this.storeConnect.edge.forEach((edge) => {
 			arrMappingConstObj.forEach(item => {
 				if (this.isNodeConnectToObject(item, edge.source)) {
-					listEdgeConnectToMappingConstObj.push(edge)	
+					listEdgeConnectToMappingConstObj.push(edge)
 				}
 			})
 		})
 
 		// get the coordinate in output svg for target
-		listEdgeConnectToMappingConstObj = _.cloneDeep(listEdgeConnectToMappingConstObj)
+		listEdgeConnectToMappingConstObj = filterPropertyData(listEdgeConnectToMappingConstObj, [], ['dataContainer']);
 		listEdgeConnectToMappingConstObj.forEach((item, index) => {
-			this.doCalculateCoordinateForNodeOfEdge(item.target, TYPE_CONNECT.INPUT, this.storeOutputMessage)
+			this.doCalculateCoordinateForNodeOfEdge(item.target, CONNECT_TYPE.INPUT, this.storeOutputMessage)
 		})
 
 		// sort by y coordinate from Top to Bottom then use them to arrange Mapping constant from Top to Bottom
@@ -1044,7 +1099,22 @@ class CltMessageMapping {
 				
 				arrArrangedObj.push(obj)
 			}
-		})
+		});
+
+		// For history
+		if (this.history) {
+			let state = new State();
+			let he = new HistoryElement();
+			he.actionType = ACTION_TYPE.AUTO_ALIGNMENT;
+			he.oldObject = oldPositionStore;
+			he.dataObject = { 
+				vertex: filterPropertyData(this.storeOperations.vertex, ['id', 'x', 'y']),
+				boundary: filterPropertyData(this.storeOperations.boundary, ['id', 'x', 'y']),
+			};
+			he.realObject = this.operationsMgmt;
+			state.add(he);
+			this.history.add(state);
+		}
 
 		setMinBoundaryGraph(this.storeOperations, this.operationsSvgId, this.operationsMgmt.viewMode.value)
 	}
@@ -1154,7 +1224,7 @@ class CltMessageMapping {
 			}
 		})
 
-		listEdge = _.cloneDeep(listEdge)
+		listEdge = filterPropertyData(listEdge, [], ['dataContainer']);
 		this.calculateCoordinateByOperationsAreaForEdge(listEdge)
 
 		for (let i = 0; i < branch.length; i++) {
@@ -1217,7 +1287,7 @@ class CltMessageMapping {
 	 */
 	getIntersectionObject(edge, object) {
 
-		if (object.type == 'B') {
+		if (object.type == OBJECT_TYPE.BOUNDARY) {
 			if (object.isParentOf(edge.target.vertexId) || object.isParentOf(edge.source.vertexId)) return null
 		}
 
@@ -1291,7 +1361,7 @@ class CltMessageMapping {
 			if (this.isNodeConnectToObject(object, e.source)) {
 				let tmpObj = null
 
-				if (e.target.vertexId[0] == 'V') {
+				if (e.target.vertexId[0] == OBJECT_TYPE.VERTEX) {
 					tmpObj = _.find(operationsContainer.vertex, {'id': e.target.vertexId})
 				} else {
 					tmpObj = _.find(operationsContainer.boundary, {'id': e.target.vertexId})
@@ -1453,10 +1523,10 @@ class CltMessageMapping {
 
 		arrEdge.forEach((item, index) => {
 			// source
-			this.doCalculateCoordinateForNodeOfEdge(item.source, TYPE_CONNECT.OUTPUT, this.storeOperations)
+			this.doCalculateCoordinateForNodeOfEdge(item.source, CONNECT_TYPE.OUTPUT, this.storeOperations)
 
 			// target
-			this.doCalculateCoordinateForNodeOfEdge(item.target, TYPE_CONNECT.INPUT, this.storeOperations)
+			this.doCalculateCoordinateForNodeOfEdge(item.target, CONNECT_TYPE.INPUT, this.storeOperations)
 		})
 	}
 
@@ -1476,17 +1546,17 @@ class CltMessageMapping {
 
 		if (prop.indexOf('boundary_title') != -1) {
 			node.y = object.y + BOUNDARY_ATTR_SIZE.HEADER_HEIGHT / 2
-			node.x = connectType === TYPE_CONNECT.OUTPUT ? object.x + object.width : object.x
+			node.x = connectType === CONNECT_TYPE.OUTPUT ? object.x + object.width : object.x
 
 		}else if (prop.indexOf('title') != -1) {
 			node.y = object.y + VERTEX_ATTR_SIZE.HEADER_HEIGHT / 2
-			node.x = connectType === TYPE_CONNECT.OUTPUT ? object.x + VERTEX_ATTR_SIZE.GROUP_WIDTH : object.x
+			node.x = connectType === CONNECT_TYPE.OUTPUT ? object.x + VERTEX_ATTR_SIZE.GROUP_WIDTH : object.x
 
 		} else{
 			// Get index prop in object
 			let index = this.objectUtils.findIndexPropInVertex(vertexId, prop)
 			node.y = object.y + VERTEX_ATTR_SIZE.HEADER_HEIGHT + index * VERTEX_ATTR_SIZE.PROP_HEIGHT + VERTEX_ATTR_SIZE.PROP_HEIGHT / 2
-			node.x = connectType === TYPE_CONNECT.OUTPUT ? object.x + VERTEX_ATTR_SIZE.GROUP_WIDTH : object.x
+			node.x = connectType === CONNECT_TYPE.OUTPUT ? object.x + VERTEX_ATTR_SIZE.GROUP_WIDTH : object.x
 		}
 	}
 
@@ -1532,7 +1602,7 @@ class CltMessageMapping {
 	}
 
 	isNodeConnectToObject(object, node) {
-		if (object.type == 'V') {
+		if (object.type == OBJECT_TYPE.VERTEX) {
 			return object.id == node.vertexId
 		} else {
 			if (object.id == node.vertexId) {
@@ -1540,7 +1610,7 @@ class CltMessageMapping {
 			} else {
 				for (let i = 0; i < object.member.length; i++) {
 					let memObj = null
-					if (object.member[i].type == 'V') {
+					if (object.member[i].type == OBJECT_TYPE.VERTEX) {
 						memObj = _.find(this.storeOperations.vertex, {'id': object.member[i].id})
 					} else {
 						memObj = _.find(this.storeOperations.boundary, {'id': object.member[i].id})

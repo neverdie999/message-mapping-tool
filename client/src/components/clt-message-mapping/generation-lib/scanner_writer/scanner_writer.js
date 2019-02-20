@@ -32,7 +32,7 @@ class ScannerWriter {
     return this._codeLines.join('\n');
   }
 
-  _writeLine(line, depth=0, indentChar='\t') {
+  _writeLine(line, depth = 0, indentChar = '\t') {
     const indent = indentChar.repeat(depth);
     this._codeLines.push(`${indent}${line}`);
   }
@@ -90,7 +90,7 @@ class ScannerWriter {
     };
   }
 
-  _writeScannerBody(currentGroup, parentGroupBound='', groupDepth=1) {
+  _writeScannerBody(currentGroup, parentGroupBound = '', groupDepth = 1) {
     const {
       segmentGroupBegin: currentGroupBegin,
       segmentGroupTag: currentGroupTag,

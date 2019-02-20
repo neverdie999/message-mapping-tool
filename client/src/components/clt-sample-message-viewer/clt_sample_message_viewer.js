@@ -123,7 +123,7 @@ class CltSampleMessageViewer {
     $('#btnViewFullText').hide();
     $('#tableContent').hide();
     $('#tableContent').empty();
-    $('#jstree').jstree("destroy");
+    $('#jstree').jstree('destroy');
 
     // Print error message if existed
     this.makeErrorLogContent(result);

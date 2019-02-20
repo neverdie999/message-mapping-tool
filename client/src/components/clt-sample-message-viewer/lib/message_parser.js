@@ -172,12 +172,10 @@ class MessageParser {
           }
           messageSegmentGroupParent = messageSegmentGroupParent.parent;
         }
+      } else if (this._lastMatchedMessageSegmentGroup.parent.parent) {
+        messageSegmentGroupParent = this._lastMatchedMessageSegmentGroup.parent;
       } else {
-        if (this._lastMatchedMessageSegmentGroup.parent.parent) {
-          messageSegmentGroupParent = this._lastMatchedMessageSegmentGroup.parent;
-        } else {
-          messageSegmentGroupParent = this._lastMatchedMessageSegmentGroup;
-        }
+        messageSegmentGroupParent = this._lastMatchedMessageSegmentGroup;
       }
       if (matchResult.matchedSegment.parent.name === messageSegmentGroupParent.parent.name) {
         messageSegmentGroupParent.parent.children.push(this._parseSegment(eachMessageSampleSegment, this._currentMatchedSegment.name, messageSegmentGroupParent.parent));
@@ -303,11 +301,11 @@ class MessageParser {
 
   _reduceLineSeparator(message, segmentTerminator) {
     if (segmentTerminator === '\n') {
-      const newLineRegex  = new RegExp(/\r(\n)?/, 'g');
+      const newLineRegex = new RegExp(/\r(\n)?/, 'g');
       return message.replace(newLineRegex, '\n');
     }
 
-    const redundantNewLineRegex  = new RegExp(`(?<=${segmentTerminator})(\n|\r(\n)?)+`, 'g');
+    const redundantNewLineRegex = new RegExp(`(?<=${segmentTerminator})(\n|\r(\n)?)+`, 'g');
     return message.replace(redundantNewLineRegex, '');
   }
 

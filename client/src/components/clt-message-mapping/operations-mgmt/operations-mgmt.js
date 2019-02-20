@@ -3,13 +3,15 @@ import VertexMgmt from '../../common-objects/objects/vertex-mgmt';
 import BoundaryMgmt from '../../common-objects/objects/boundary-mgmt';
 import ObjectUtils from '../../../common/utilities/object.util';
 import FindMenu from '../../common-objects/menu-context/find-menu';
+import State from '../../../common/new-type-define/state'
+import HistoryElement from '../../../common/new-type-define/historyElement'
 
 import {
-	DEFAULT_CONFIG_GRAPH, VIEW_MODE, CONNECT_SIDE
-} from '../../../common/const/index';
+	DEFAULT_CONFIG_GRAPH, VIEW_MODE, CONNECT_SIDE, ACTION_TYPE, OBJECT_TYPE
+} from '../../../common/const/index'
 
 import {
-	setSizeGraph
+	setSizeGraph, setMinBoundaryGraph, filterPropertyData
 } from '../../../common/utilities/common.util';
 
 const FOCUSED_CLASS = 'focused-object';
@@ -26,6 +28,7 @@ class OperationsMgmt {
 		this.mouseOnSvgY = -1;
 		this.mouseOnWindowX = -1;
 		this.mouseOnWindowY = -1;
+		this.history = props.history;
 
 		this.focusedObjectId = "";
 
@@ -44,7 +47,8 @@ class OperationsMgmt {
 			svgId : this.svgId,
 			viewMode: this.viewMode,
 			connectSide: CONNECT_SIDE.BOTH,
-			edgeMgmt : this.edgeMgmt
+			edgeMgmt : this.edgeMgmt,
+			history: this.history
 		});
 
 		this.boundaryMgmt = new BoundaryMgmt({
@@ -54,7 +58,8 @@ class OperationsMgmt {
 			svgId: this.svgId,
 			viewMode: this.viewMode,
 			vertexMgmt: this.vertexMgmt,
-			edgeMgmt: this.edgeMgmt
+			edgeMgmt: this.edgeMgmt,
+			history: this.history
 		});
 	}
 
@@ -65,6 +70,7 @@ class OperationsMgmt {
 			parent: this,
 			vertexDefinition: this.vertexMgmt.vertexDefinition,
 			viewMode: this.viewMode,
+			history: this.history
 		});
 
 		new FindMenu({
@@ -99,7 +105,7 @@ class OperationsMgmt {
 					const id = $focusedObject[0].id;
 
 					let object = null;
-					if (id.substr(0,1) === 'V') {
+					if (id.substr(0,1) === OBJECT_TYPE.VERTEX) {
 						object = _.find(this.dataContainer.vertex, {"id": id});
 						object.copy();
 					} else {
@@ -116,7 +122,7 @@ class OperationsMgmt {
 					const id = $focusedObject[0].id;
 
 					let object = null;
-					if (id.substr(0,1) === 'V') {
+					if (id.substr(0,1) === OBJECT_TYPE.VERTEX) {
 						object = _.find(this.dataContainer.vertex, {"id": id});
 						object.remove();
 					} else {
@@ -129,25 +135,38 @@ class OperationsMgmt {
 	}
 
 	createVertex(opt) {
-		this.vertexMgmt.create(opt)
+		this.vertexMgmt.create(opt);
 	}
 
 	createBoundary(opt) {
-		this.boundaryMgmt.create(opt)
+		this.boundaryMgmt.create(opt);
 	}
 
 	/**
    * Clear all element on graph
    * And reinit marker def
    */
-	clearAll() {
-		this.vertexMgmt.clearAll()
-		this.boundaryMgmt.clearAll()
+	clearAll(state) {
+		let oldDataContainer = {
+			vertex: filterPropertyData(this.dataContainer.vertex, [], ['dataContainer']),
+			boundary: filterPropertyData(this.dataContainer.boundary, [], ['dataContainer']),
+		}
+
+		this.vertexMgmt.clearAll();
+		this.boundaryMgmt.clearAll();
 
 		// Update warning color for Output Message
-		this.parent.outputMgmt.validateConnectionByUsage()
+		this.parent.outputMgmt.validateConnectionByUsage();
+
+		if (state) {
+			let he = new HistoryElement();
+			he.actionType = ACTION_TYPE.CLEAR_ALL_VERTEX_BOUNDARY;
+			he.dataObject = oldDataContainer;
+			he.realObject = this;
+			state.add(he);
+		}
 		
-		setSizeGraph({ height: DEFAULT_CONFIG_GRAPH.MIN_HEIGHT }, this.svgId)
+		setSizeGraph({ height: DEFAULT_CONFIG_GRAPH.MIN_HEIGHT }, this.svgId);
 	}
 
 	async drawObjectsOnOperationsGraph(data) {
@@ -198,6 +217,36 @@ class OperationsMgmt {
 	setWindowMousePoint(x, y) {
 		this.mouseOnWindowX = x;
 		this.mouseOnWindowY = y;
+	}
+
+	restore(dataContainer) {
+		const { boundary: boundaries, vertex: vertices} = dataContainer;
+		// Draw boundary
+		boundaries.forEach(e => {
+			e.isImport = true;
+			this.boundaryMgmt.create(e);
+		})
+		// Draw vertex
+		vertices.forEach(e => {
+			e.isImport = true;
+			this.vertexMgmt.create(e);
+		})
+
+		setMinBoundaryGraph(this.dataContainer, this.svgId, this.viewMode.value);
+	}
+
+	resetPosition(dataContainer) {
+		this.dataContainer.boundary.forEach(e => {
+			const oldObject = _.find(dataContainer.boundary, {id: e.id});
+			e.setPosition({x: oldObject.x, y: oldObject.y}, false);
+		});
+
+		this.dataContainer.vertex.forEach(e => {
+			const oldObject = _.find(dataContainer.vertex, {id: e.id});
+			e.setPosition({x: oldObject.x, y: oldObject.y}, false);
+		});
+
+		setMinBoundaryGraph(this.dataContainer, this.svgId, this.viewMode.value);
 	}
 }
 

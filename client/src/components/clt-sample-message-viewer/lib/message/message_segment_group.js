@@ -30,7 +30,7 @@ class MessageSegmentGroup {
     this.elementType = MessageElementType.SegmentGroup;
   }
 
-   /*
+  /*
     clear MessageSegmentGroup children
    */
   resetMessageSegmentGroup() {

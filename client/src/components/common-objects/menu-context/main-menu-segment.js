@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { getCoorMouseClickRelativeToParent, checkModePermission } from '../../../common/utilities/common.util';
+import { getCoorMouseClickRelativeToParent, checkModePermission, filterPropertyData } from '../../../common/utilities/common.util';
 
 class MainMenuSegment {
   constructor(props) {
@@ -69,7 +69,7 @@ class MainMenuSegment {
           show: (opt) => {
             if (!event) { return; }
 
-            const { x, y } = getCoorMouseClickRelativeToParent(opt, this.containerId);
+            const { x, y } = getCoorMouseClickRelativeToParent(event, this.containerId);
             opt.x = x;
             opt.y = y;
             opt.isMenu = true;
@@ -98,7 +98,7 @@ class MainMenuSegment {
     const options = {};
 
     // Sort array object
-    const vertices = _.cloneDeep(this.parent.dataContainer.vertex);
+    const vertices = filterPropertyData(this.parent.dataContainer.vertex, [], ['dataContainer']);
 
     vertices.sort((a, b) => (a.vertexType.toUpperCase()).localeCompare((b.vertexType.toUpperCase())));
 

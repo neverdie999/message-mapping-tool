@@ -259,7 +259,7 @@ export function checkModePermission(viewMode, type) {
     'createVertex', 'createBoundary', 'clearAll',
     'editVertex', 'copyVertex', 'removeVertex', 'vertexBtnConfirm', 'vertexBtnAdd', 'vertexBtnDelete', 'isEnableDragVertex',
     'editBoundary', 'removeBoundary', 'copyAllBoundary', 'deleteAllBoundary', 'boundaryBtnConfirm', 'isEnableDragBoundary', 'isEnableItemVisibleMenu',
-    'horizontalScroll', 'autoAlignment',
+    'horizontalScroll', 'autoAlignment', 'history',
   ];
 
   data[VIEW_MODE.INPUT_MESSAGE] = [
@@ -394,4 +394,34 @@ export function hideFileChooser() {
   if ($('.container.file-mgmt').css('display') === 'block') {
     $('.container.file-mgmt').slideToggle();
   }
+}
+
+export function filterPropertyData(data, options = [], excludeOptions = []) {
+  const result = [];
+
+  if (options && options.length > 0) {
+    data.forEach((e) => {
+      const obj = {};
+      for (const propName in e) {
+        if (options.indexOf(propName) !== -1) {
+          obj[propName] = typeof (e[propName]) === 'object' ? _.clone(e[propName]) : e[propName];
+        }
+      }
+
+      result.push(obj);
+    });
+  } else if (excludeOptions && excludeOptions.length > 0) {
+    data.forEach((e) => {
+      const obj = {};
+      for (const propName in e) {
+        if (excludeOptions.indexOf(propName) === -1) {
+          obj[propName] = typeof (e[propName]) === 'object' ? _.clone(e[propName]) : e[propName];
+        }
+      }
+
+      result.push(obj);
+    });
+  }
+
+  return result;
 }

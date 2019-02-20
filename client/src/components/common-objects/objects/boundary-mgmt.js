@@ -6,6 +6,8 @@ import PopUtils from '../../../common/utilities/popup.util';
 import ObjectUtils from '../../../common/utilities/object.util';
 import BoundaryMenu from '../menu-context/boundary-menu';
 import BoundaryMenuItems from '../menu-context/boundary-menu-items';
+import State from '../../../common/new-type-define/state';
+import HistoryElement from '../../../common/new-type-define/historyElement';
 
 import {
   checkMinMaxValue,
@@ -21,7 +23,7 @@ import {
 } from '../../../common/utilities/common.util';
 
 import {
-  REPEAT_RANGE, BOUNDARY_ATTR_SIZE, VERTEX_FORMAT_TYPE, PADDING_POSITION_SVG,
+  REPEAT_RANGE, BOUNDARY_ATTR_SIZE, VERTEX_FORMAT_TYPE, PADDING_POSITION_SVG, ACTION_TYPE, OBJECT_TYPE,
 } from '../../../common/const/index';
 
 const CONNECT_KEY = 'Connected';
@@ -45,6 +47,7 @@ class BoundaryMgmt {
     this.viewMode = props.viewMode;
     this.vertexMgmt = props.vertexMgmt;
     this.edgeMgmt = props.edgeMgmt;
+    this.history = props.history;
 
     this.initialize();
   }
@@ -182,13 +185,13 @@ class BoundaryMgmt {
 
     if (checkModePermission(this.viewMode.value, 'boundaryBtnConfirm')) {
       $(`#boundaryBtnAddVertex_${main.svgId}`).click(() => {
-        this.addMember('V');
+        this.addMember(OBJECT_TYPE.VERTEX);
       });
     }
 
     if (checkModePermission(this.viewMode.value, 'boundaryBtnConfirm')) {
       $(`#boundaryBtnAddBoundary_${main.svgId}`).click(() => {
-        this.addMember('B');
+        this.addMember(OBJECT_TYPE.BOUNDARY);
       });
     }
 
@@ -227,7 +230,7 @@ class BoundaryMgmt {
     this.initDialogDragEvent();
   }
 
-  create(sOptions) {
+  create(sOptions, state) {
     const newBoundary = new Boundary({
       mainParent: this.mainParent,
       boundaryMgmt: this,
@@ -235,7 +238,27 @@ class BoundaryMgmt {
 
     newBoundary.create(sOptions, this.callbackDragBoundary, this.edgeMgmt.handleDragConnection);
 
-    if (!sOptions.isImport) {
+    if (state) {
+      // create boundary by Boundary update info popup
+      const he = new HistoryElement();
+      he.actionType = ACTION_TYPE.CREATE;
+      he.dataObject = newBoundary.getObjectInfo();
+      he.realObject = newBoundary;
+      state.add(he);
+    } else {
+      // create boundary by menu context
+      if (sOptions.isMenu && this.history) {
+        state = new State();
+        const he = new HistoryElement();
+        he.actionType = ACTION_TYPE.CREATE;
+        he.dataObject = newBoundary.getObjectInfo();
+        he.realObject = newBoundary;
+        state.add(he);
+        this.history.add(state);
+      }
+    }
+
+    if (sOptions.isMenu) {
       this.makeEditBoundaryInfo(newBoundary.id);
     }
 
@@ -258,6 +281,8 @@ class BoundaryMgmt {
 
       d3.select(`.${FOCUSED_CLASS}`).classed(FOCUSED_CLASS, false);
       d3.select(`#${d.id}`).classed(FOCUSED_CLASS, true);
+      d.startX = d.x;
+      d.startY = d.y;
     };
   }
 
@@ -284,30 +309,46 @@ class BoundaryMgmt {
       d.x = x;
       d.y = y;
 
-      const offsetX = d.x - d.ctrlSrcX;
-      const offsetY = d.y - d.ctrlSrcY;
+      const offsetX = d.x - d.startX;
+      const offsetY = d.y - d.startY;
 
       // If realy move
-      if (offsetX !== 0 || offsetY !== 0) {
+      if (offsetX != 0 || offsetY != 0) {
+        const state = new State();
+
         // Transform group
         d3.select(this).attr('transform', `translate(${[d.x, d.y]})`);
         main.edgeMgmt.updatePathConnectForVertex(d);
 
         if (d.parent) {
           // If object not out boundary parent , object change postion in boundary parent, so change index object
-          if (main.objectUtils.checkDragObjectOutsideBoundary(d)) {
+          if (main.objectUtils.checkDragObjectOutsideBoundary(d, state)) {
             // Update position of child element
             if (d.member.length > 0) { d.moveMember(offsetX, offsetY); }
 
             d.validateConnectionByUsage();
           } else {
-            main.objectUtils.changeIndexInBoundaryForObject(d, 'B');
+            main.objectUtils.changeIndexInBoundaryForObject(d, state);
           }
-        } else if (!main.objectUtils.checkDragObjectInsideBoundary(d, 'B')) {
+        } else if (!main.objectUtils.checkDragObjectInsideBoundary(d, state)) {
           // Update position of child element
           if (d.member.length > 0) { d.moveMember(offsetX, offsetY); }
         } else {
           d.validateConnectionByUsage();
+        }
+
+        if (main.history) {
+          // none parent mean it moved out of boundary or moving itself
+          if (!d.parent) {
+            const he = new HistoryElement();
+            he.actionType = ACTION_TYPE.MOVE;
+            he.dataObject = d.getObjectInfo();
+            he.realObject = d;
+
+            state.add(he);
+          }
+
+          main.history.add(state);
         }
       }
 
@@ -393,6 +434,11 @@ class BoundaryMgmt {
    * Update data boundary change
    */
   confirmEditBoundaryInfo() {
+    // For history
+    const state = new State();
+
+    const oldObject = this.editingBoundary.getObjectInfo();
+
     const info = {};
     info.name = $(`#boundaryName_${this.svgId}`).val();
     if (checkModePermission(this.viewMode.value, 'maxBoundaryRepeat')) {
@@ -403,10 +449,28 @@ class BoundaryMgmt {
 
     this.editingBoundary.updateInfo(info);
 
-    this.updateChildren();
+    this.updateChildren(state);
 
     // Check mandatary for member
     this.editingBoundary.validateConnectionByUsage();
+
+    this.editingBoundary.selectAllMemberVisible(true, false, state);
+
+    // Create history
+    if (this.history) {
+      // Create history
+      const he = new HistoryElement();
+      he.actionType = ACTION_TYPE.UPDATE_INFO;
+      he.oldObject = oldObject;
+      he.dataObject = this.editingBoundary.getObjectInfo();
+      he.realObject = this.editingBoundary;
+      state.add(he);
+      this.history.add(state);
+    }
+
+    this.editingBoundary.refresh();
+
+    setMinBoundaryGraph(this.dataContainer, this.svgId, this.viewMode.value);
 
     this.closePopBoundaryInfo();
   }
@@ -669,7 +733,7 @@ class BoundaryMgmt {
       options = {};
       options.controlType = VERTEX_FORMAT_TYPE.STRING;
       options.controlName = 'vertexType';
-      if (object.type === 'V') {
+      if (object.type === OBJECT_TYPE.VERTEX) {
         options.val = object.vertexType;
       } else {
         options.val = '';
@@ -787,7 +851,7 @@ class BoundaryMgmt {
     $bodyCol.appendTo($bodyRow);
 
     // vertex type
-    if (memberType === 'V') {
+    if (memberType === OBJECT_TYPE.VERTEX) {
       $bodyCol = $('<td>');
       options.controlType = VERTEX_FORMAT_TYPE.ARRAY;
       options.controlName = 'vertexType';
@@ -813,7 +877,7 @@ class BoundaryMgmt {
     options = {};
     options.controlType = VERTEX_FORMAT_TYPE.STRING;
     options.controlName = 'name';
-    if (memberType === 'V') {
+    if (memberType === OBJECT_TYPE.VERTEX) {
       options.val = listOfVertexType[0];
     } else {
       options.val = 'Boundary';
@@ -868,10 +932,9 @@ class BoundaryMgmt {
     $(`#boundaryMember_${this.svgId} td:nth-child(${columnHeaderCount})`).css('width', '100%');
   }
 
-  updateChildren() {
+  updateChildren(state) {
     const main = this;
     const dataTable = [];
-    let hasCreateNewObject = false;
 
     $(`#boundaryMember_${this.svgId} tbody tr`).each(function () {
       const dataRow = {};
@@ -892,74 +955,57 @@ class BoundaryMgmt {
     for (let i = members.length - 1; i >= 0; i -= 1) {
       const mem = members[i];
       if (!_.find(dataTable, { id: mem.id })) {
-        if (mem.type === 'V') {
+        if (mem.type === OBJECT_TYPE.VERTEX) {
           const vertex = _.find(main.dataContainer.vertex, { id: mem.id });
-          vertex.delete();
+          vertex.remove(false, state);
         } else {
           const boundary = _.find(main.dataContainer.boundary, { id: mem.id });
-          boundary.doDeleteAll();
+          boundary.doDeleteAll(state);
         }
       }
     }
 
+    const oldMember = _.clone(this.editingBoundary.member);
+    this.editingBoundary.member = [];
     // for members were updated or added new
-    dataTable.forEach((item) => {
+    dataTable.forEach((item, index) => {
       let object = {};
 
       if (item.id !== '') {
-        if (item.type === 'V') {
+        if (item.type === OBJECT_TYPE.VERTEX) {
           object = _.find(main.dataContainer.vertex, { id: item.id });
         } else {
           object = _.find(main.dataContainer.boundary, { id: item.id });
         }
-        object.updateInfo(item);
+        object.updateInfo(item, state);
+        this.editingBoundary.member.push({ id: item.id, show: _.find(oldMember, { id: item.id }).show, type: item.type });
       } else {
         let returnObject = {};
-        if (item.type === 'V') {
+        if (item.type === OBJECT_TYPE.VERTEX) {
           returnObject = main.vertexMgmt.create({
-            isImport: true,
-            isMenu: true,
+            isMemberManagement: true,
             parent: main.editingBoundary.id,
             name: item.name,
             vertexType: item.vertexType,
             mandatory: item.mandatory,
             repeat: item.repeat,
-          });
+          }, state);
+          this.editingBoundary.member.push({ id: returnObject.id, show: true, type: returnObject.type });
         } else {
           returnObject = main.create({
-            isImport: true,
+            isMemberManagement: true,
             parent: main.editingBoundary.id,
             name: item.name,
             mandatory: item.mandatory,
             repeat: item.repeat,
-          });
+          }, state);
+          this.editingBoundary.member.push({ id: returnObject.id, show: true, type: returnObject.type });
         }
 
         item.id = returnObject.id;
         hasCreateNewObject = true;
       }
     });
-
-    // update members data
-    this.editingBoundary.member = [];
-    dataTable.forEach((item) => {
-      this.editingBoundary.member.push({
-        id: item.id,
-        type: item.type,
-        show: true,
-      });
-    });
-
-    if (hasCreateNewObject && this.mainParent.isShowReduced) {
-      this.mainParent.isShowReduced = false;
-    }
-
-    const ancestor = this.editingBoundary.findAncestorOfMemberInNestedBoundary();
-    ancestor.updateSize();
-    ancestor.reorderPositionMember();
-    this.edgeMgmt.updatePathConnectForVertex(ancestor);
-
-    setMinBoundaryGraph(this.dataContainer, this.svgId, this.viewMode.value);
   }
 
   setHeaderWidth() {

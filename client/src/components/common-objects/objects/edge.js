@@ -1,8 +1,14 @@
 import _ from 'lodash';
 import * as d3 from 'd3';
+import HistoryElement from '../../../common/new-type-define/historyElement';
+import State from '../../../common/new-type-define/state';
+import ObjectUtils from '../../../common/utilities/object.util';
 
-import { LINE_TYPE } from '../../../common/const/index';
+import {
+  LINE_TYPE, OBJECT_TYPE, ACTION_TYPE, NOTE_TYPE,
+} from '../../../common/const/index';
 import { generateObjectId, createPath } from '../../../common/utilities/common.util';
+
 
 class Edge {
   constructor(props) {
@@ -10,6 +16,8 @@ class Edge {
     this.svgId = props.edgeMgmt.svgId;
     this.selectorClass = props.edgeMgmt.selectorClass;
     this.arrowId = props.edgeMgmt.arrowId;
+    this.viewMode = props.edgeMgmt.viewMode;
+    this.history = props.edgeMgmt.history;
     this.edgeMgmt = props.edgeMgmt;
 
     this.groupEdgePathId = props.edgeMgmt.groupEdgePathId;
@@ -27,11 +35,15 @@ class Edge {
     this.originNote = '';
     this.middleNote = '';
     this.destNote = '';
+    this.type = OBJECT_TYPE.EDGE;
+    this.show = true;
 
     this.initialize();
   }
 
   initialize() {
+    this.objectUtils = new ObjectUtils();
+
     this.limitTop = 0;
     this.limitBottom = $(window).height();
     this.limitLeft = 0;
@@ -55,17 +67,31 @@ class Edge {
     } = sOptions;
 
     this.id = id || generateObjectId('E');
-    this.source = source;
-    this.target = target;
+    this.source = _.cloneDeep(source);
+    this.target = _.cloneDeep(target);
+
+    if (sOptions.show !== null && sOptions.show !== undefined) {
+      this.show = sOptions.show;
+    }
 
     if (style) {
       this.lineType = style.line || this.lineType;
       this.useMarker = style.arrow || this.useMarker;
+    } else {
+      // For Undo/Redo
+      this.lineType = sOptions.lineType || this.lineType;
+      this.useMarker = sOptions.useMarker || this.useMarker;
     }
+
     if (note) {
-      this.originNote = note.originNote;
-      this.middleNote = note.middleNote;
-      this.destNote = note.destNote;
+      this.originNote = note.originNote || this.originNote;
+      this.middleNote = note.middleNote || this.middleNote;
+      this.destNote = note.destNote || this.destNote;
+    } else {
+      // For Undo/Redo
+      this.originNote = sOptions.originNote || this.originNote;
+      this.middleNote = sOptions.middleNote || this.middleNote;
+      this.destNote = sOptions.destNote || this.destNote;
     }
 
     if (!this.dataContainer.edge) this.dataContainer.edge = [];
@@ -87,7 +113,12 @@ class Edge {
         group.on('keydown', () => {
           // callbackOnKeyDown(this.id, d3.event);
           if (event.keyCode === 46 || event.keyCode === 8) {
-            this.remove();
+            const state = new State();
+            this.remove(state);
+
+            if (this.history) {
+              this.history.add(state);
+            }
           }
         });
       });
@@ -169,19 +200,46 @@ class Edge {
     if (this.target.prop.indexOf('title') === -1) {
       d3.select(`[prop="${this.target.prop}"][type="I"]`).classed('marked_connector', true);
     }
+
+    // check if target connection object is Vertex then call validateConnectionByUsage()
+    let vertices = [];
+    this.edgeMgmt.vertexContainer.forEach((arrVertex) => {
+      vertices = vertices.concat(arrVertex.vertex);
+      vertices = vertices.concat(arrVertex.boundary);
+    });
+
+    const obj = _.find(vertices, { id: this.target.vertexId });
+
+    if (obj.type == OBJECT_TYPE.VERTEX) {
+      obj.validateConnectionByUsage();
+    }
+
+    if (!this.show) {
+      this.visible(false);
+    }
+
+    return this;
   }
 
   /**
    * Remove edge by id
    * @param edgeId
    */
-  remove() {
+  remove(state) {
     // Remove from DOM
     const selected = d3.select(`#${this.id}`);
     if (selected) {
       selected.node().parentNode.remove();
       // Mutates array edge
-      _.remove(this.dataContainer.edge, e => e.id === this.id);
+      const edge = _.remove(this.dataContainer.edge, e => e.id === this.id);
+
+      if (state) {
+        const he = new HistoryElement();
+        he.actionType = ACTION_TYPE.DELETE;
+        he.dataObject = edge[0].getObjectInfo();
+        he.realObject = edge[0];
+        state.add(he);
+      }
     }
 
     d3.select(`#arrow${this.id}`).remove();
@@ -307,9 +365,9 @@ class Edge {
     if ($(`#${svgDes}`)[0].parentNode.scrollWidth > $($(`#${svgDes}`)[0].parentNode).width()) desOffsetBottom = 10;
 
     const node = d3.select(`#${id}`);
-    if (xSrc < srcContainerRect.left 										|| xSrc > srcContainerRect.right - srcOffsetRight
+    if (xSrc < srcContainerRect.left || xSrc > srcContainerRect.right - srcOffsetRight
         || ySrc + addressBarHeight < srcContainerRect.top || ySrc > srcContainerRect.bottom - addressBarHeight - srcOffsetBottom
-				|| xDes < desContainerRect.left 										|| xDes > desContainerRect.right - desOffsetRight
+				|| xDes < desContainerRect.left || xDes > desContainerRect.right - desOffsetRight
         || yDes + addressBarHeight < desContainerRect.top || yDes > desContainerRect.bottom - addressBarHeight - desOffsetBottom
     ) {
       if (node.node()) {
@@ -360,6 +418,78 @@ class Edge {
 
     path.classed('emphasizePath', true);
     d3.select(`#arrow${this.id}`).select('path').classed('emphasizeArrow', true);
+  }
+
+  updateInfo(info) {
+    this.setNote(info.originNote, NOTE_TYPE.ORIGIN);
+    this.setNote(info.middleNote, NOTE_TYPE.MID);
+    this.setNote(info.destNote, NOTE_TYPE.DEST);
+
+    this.setLineType(info.lineType);
+
+    this.setUseMarker(info.useMarker);
+  }
+
+  updateConnector(dropVertexId, pointType, propId) {
+    let vertices = [];
+    this.edgeMgmt.vertexContainer.forEach((arrVertex) => {
+      vertices = vertices.concat(arrVertex.vertex);
+      vertices = vertices.concat(arrVertex.boundary);
+    });
+
+    // Vertex that draged to
+    const targetObj = _.find(vertices, { id: dropVertexId });
+    const { svgId } = targetObj;
+
+    // Calculate new coordinate of ended point on CONNECT SVG for redraw edge
+    const newPoint = this.objectUtils.getCoordPropRelativeToParent(targetObj, propId, pointType);
+    newPoint.vertexId = dropVertexId;
+    newPoint.prop = propId;
+    newPoint.svgId = svgId;
+
+    if (pointType === 'O') {
+      this.updateMarkedConnector({ source: newPoint });
+      this.updatePathConnect({ source: newPoint });
+    } else {
+      // get old object before updating
+      const oldObj = _.find(vertices, { id: this.target.vertexId });
+
+      this.updateMarkedConnector({ target: newPoint });
+      this.updatePathConnect({ target: newPoint });
+
+      // check mandatory data element for target vertex only (Output message of Message Mapping GUI)
+
+      if (oldObj.type == OBJECT_TYPE.VERTEX) {
+        oldObj.validateConnectionByUsage();
+      }
+
+      // If move target connection to another vertex then checking for new vertex
+      if (targetObj.id != oldObj.id && targetObj.type == OBJECT_TYPE.VERTEX) {
+        targetObj.validateConnectionByUsage();
+      }
+    }
+  }
+
+  getObjectInfo() {
+    return {
+      id: this.id,
+      source: _.cloneDeep(this.source),
+      target: _.cloneDeep(this.target),
+      lineType: this.lineType,
+      useMarker: this.useMarker,
+      originNote: this.originNote,
+      middleNote: this.middleNote,
+      destNote: this.destNote,
+      type: this.type,
+      show: this.show,
+    };
+  }
+
+  visible(status) {
+    const node = d3.select(`#${this.id}`);
+    if (node.node()) { d3.select(node.node().parentNode).classed('hide-edge-on-menu-items', !status); }
+
+    this.show = status;
   }
 }
 

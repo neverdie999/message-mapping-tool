@@ -8,9 +8,12 @@ import {
 	CONNECT_SIDE,
 	DEFAULT_CONFIG_GRAPH,
 	VIEW_MODE,
+	ACTION_TYPE,
 } from '../../../common/const/index';
 
 import { setSizeGraph } from '../../../common/utilities/common.util';
+import State from '../../../common/new-type-define/state';
+import HistoryElement from '../../../common/new-type-define/historyElement';
 
 
 class OutputMgmt {
@@ -21,6 +24,7 @@ class OutputMgmt {
 		this.svgId = props.svgId;
 		this.isShowReduced = false;
 		this.viewMode = {value: VIEW_MODE.OUTPUT_MESSAGE};
+		this.history = props.history;
 
 		this.mandatoryDataElementConfig = props.mandatoryDataElementConfig;
 
@@ -45,7 +49,8 @@ class OutputMgmt {
 			viewMode: this.viewMode,
 			connectSide: CONNECT_SIDE.LEFT,
 			edgeMgmt : this.edgeMgmt,
-			mandatoryDataElementConfig: this.mandatoryDataElementConfig
+			mandatoryDataElementConfig: this.mandatoryDataElementConfig,
+			history: this.history
 		});
 
 		this.boundaryMgmt = new BoundaryMgmt({
@@ -56,6 +61,7 @@ class OutputMgmt {
 			viewMode: this.viewMode,
 			vertexMgmt: this.vertexMgmt,
 			edgeMgmt: this.edgeMgmt,
+			history: this.history
 		});
 
 		this.initShortcutKeyEvent();
@@ -68,6 +74,7 @@ class OutputMgmt {
 			parent: this,
 			vertexDefinition: this.vertexMgmt.vertexDefinition,
 			viewMode: this.viewMode,
+			history: this.history
 		});
 
 		new FindMenu({
@@ -144,13 +151,33 @@ class OutputMgmt {
 	}
 
 	showReduced() {
+		let state = new State();
+
 		this.isShowReduced = true;
-		this.objectUtils.showReduced(this.dataContainer, this.edgeMgmt.dataContainer, this.vertexMgmt.vertexDefinition, this.svgId, this.viewMode.value);
+		this.objectUtils.showReduced(this.dataContainer, this.svgId, this.viewMode.value, state);
+
+		if (this.history) {
+			let he = new HistoryElement();
+			he.actionType = ACTION_TYPE.UPDATE_SHOW_REDUCED_STATUS;
+			he.realObject = this;
+			state.add(he);
+			this.history.add(state);
+		}
 	}
 
 	showFull() {
+		let state = new State();
+
 		this.isShowReduced = false;
-		this.objectUtils.showFull(this.dataContainer, this.vertexMgmt.vertexDefinition, this.svgId, this.viewMode.value);
+		this.objectUtils.showFull(this.dataContainer, this.svgId, this.viewMode.value, state);
+
+		if (this.history) {
+			let he = new HistoryElement();
+			he.actionType = ACTION_TYPE.UPDATE_SHOW_FULL_STATUS;
+			he.realObject = this;
+			state.add(he);
+			this.history.add(state);
+		}
 	}
 
 	/**

@@ -12,12 +12,16 @@ import {
 	setMinBoundaryGraph,
 	unsetAddressTabName,
 	setAddressTabName,
-	hideFileChooser
+	hideFileChooser,
+	filterPropertyData
 } from '../../common/utilities/common.util';
 
 import { 
-	DEFAULT_CONFIG_GRAPH, VIEW_MODE, VERTEX_ATTR_SIZE, PADDING_POSITION_SVG,
+	DEFAULT_CONFIG_GRAPH, VIEW_MODE, VERTEX_ATTR_SIZE, PADDING_POSITION_SVG, ACTION_TYPE, OBJECT_TYPE,
 } from '../../common/const/index';
+import History from '../../common/new-type-define/history';
+import State from '../../common/new-type-define/state';
+import HistoryElement from '../../common/new-type-define/historyElement';
 
 const ID_TAB_VERTEX_GROUP_DEFINITION = 'addressVertexGroupDefinition';
 const ID_TAB_SEGMENT_SET = 'addressSegmentSet';
@@ -27,6 +31,7 @@ class CltSegment {
 	constructor(props) {
 		this.selector = props.selector;
 		this.viewMode = {value: props.viewMode || VIEW_MODE.SEGMENT};
+		this.history = new History();
 
 		this.selectorName = this.selector.selector.replace(/[\.\#]/,'');
 
@@ -64,11 +69,12 @@ class CltSegment {
 		this.initSvgHtml();
 
 		this.edgeMgmt = new EdgeMgmt({
-			dataContainer    : this.dataContainer,
-			svgId            : this.connectSvgId,
-			vertexContainer  : [
+			dataContainer: this.dataContainer,
+			svgId: this.connectSvgId,
+			vertexContainer: [
 				this.dataContainer
-			]
+			],
+			history: this.history
 		});
 
 		this.segmentMgmt = new SegmentMgmt({
@@ -79,7 +85,8 @@ class CltSegment {
 			viewMode: this.viewMode,
 			edgeMgmt : this.edgeMgmt,
 			mandatoryDataElementConfig: this.mandatoryDataElementConfig,
-			parent: this
+			parent: this,
+			history: this.history
 		});
 
 		this.initCustomFunctionD3();
@@ -137,7 +144,8 @@ class CltSegment {
 			containerId: `#${this.graphContainerId}`,
 			parent: this,
 			viewMode: this.viewMode,
-			vertexDefinition: this.segmentMgmt.vertexDefinition
+			vertexDefinition: this.segmentMgmt.vertexDefinition,
+			history: this.history
 		});
 
 		new SegmentFindMenu({
@@ -175,7 +183,7 @@ class CltSegment {
 					const id = $focusedObject[0].id;
 
 					let object = null;
-					if (id.substr(0,1) === 'V') {
+					if (id.substr(0,1) === OBJECT_TYPE.VERTEX) {
 						object = _.find(this.dataContainer.vertex, {"id": id});
 						object.copy();
 					} else {
@@ -192,7 +200,7 @@ class CltSegment {
 					const id = $focusedObject[0].id;
 
 					let object = null;
-					if (id.substr(0,1) === 'V') {
+					if (id.substr(0,1) === OBJECT_TYPE.VERTEX) {
 						object = _.find(this.dataContainer.vertex, {"id": id});
 					} else {
 						object = _.find(this.dataContainer.boundary, {"id": id});
@@ -202,6 +210,12 @@ class CltSegment {
 						object.remove();
 					}
 				}
+			} else if ((e.keyCode == 90 || e.keyCode == 122)  && e.ctrlKey) {
+				// Ctrl + Z
+				this.history.undo();
+			} else if ((e.keyCode == 89 || e.keyCode == 121)  && e.ctrlKey) {
+				// Ctrl + Y
+				this.history.redo();
 			}
   	});
 	}
@@ -221,29 +235,49 @@ class CltSegment {
 	showReduced() {
 		this.isShowReduced = true;
     
+		let state = new State();
 		this.dataContainer.vertex.forEach((vertex) => {
-			d3.select(`#${vertex.id}`).selectAll('.property').classed('hide', true);
-			d3.select(`#${vertex.id}`).select('foreignObject').attr('height', VERTEX_ATTR_SIZE.HEADER_HEIGHT);
-		})
+			vertex.showReduced(state);
+		});
     
-		this.sortByName();
+		this.sortByName(state);
+
+		if (this.history) {
+			let he = new HistoryElement();
+			he.actionType = ACTION_TYPE.UPDATE_SHOW_REDUCED_STATUS;
+			he.realObject = this;
+			state.add(he);
+			this.history.add(state);
+		}
 	}
 
 	showFull() {
 		this.isShowReduced = false;
     
+		let state = new State();
 		this.dataContainer.vertex.forEach((vertex) => {
-			let arrProp = d3.select(`#${vertex.id}`).selectAll('.property').classed('hide', false)._groups[0];
-			d3.select(`#${vertex.id}`).select('foreignObject').attr('height', VERTEX_ATTR_SIZE.HEADER_HEIGHT + VERTEX_ATTR_SIZE.PROP_HEIGHT * arrProp.length);
-		})
+			vertex.showFull(state);
+		});
 
-		this.sortByName();
+		this.sortByName(state);
+
+		if (this.history) {
+			let he = new HistoryElement();
+			he.actionType = ACTION_TYPE.UPDATE_SHOW_FULL_STATUS;
+			he.realObject = this;
+			state.add(he);
+			this.history.add(state);
+		}
 	}
 
 	LoadVertexGroupDefinition(vertexDefinitionData, fileName) {
 		if (this.segmentMgmt.LoadVertexGroupDefinition(vertexDefinitionData)) {
 			if (this.dataContainer.vertex.length > 0 && !confirm('The current data will be cleared, do you want to continue ?')) {
 				return;
+			}
+
+			if (this.history) {
+				this.history.clear();
 			}
 	
 			this.clearAll();
@@ -279,13 +313,17 @@ class CltSegment {
 			return;
 		}
 
+		if (this.history) {
+			this.history.clear();
+		}
+
 		this.segmentMgmt.processDataVertexTypeDefine(segmentData);
 
 		//clear data
 		this.clearAll();
 
 		await this.drawObjects(segmentData);
-		await this.sortByName();
+		await this.sortByName(null, false);
 
 		this.isShowReduced = false;
 		this.initMenuContext();
@@ -513,7 +551,10 @@ class CltSegment {
 		// Purpose prevent reference data.
 
 		//Vertex and Boundary data
-		const cloneData = _.cloneDeep(this.dataContainer);
+		const cloneData = {
+			vertex: filterPropertyData(this.dataContainer.vertex, [], ['dataContainer'])
+		}
+
 		cloneData.vertex.forEach(vertex => {
 			dataContent.VERTEX.push(this.getSaveDataVertex(vertex));
 		});
@@ -597,7 +638,7 @@ class CltSegment {
 	}
 
 	sortBySize() {
-		let arrSort =  _.cloneDeep(this.dataContainer.vertex);
+		let arrSort = filterPropertyData(this.dataContainer.vertex, [], ['dataContainer']);
 
 		// Sort descending by data lenght of vertex
 		arrSort.sort(function (a,b) {
@@ -657,8 +698,13 @@ class CltSegment {
 		setMinBoundaryGraph(this.dataContainer, this.graphSvgId, this.viewMode.value);
 	}
 
-	sortByName() {
-		let arrSort =  _.cloneDeep(this.dataContainer.vertex);
+	sortByName(state, allowHistory = true) {
+		// for history
+		let oldPositionStore = {
+			vertex: filterPropertyData(this.dataContainer.vertex, ['id', 'x', 'y'])
+		};
+
+		let arrSort = filterPropertyData(this.dataContainer.vertex, [], ['dataContainer']);
 
 		arrSort.sort(function (a,b) {
 			return (a.name.toUpperCase()).localeCompare((b.name.toUpperCase()));
@@ -717,6 +763,30 @@ class CltSegment {
 				vertex.setPosition({x, y: arrSort2[row][col].y});
 			}
 			x += VERTEX_ATTR_SIZE.GROUP_WIDTH + nMarginRight;
+		}
+
+		// For history
+		if (state) {
+			let he = new HistoryElement();
+			he.actionType = ACTION_TYPE.AUTO_ALIGNMENT;
+			he.oldObject = oldPositionStore;
+			he.dataObject = { 
+				vertex: filterPropertyData(this.dataContainer.vertex, ['id', 'x', 'y'])
+			};
+			he.realObject = this;
+			state.add(he);
+
+		} else if (allowHistory && this.history) {
+			let state = new State();
+			let he = new HistoryElement();
+			he.actionType = ACTION_TYPE.AUTO_ALIGNMENT;
+			he.oldObject = oldPositionStore;
+			he.dataObject = { 
+				vertex: filterPropertyData(this.dataContainer.vertex, ['id', 'x', 'y'])
+			};
+			he.realObject = this;
+			state.add(he);
+			this.history.add(state);
 		}
 
 		setMinBoundaryGraph(this.dataContainer, this.graphSvgId, this.viewMode.value);
@@ -855,6 +925,15 @@ class CltSegment {
 		}
 
 		return true;
+	}
+
+	resetPosition(dataContainer) {
+		this.dataContainer.vertex.forEach(e => {
+			const oldObject = _.find(dataContainer.vertex, {id: e.id});
+			e.setPosition({x: oldObject.x, y: oldObject.y}, false);
+		});
+
+		setMinBoundaryGraph(this.dataContainer, this.svgId, this.viewMode.value);
 	}
 }
   

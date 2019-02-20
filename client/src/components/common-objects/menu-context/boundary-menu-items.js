@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import { OBJECT_TYPE } from '../../../common/const';
 
 class BoundaryMenuItems {
   constructor(props) {
@@ -51,7 +52,7 @@ class BoundaryMenuItems {
 
       member.forEach((mem) => {
         const { type, id, show } = mem;
-        const { name } = type === 'B' ? _.find(this.dataContainer.boundary, { id }) : _.find(this.dataContainer.vertex, { id });
+        const { name } = type === OBJECT_TYPE.BOUNDARY ? _.find(this.dataContainer.boundary, { id }) : _.find(this.dataContainer.vertex, { id });
         subItems[`${id}`] = {
           name: `${name}`,
           type: 'checkbox',
