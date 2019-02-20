@@ -11,7 +11,7 @@ import {
 } from '../../../common/const/index'
 
 import {
-	setSizeGraph, setMinBoundaryGraph, filterPropertyData
+	setSizeGraph, setMinBoundaryGraph, filterPropertyData, isPopupOpen
 } from '../../../common/utilities/common.util';
 
 const FOCUSED_CLASS = 'focused-object';
@@ -86,8 +86,9 @@ class OperationsMgmt {
 			this.mouseY = e.pageY;
 		});
 
-		// Create menu by Ctrl+F
 		$(window).keyup((e) => {
+			if (isPopupOpen()) return;
+
       if ((e.keyCode == 70 || e.keyCode == 102)  && e.ctrlKey) {
 				// Ctrl + F
 				const $container = $(`#${this.containerId}`);

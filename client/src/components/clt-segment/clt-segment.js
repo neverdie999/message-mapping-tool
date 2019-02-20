@@ -13,7 +13,8 @@ import {
 	unsetAddressTabName,
 	setAddressTabName,
 	hideFileChooser,
-	filterPropertyData
+	filterPropertyData,
+	isPopupOpen
 } from '../../common/utilities/common.util';
 
 import { 
@@ -157,7 +158,7 @@ class CltSegment {
 	initShortcutKeyEvent() {
 		// Prevent Ctrl+F on brownser
 		window.addEventListener("keydown",function (e) {
-			if (e.keyCode === 114 || (e.ctrlKey && e.keyCode === 70)) { 
+			if (e.keyCode === 114 || (e.ctrlKey && e.keyCode === 70)) {
 					e.preventDefault();
 			}
 		});
@@ -168,10 +169,11 @@ class CltSegment {
 			this.mouseY = e.pageY;
 		})
 
-		// Create menu by Ctrl+F
 		$(window).keyup((e) => {
-			// Ctrl + F
+			if (isPopupOpen()) return;
+			
       if ((e.keyCode == 70 || e.keyCode == 102)  && e.ctrlKey) {
+				// Ctrl + F
 				$(`#${this.graphContainerId}`).contextMenu({x:this.mouseX, y: this.mouseY});
 				$('.context-menu-root input').focus();
 				

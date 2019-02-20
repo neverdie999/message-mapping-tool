@@ -16,7 +16,8 @@ import {
 	setAddressTabName,
 	unsetAddressTabName,
 	hideFileChooser,
-	filterPropertyData
+	filterPropertyData,
+	isPopupOpen
 } from '../../common/utilities/common.util';
 
 import { 
@@ -168,6 +169,8 @@ class CltMessageMapping {
 
 	initShortcutKeyEvent() {
 		$(window).keyup((e) => {
+			if (isPopupOpen()) return;
+			
       if ((e.keyCode == 90 || e.keyCode == 122)  && e.ctrlKey) {
 				// Ctrl + Z
 				this.history.undo();

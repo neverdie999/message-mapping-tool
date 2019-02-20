@@ -11,7 +11,7 @@ import {
 	VIEW_MODE,
 } from '../../../common/const/index';
 
-import { setSizeGraph } from '../../../common/utilities/common.util';
+import { setSizeGraph, isPopupOpen } from '../../../common/utilities/common.util';
 import State from '../../../common/new-type-define/state';
 
 class InputMgmt {
@@ -88,8 +88,10 @@ class InputMgmt {
 
 		// Create menu by Ctrl+F
 		$(window).keyup((e) => {
-			// Ctrl + F
+			if (isPopupOpen()) return;
+			
       if ((e.keyCode == 70 || e.keyCode == 102)  && e.ctrlKey) {
+				// Ctrl + F
 				const $container = $(`#${this.containerId}`);
 				const {left, top, right, bottom} = $container[0].getBoundingClientRect();
 				if (this.mouseOnWindowX > left && this.mouseOnWindowX < right && this.mouseOnWindowY > top && this.mouseOnWindowY < bottom) {

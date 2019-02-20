@@ -425,3 +425,10 @@ export function filterPropertyData(data, options = [], excludeOptions = []) {
 
   return result;
 }
+
+/**
+ * Check if any popup or menu context is opening
+ */
+export function isPopupOpen() {
+  return $('.modal-backdrop').length >= 1 || $('#context-menu-layer').length >= 1;
+}

@@ -17,6 +17,7 @@ import {
 	setAddressTabName,
 	hideFileChooser,
 	filterPropertyData,
+	isPopupOpen,
 } from '../../common/utilities/common.util';
 
 import { 
@@ -177,8 +178,10 @@ class CltGraph {
 
 		// Create menu by Ctrl+F
 		$(window).keyup((e) => {
-			// Ctrl + F
+			if (isPopupOpen()) return;
+
       if ((e.keyCode == 70 || e.keyCode == 102)  && e.ctrlKey) {
+				// Ctrl + F
 				$(`#${this.graphContainerId}`).contextMenu({x:this.mouseX, y: this.mouseY});
 				$('.context-menu-root input').focus();
 				
