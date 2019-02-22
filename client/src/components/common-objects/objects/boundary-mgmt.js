@@ -338,8 +338,8 @@ class BoundaryMgmt {
         }
 
         if (main.history) {
-          // none parent mean it moved out of boundary or moving itself
-          if (!d.parent) {
+          // none parent and there is no moving in/out boundary => moving itself
+          if (!d.parent && state.listOfHistoryElement.length === 0) {
             const he = new HistoryElement();
             he.actionType = ACTION_TYPE.MOVE;
             he.dataObject = d.getObjectInfo();
@@ -1003,7 +1003,6 @@ class BoundaryMgmt {
         }
 
         item.id = returnObject.id;
-        hasCreateNewObject = true;
       }
     });
   }
