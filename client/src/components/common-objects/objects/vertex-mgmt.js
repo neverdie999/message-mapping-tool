@@ -849,6 +849,9 @@ class VertexMgmt {
 			//update color for "rect"
 			d3.select(`#${id}`).selectAll('.drag_connect:not(.connect_header)').attr('fill', this.colorHashConnection.hex(name));
 			d3.select(`#${id}`).selectAll('.drag_connect.connect_header').attr('fill', this.colorHash.hex(name));
+		
+			// Check mandatory for Data element
+			vertex.validateConnectionByUsage();
 		}
 	}
 
@@ -864,9 +867,6 @@ class VertexMgmt {
 
 		//Check and mark connector if has connection
 		vertex.markedAllConnector();
-		
-		// Check mandatory for Data element
-		vertex.validateConnectionByUsage();
 
 		if (isEffectToParent && parent) {
 			let parentObj = _.find(this.dataContainer.boundary, {'id': parent});
