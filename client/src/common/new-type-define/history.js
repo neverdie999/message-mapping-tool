@@ -1,9 +1,8 @@
-import { ACTION_TYPE, OBJECT_TYPE } from '../const';
-
 class History {
-  constructor(props) {
+  constructor(maxSize) {
     this.store = [];
     this.currentIndex = -1;
+    this.maxSize = maxSize || 100;
   }
 
   add(state) {
@@ -14,7 +13,12 @@ class History {
     }
     state.parent = this;
     this.store.push(state);
-    this.currentIndex++;
+
+    if (this.store.length > this.maxSize) {
+      this.store.shift();
+    } else {
+      this.currentIndex++;
+    }
   }
 
   updateRealObject(realObject) {
