@@ -73,6 +73,8 @@ class HistoryElement {
         } else if (this.realObject.type === OBJECT_TYPE.EDGE) {
           obj = this.realObject.edgeMgmt.create(this.dataObject);
           this.parent.updateRealObject(obj);
+          obj.updatePathConnect();
+          obj.setStatusEdgeOnCurrentView();
         }
         break;
 
@@ -214,20 +216,12 @@ class HistoryElement {
           this.parent.updateRealObject(obj);
         } else if (this.dataObject.type === OBJECT_TYPE.BOUNDARY) {
           obj = this.realObject.boundaryMgmt.create(this.dataObject);
-          this.parent.updateRealObject(obj);
+          this.parent.updateRealObject(obj);          
         } else if (this.realObject.type === OBJECT_TYPE.EDGE) {
-          let vertices = [];
-          this.realObject.edgeMgmt.vertexContainer.forEach((arrVertex) => {
-            vertices = vertices.concat(arrVertex.vertex);
-            vertices = vertices.concat(arrVertex.boundary);
-          });
-
-          const tmpObject = _.find(vertices, { id: this.dataObject.target.vertexId });
-          const position = this.objectUtils.getCoordPropRelativeToParent(tmpObject, this.dataObject.target.prop, CONNECT_TYPE.INPUT);
-          this.dataObject.target.x = position.x;
-          this.dataObject.target.y = position.y;
           const edge = this.realObject.edgeMgmt.create(this.dataObject);
           this.parent.updateRealObject(edge);
+          edge.updatePathConnect();
+          edge.setStatusEdgeOnCurrentView();
         }
 
         if (isLastObject) {

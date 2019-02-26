@@ -182,7 +182,7 @@ class Vertex {
         </div>`;
     }
 
-    const vertexHeight = VERTEX_ATTR_SIZE.HEADER_HEIGHT + VERTEX_ATTR_SIZE.PROP_HEIGHT * countData;
+    const vertexHeight = VERTEX_ATTR_SIZE.HEADER_HEIGHT + VERTEX_ATTR_SIZE.PROP_HEIGHT * countData + 1;
 
     const group = d3.select(`#${this.id}`);
     group.append('foreignObject')

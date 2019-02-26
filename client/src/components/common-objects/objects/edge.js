@@ -5,7 +5,7 @@ import State from '../../../common/new-type-define/state';
 import ObjectUtils from '../../../common/utilities/object.util';
 
 import {
-  LINE_TYPE, OBJECT_TYPE, ACTION_TYPE, NOTE_TYPE,
+  LINE_TYPE, OBJECT_TYPE, ACTION_TYPE, NOTE_TYPE, CONNECT_TYPE,
 } from '../../../common/const/index';
 import { generateObjectId, createPath } from '../../../common/utilities/common.util';
 
@@ -301,11 +301,33 @@ class Edge {
 
   /**
    * Update attribute d of path (connect)
-   * @param id
    * @param options: object
    */
-  updatePathConnect(sOptions = {}) {
-    _.merge(this, sOptions);
+  updatePathConnect(sOptions) {
+
+    if (sOptions) {
+      _.merge(this, sOptions);
+
+    } else {
+      let vertices = [];
+      this.edgeMgmt.vertexContainer.forEach(dataContainer => {
+        vertices = vertices.concat(dataContainer.vertex);
+        vertices = vertices.concat(dataContainer.boundary);
+      })
+
+      // for source
+      let tmpObject = _.find(vertices, {id: this.source.vertexId});
+      let newPosition = this.objectUtils.getCoordPropRelativeToParent(tmpObject, this.source.prop, CONNECT_TYPE.OUTPUT);
+      this.source.x = newPosition.x;
+      this.source.y = newPosition.y;
+
+      // for target
+      tmpObject = _.find(vertices, {id: this.target.vertexId});
+      newPosition = this.objectUtils.getCoordPropRelativeToParent(tmpObject, this.target.prop, CONNECT_TYPE.INPUT);
+      this.target.x = newPosition.x;
+      this.target.y = newPosition.y;
+    }
+    
     const { source, target } = this;
     const pathStr = createPath(source, target);
     // Get DOM and update attribute
