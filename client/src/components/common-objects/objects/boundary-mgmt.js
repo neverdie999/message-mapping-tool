@@ -362,6 +362,8 @@ class BoundaryMgmt {
    * The box simulate new position of vertex or boundary dragged.
    */
   initBBoxGroup() {
+    if ($(`#${this.dummyBoxId}`).length > 0 ) return;
+
     d3.select(`#${this.svgId}`).append('svg:g')
       .attr('transform', 'translate(0.5, 0.5)')
       .append('svg:rect')
@@ -369,7 +371,6 @@ class BoundaryMgmt {
       .attr('width', BOUNDARY_ATTR_SIZE.BOUND_WIDTH)
       .attr('height', BOUNDARY_ATTR_SIZE.BOUND_HEIGHT)
       .attr('class', 'dummy-edge stroke-dasharray')
-    // .attr("stroke-dasharray", "3 3")
       .attr('fill', 'none');
   }
 

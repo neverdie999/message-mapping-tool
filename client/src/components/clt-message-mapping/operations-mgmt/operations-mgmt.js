@@ -3,7 +3,6 @@ import VertexMgmt from '../../common-objects/objects/vertex-mgmt';
 import BoundaryMgmt from '../../common-objects/objects/boundary-mgmt';
 import ObjectUtils from '../../../common/utilities/object.util';
 import FindMenu from '../../common-objects/menu-context/find-menu';
-import State from '../../../common/new-type-define/state'
 import HistoryElement from '../../../common/new-type-define/historyElement'
 
 import {

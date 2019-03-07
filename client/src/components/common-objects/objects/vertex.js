@@ -845,9 +845,9 @@ class Vertex {
 
     let element = $(`#${vertexId} .vertex_content`);
     element.parent()
-      .attr('height', tmpArry.length ?
+      .attr('height', (tmpArry.length ?
         VERTEX_ATTR_SIZE.HEADER_HEIGHT + VERTEX_ATTR_SIZE.PROP_HEIGHT * tmpArry.length : isShowFull ?
-          VERTEX_ATTR_SIZE.HEADER_HEIGHT : exitConnect ? VERTEX_ATTR_SIZE.HEADER_HEIGHT : VERTEX_ATTR_SIZE.HEADER_HEIGHT);
+          VERTEX_ATTR_SIZE.HEADER_HEIGHT : exitConnect ? VERTEX_ATTR_SIZE.HEADER_HEIGHT : VERTEX_ATTR_SIZE.HEADER_HEIGHT) + 1);
 	}
 }
 
