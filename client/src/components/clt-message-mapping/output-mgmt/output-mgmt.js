@@ -106,43 +106,39 @@ class OutputMgmt {
   	});
 	}
 
-	async drawObjectsOnOutputGraph(data) {
-		this.isShowReduced = false
+	drawObjectsOnOutputGraph(data) {
+		this.isShowReduced = false;
     
-		const { boundary: boundaries, vertex: vertices, position } = data
+		const { boundary: boundaries, vertex: vertices, position } = data;
 		// Draw boundary
 		boundaries.forEach(e => {
 			let { x, y } = position.find(pos => {
-				return pos.id === e.id
-			})
+				return pos.id === e.id;
+			});
 
-			e.x = x
-			e.y = y
-			e.isImport = true
-
-			this.boundaryMgmt.create(e)
-		})
+			e.x = x;
+			e.y = y;
+			this.boundaryMgmt.create(e);
+		});
 
 		// Draw vertex
 		vertices.forEach(e => {
 			const { x, y } = position.find(pos => {
-				return pos.id === e.id
-			})
+				return pos.id === e.id;
+			});
 
-			e.x = x
-			e.y = y
-			e.isImport = true
-
-			this.vertexMgmt.create(e)
+			e.x = x;
+			e.y = y;
+			this.vertexMgmt.create(e);
 		})
 
 		if (this.dataContainer.boundary && this.dataContainer.boundary.length > 0) {
-			this.objectUtils.setAllChildrenToShow(this.dataContainer)
+			this.objectUtils.setAllChildrenToShow(this.dataContainer);
 			if (this.dataContainer.boundary.length > 0)
-				await this.dataContainer.boundary[0].updateHeightBoundary()
+      this.objectUtils.updateHeightBoundary(this.dataContainer);
 		}
 
-		this.setCenterAlignmentGarph()
+		this.setCenterAlignmentGarph();
 	}
 
 	clearAll() {
@@ -153,13 +149,13 @@ class OutputMgmt {
 	}
 
 	showReduced() {
-		let state = new State();
+		const state = new State();
 
 		this.isShowReduced = true;
 		this.objectUtils.showReduced(this.dataContainer, this.svgId, this.viewMode.value, state);
 
 		if (this.history) {
-			let he = new HistoryElement();
+			const he = new HistoryElement();
 			he.actionType = ACTION_TYPE.UPDATE_SHOW_REDUCED_STATUS;
 			he.realObject = this;
 			state.add(he);
@@ -168,13 +164,13 @@ class OutputMgmt {
 	}
 
 	showFull() {
-		let state = new State();
+		const state = new State();
 
 		this.isShowReduced = false;
 		this.objectUtils.showFull(this.dataContainer, this.svgId, this.viewMode.value, state);
 
 		if (this.history) {
-			let he = new HistoryElement();
+			const he = new HistoryElement();
 			he.actionType = ACTION_TYPE.UPDATE_SHOW_FULL_STATUS;
 			he.realObject = this;
 			state.add(he);
@@ -186,42 +182,41 @@ class OutputMgmt {
    * set position graph by center align
    */
 	setCenterAlignmentGarph() {
-		const parentBoundary = _.find(this.dataContainer.boundary, {'parent': null})
+		const parentBoundary = _.find(this.dataContainer.boundary, {'parent': null});
 
-		const rightScrollWidth = 10
-		const marginTop = 10
-		const marginLeft = 5
-		const marginRight = 5
+		const rightScrollWidth = 10;
+		const marginTop = 10;
+		const marginLeft = 5;
+		const marginRight = 5;
 
-		let newX = marginLeft
-		let newY = marginTop
+		let newX = marginLeft;
+		const newY = marginTop;
 
 		if (parentBoundary) {
+			$('.right-svg').css('left', `calc(100% - ${parentBoundary.width + rightScrollWidth + marginLeft + marginRight}px)`);
+			$('.right-svg').css('width', `${parentBoundary.width + rightScrollWidth + marginLeft + marginRight}px`);
 
-			$('.right-svg').css('left', `calc(100% - ${parentBoundary.width + rightScrollWidth + marginLeft + marginRight}px)`)
-			$('.right-svg').css('width', `${parentBoundary.width + rightScrollWidth + marginLeft + marginRight}px`)
+			const inputRec = $('.left-svg')[0].getBoundingClientRect();
+			const outputRec = $('.right-svg')[0].getBoundingClientRect();
+			$('.middle-svg').css('width', `calc(100% - ${inputRec.width + outputRec.width}px)`);
 
-			const inputRec = $('.left-svg')[0].getBoundingClientRect()
-			const outputRec = $('.right-svg')[0].getBoundingClientRect()
-			$('.middle-svg').css('width', `calc(100% - ${inputRec.width + outputRec.width}px)`)
-
-			const containerRect = $(`#${parentBoundary.svgId}`)[0].parentNode.getBoundingClientRect()
+			const containerRect = $(`#${parentBoundary.svgId}`)[0].parentNode.getBoundingClientRect();
 
 			if ( containerRect.width - rightScrollWidth  - marginLeft - marginRight >= parentBoundary.width ) {
-				newX = newX + ((containerRect.width - rightScrollWidth  - marginLeft - marginRight - parentBoundary.width) / 2)
+				newX = newX + ((containerRect.width - rightScrollWidth  - marginLeft - marginRight - parentBoundary.width) / 2);
 			}
 
-			const offsetX = newX - parentBoundary.x
-			const offsetY = newY - parentBoundary.y
+			const offsetX = newX - parentBoundary.x;
+			const offsetY = newY - parentBoundary.y;
 
 			if (offsetX != 0 || offsetY != 0) {
-				parentBoundary.move(offsetX, offsetY)
+				parentBoundary.move(offsetX, offsetY);
 			}
 		}
 	}
 
 	processDataVertexTypeDefine(vertexDefinitionData) {
-		this.vertexMgmt.processDataVertexTypeDefine(vertexDefinitionData)
+		this.vertexMgmt.processDataVertexTypeDefine(vertexDefinitionData);
 	}
 	
 	/**
@@ -229,12 +224,12 @@ class OutputMgmt {
 	 */
 	validateConnectionByUsage() {
 		if (this.dataContainer.boundary.length > 0) {
-			let parent = this.dataContainer.boundary[0].findAncestorOfMemberInNestedBoundary()
+			const parent = this.dataContainer.boundary[0].findAncestorOfMemberInNestedBoundary();
 
-			return parent.validateConnectionByUsage()
+			return parent.validateConnectionByUsage();
 		}
 
-		return true
+		return true;
 	}
 
 	setWindowMousePoint(x, y) {

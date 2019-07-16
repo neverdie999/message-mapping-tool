@@ -18,7 +18,7 @@ class OutputMessageLinker {
       if (inputSegment === undefined) {
         return;
       }
-      
+
       const targetOutputMessageSegmentGroups = this._findTopTierParentOfSegment(outputMessageElements);
       targetOutputMessageSegmentGroups.forEach((targetOutputSegmentGroup) => {
         inputSegment.addChild(targetOutputSegmentGroup);

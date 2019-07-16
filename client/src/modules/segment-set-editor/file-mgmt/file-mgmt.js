@@ -27,13 +27,13 @@ class FileMgmt {
 
 		// Handle event change value on group radio Mode
 		$(GROUP_OPTION_MODE_GRAPH).change((event) => {
-			let modeGraph = event.target.value;
+			const modeGraph = event.target.value;
 			this.parent.setGraphMode(modeGraph);
 		});
 
 		// Handle event click on button Download
 		$(`#${ID_BUTTON_DOWNLOAD_FILE}`).click((event) => {
-			let fileName = $(`#${ID_OUTPUT_FILE_NAME}`).val();
+			const fileName = $(`#${ID_OUTPUT_FILE_NAME}`).val();
 			if (this.parent.save(fileName)) {
 				hideFileChooser();
 			}
@@ -42,14 +42,14 @@ class FileMgmt {
 		// Handle event press enter on input file name
 		$(`#${ID_OUTPUT_FILE_NAME}`).keypress((event) => {
 			if (event.keyCode == 13) {
-				let fileName = $(`#${ID_OUTPUT_FILE_NAME}`).val();
+				const fileName = $(`#${ID_OUTPUT_FILE_NAME}`).val();
 				this.parent.save(fileName);
 				event.preventDefault();
 			}
 		});
 		
 		$(`#${ID_BUTTON_EXPORT_IMAGE}`).click(()=>{
-			let fileName = $(`#${ID_OUTPUT_FILE_NAME}`).val();
+			const fileName = $(`#${ID_OUTPUT_FILE_NAME}`).val();
 			if (this.parent.saveToImage(fileName)) {
 				hideFileChooser();
 			}
@@ -68,23 +68,23 @@ class FileMgmt {
 	async readJsonFile() {
 		const file = $(`#${ID_INPUT_FILE_DATA}`)[0].files[0];
 		if (!file)
-			return
+			return;
 
 		const data = await readDataFileJson(file);
 		if (!data)
-			return
+			return;
 
-		const options = $(`#${ID_OPTION_FILE_TYPE_INPUT}`).val()
+		const options = $(`#${ID_OPTION_FILE_TYPE_INPUT}`).val();
 
 		this.parent.separateDataToManagement(data, options, file.name);
 	}
 
 	clearInputFile() {
-		$(`#${ID_INPUT_FILE_DATA}`).val(null)
+		$(`#${ID_INPUT_FILE_DATA}`).val(null);
 	}
 
 	clearOutFileName() {
-		$(`#${ID_OUTPUT_FILE_NAME}`).val(null)
+		$(`#${ID_OUTPUT_FILE_NAME}`).val(null);
 	}
 }
 

@@ -38,7 +38,7 @@ class BoundaryMenuItems {
       subItems.isHtmlItem = {
         type: 'html',
         html: '<div style="text-align: center; color: #ff0000;"><span>No member added</span></div>',
-      };
+      }
     } else {
       subItems.showAll = {
         name: 'Show all',
@@ -46,7 +46,7 @@ class BoundaryMenuItems {
         events: {
           click: this.handleOnSelectAll(boundaryObj),
         },
-      };
+      }
 
       subItems.sep1 = '-';
 

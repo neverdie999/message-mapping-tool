@@ -64,7 +64,6 @@ class CltSegment {
 	}
 
 	initialize() {
-
 		this.objectUtils = new ObjectUtils();
 
 		this.initSvgHtml();
@@ -195,7 +194,6 @@ class CltSegment {
 				}
 			} else if (e.keyCode == 46) {
 				// Delete key
-
 				const $focusedObject = $(`#${this.graphSvgId} .${FOCUSED_CLASS}`);
 
 				if ($focusedObject.length > 0) {
@@ -237,7 +235,7 @@ class CltSegment {
 	showReduced() {
 		this.isShowReduced = true;
     
-		let state = new State();
+		const state = new State();
 		this.dataContainer.vertex.forEach((vertex) => {
 			vertex.showReduced(state);
 		});
@@ -245,7 +243,7 @@ class CltSegment {
 		this.sortByName(state);
 
 		if (this.history) {
-			let he = new HistoryElement();
+			const he = new HistoryElement();
 			he.actionType = ACTION_TYPE.UPDATE_SHOW_REDUCED_STATUS;
 			he.realObject = this;
 			state.add(he);
@@ -256,7 +254,7 @@ class CltSegment {
 	showFull() {
 		this.isShowReduced = false;
     
-		let state = new State();
+		const state = new State();
 		this.dataContainer.vertex.forEach((vertex) => {
 			vertex.showFull(state);
 		});
@@ -264,7 +262,7 @@ class CltSegment {
 		this.sortByName(state);
 
 		if (this.history) {
-			let he = new HistoryElement();
+			const he = new HistoryElement();
 			he.actionType = ACTION_TYPE.UPDATE_SHOW_FULL_STATUS;
 			he.realObject = this;
 			state.add(he);
@@ -293,23 +291,20 @@ class CltSegment {
 		}
 	}
 
-	async drawObjects(data) {
+	drawObjects(data) {
 		const { VERTEX: vertices } = data;
 		// Draw Segment
 
-		let x = 5;
-		let y = 5;
+		const x = 5;
+		const y = 5;
 		vertices.forEach(e => {
 			e.x = x;
 			e.y = y;
-			e.isImport = true;
-
 			this.segmentMgmt.create(e);
-		})
+		});
 	}
 
-	async loadSegmentSpecEditor(segmentData, fileName) {
-
+	loadSegmentSpecEditor(segmentData, fileName) {
 		if (!this.validateSegmentSpecStructure(segmentData)) {
 			comShowMessage('Format or data in Segment Set is corrupted. You should check it!');
 			return;
@@ -324,8 +319,8 @@ class CltSegment {
 		//clear data
 		this.clearAll();
 
-		await this.drawObjects(segmentData);
-		await this.sortByName(null, false);
+		this.drawObjects(segmentData);
+		this.sortByName(null, false);
 
 		this.isShowReduced = false;
 		this.initMenuContext();
@@ -352,16 +347,16 @@ class CltSegment {
 				return;
 			}
 			// stringify with tabs inserted at each level
-			let graph = JSON.stringify(content, null, '\t');
-			let blob = new Blob([graph], {type: 'application/json', charset: 'utf-8'});
+			const graph = JSON.stringify(content, null, '\t');
+			const blob = new Blob([graph], {type: 'application/json', charset: 'utf-8'});
 
 			if (navigator.msSaveBlob) {
 				navigator.msSaveBlob(blob, fileName);
 				return;
 			}
 
-			let fileUrl = window.URL.createObjectURL(blob);
-			let downLink = $('<a>');
+			const fileUrl = window.URL.createObjectURL(blob);
+			const downLink = $('<a>');
 			downLink.attr('download', `${fileName}.vtd`);
 			downLink.attr('href', fileUrl);
 			downLink.css('display', 'none');
@@ -402,11 +397,11 @@ class CltSegment {
 		if(elements && elements.length) {
 			elements.forEach(function(d) {
 				d3.selectAll(d.el).each(function() {
-					let element = this;
+					const element = this;
 					if (d.el == '.header_name') debugger;
 					if(d.properties && d.properties.length) {
 						d.properties.forEach(function(prop) {
-							let computedStyle = getComputedStyle(element, null)
+							const computedStyle = getComputedStyle(element, null);
 							let value = computedStyle.getPropertyValue(prop);
 
 							if (prop == 'height') {
@@ -417,10 +412,10 @@ class CltSegment {
 							}
 								
 							element.style[prop] = value;
-						})
+						});
 					}
-				 })
-			})
+				 });
+			});
 		}
 	}
 	
@@ -428,7 +423,6 @@ class CltSegment {
 	 * Save SVG to image
 	 */
 	saveToImage(fileName) {
-
 		if (!fileName) {
 			comShowMessage('Please input file name');
 			return;
@@ -466,11 +460,11 @@ class CltSegment {
 
 		//Adding padding-left 2.5px for each first &nbsp; because it has an error while exporting with &nbsp;
 		$('#export_image .vertex_data .property .key').each(function() {
-			let innerHTML = this.innerHTML;
+			const innerHTML = this.innerHTML;
 
 			if (innerHTML != '') {
 				let nCount = 0;
-				let arr = innerHTML.split('&nbsp;');
+				const arr = innerHTML.split('&nbsp;');
 
 				for (let i = 0; i < arr.length; i++) {
 					if (arr[i] == '') nCount++;
@@ -491,23 +485,22 @@ class CltSegment {
 		d3.select('#export_image').remove();
 
 		// Create data and export image file
-		let imgsrc = 'data:image/svg+xml;base64,'+ btoa(html);
+		const imgsrc = 'data:image/svg+xml;base64,'+ btoa(html);
 
 		d3.select('body')
 			.append('canvas')
 			.attr('width', width)
 			.attr('height', height);
 
-		let canvas = $('canvas').get(0);
-		let	context = canvas.getContext('2d');
+    const canvas = $('canvas').get(0);
+		const	context = canvas.getContext('2d');
 
-		let image = new Image;
+		const image = new Image;
 		image.src = imgsrc;
 		image.onload = () => {
-
 			context.drawImage(image, 0, 0);
 	
-			let a = document.createElement('a');
+			const a = document.createElement('a');
 			a.download = `${fileName}.png`;
 			a.href = this.binaryblob();
 
@@ -520,22 +513,22 @@ class CltSegment {
 	}
 
 	binaryblob() {
-		let byteString = atob(document.querySelector('canvas').toDataURL().replace(/^data:image\/(png|jpg);base64,/, ''));
-		let ab = new ArrayBuffer(byteString.length);
-		let ia = new Uint8Array(ab);
+		const byteString = atob(document.querySelector('canvas').toDataURL().replace(/^data:image\/(png|jpg);base64,/, ''));
+		const ab = new ArrayBuffer(byteString.length);
+		const ia = new Uint8Array(ab);
 		for (let i = 0; i < byteString.length; i++) {
 			ia[i] = byteString.charCodeAt(i);
 		}
-		let dataView = new DataView(ab);
-		let blob = new Blob([dataView], {type: 'image/png'});
-		let DOMURL = self.URL || self.webkitURL || self;
-		let newurl = DOMURL.createObjectURL(blob);
+		const dataView = new DataView(ab);
+		const blob = new Blob([dataView], {type: 'image/png'});
+		const DOMURL = self.URL || self.webkitURL || self;
+		const newurl = DOMURL.createObjectURL(blob);
 	
 		return newurl;
 	}
 
 	getContentGraphAsJson() {
-		let dataContent = {VERTEX_GROUP: [], VERTEX: []};
+		const dataContent = {VERTEX_GROUP: [], VERTEX: []};
 
 		if (this.isEmptyContainerData(this.dataContainer)) {
 			return Promise.reject('There is no Input data. Please import!');
@@ -569,11 +562,10 @@ class CltSegment {
    * @param {*} vertexGroup 
    */
 	getSaveVertexGroup(vertexGroup) {
-		let resObj = [];
+		const resObj = [];
 
 		vertexGroup.forEach(group => {
 			let tmpGroup = {};
-
 			tmpGroup.groupType = group.groupType;
 			tmpGroup.option = group.option;
 			tmpGroup.dataElementFormat = group.dataElementFormat;
@@ -590,7 +582,7 @@ class CltSegment {
    * @param {*} vertex 
    */
 	getSaveDataVertex(vertex) {
-		let resObj = {};
+		const resObj = {};
 		resObj.groupType = vertex.groupType;
 		resObj.vertexType = vertex.vertexType;
 		resObj.description = vertex.description;
@@ -621,7 +613,6 @@ class CltSegment {
    * Validate Vertex Group Define Structure
    */
 	validateSegmentSpecStructure(data) {
-
 		//Validate data exists
 		if(data===undefined)
 		{
@@ -640,7 +631,7 @@ class CltSegment {
 	}
 
 	sortBySize() {
-		let arrSort = filterPropertyData(this.dataContainer.vertex, [], ['dataContainer']);
+		const arrSort = filterPropertyData(this.dataContainer.vertex, [], ['dataContainer']);
 
 		// Sort descending by data lenght of vertex
 		arrSort.sort(function (a,b) {
@@ -661,8 +652,8 @@ class CltSegment {
 		if (columnCount < 1) columnCount = 1;
 
 		// Fist arrange
-		let arrSort2 = [];
-		let arrLenght = [];
+		const arrSort2 = [];
+		const arrLenght = [];
 		for (let i = 0; i < columnCount && i < arrSort.length; i++) {
 			let arr = [];
 			arrSort[i].y = PADDING_POSITION_SVG.MIN_OFFSET_Y;
@@ -676,7 +667,7 @@ class CltSegment {
 			let nCount = columnCount;
 			while (nCount < arrSort.length) {
 				// Find the column has the min height
-				let indexOfMin = this.indexOfMinOf(arrLenght);
+				const indexOfMin = this.indexOfMinOf(arrLenght);
 
 				arrSort[nCount].y = arrLenght[indexOfMin] + nMarginBottom;
 				arrSort2[indexOfMin].push(arrSort[nCount]);
@@ -702,11 +693,11 @@ class CltSegment {
 
 	sortByName(state, allowHistory = true) {
 		// for history
-		let oldPositionStore = {
+		const oldPositionStore = {
 			vertex: filterPropertyData(this.dataContainer.vertex, ['id', 'x', 'y'])
 		};
 
-		let arrSort = filterPropertyData(this.dataContainer.vertex, [], ['dataContainer']);
+		const arrSort = filterPropertyData(this.dataContainer.vertex, [], ['dataContainer']);
 
 		arrSort.sort(function (a,b) {
 			return (a.name.toUpperCase()).localeCompare((b.name.toUpperCase()));
@@ -726,10 +717,10 @@ class CltSegment {
 		if (columnCount < 1) columnCount = 1;
 
 		// Fist arrange
-		let arrSort2 = [];
-		let arrLenght = [];
+		const arrSort2 = [];
+		const arrLenght = [];
 		for (let i = 0; i < columnCount && i < arrSort.length; i++) {
-			let arr = [];
+			const arr = [];
 			arrSort[i].y = PADDING_POSITION_SVG.MIN_OFFSET_Y;
 			arr.push(arrSort[i]);
 			arrSort2.push(arr);
@@ -741,7 +732,7 @@ class CltSegment {
 			let nCount = columnCount;
 			while (nCount < arrSort.length) {
 				// Find the column has the min height
-				let indexOfMax = this.indexOfMaxOf(arrLenght);
+				const indexOfMax = this.indexOfMaxOf(arrLenght);
 				const maxLength = arrLenght[indexOfMax];
 				const y = arrLenght[indexOfMax] + nMarginBottom;
 
@@ -769,7 +760,7 @@ class CltSegment {
 
 		// For history
 		if (state) {
-			let he = new HistoryElement();
+			const he = new HistoryElement();
 			he.actionType = ACTION_TYPE.AUTO_ALIGNMENT;
 			he.oldObject = oldPositionStore;
 			he.dataObject = { 
@@ -779,8 +770,8 @@ class CltSegment {
 			state.add(he);
 
 		} else if (allowHistory && this.history) {
-			let state = new State();
-			let he = new HistoryElement();
+			const state = new State();
+			const he = new HistoryElement();
 			he.actionType = ACTION_TYPE.AUTO_ALIGNMENT;
 			he.oldObject = oldPositionStore;
 			he.dataObject = { 
@@ -892,7 +883,7 @@ class CltSegment {
 	}
 
 	validateDuplicateSegmentName() {
-		let arrayCount = [];
+		const arrayCount = [];
 
 		for (let i = 0; i < this.dataContainer.vertex.length; i += 1) {
 			const vertex = this.dataContainer.vertex[i];

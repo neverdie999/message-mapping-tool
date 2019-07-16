@@ -1,15 +1,14 @@
-import * as d3 from 'd3'
-import _ from 'lodash'
+import * as d3 from 'd3';
+import _ from 'lodash';
 import {
 	PADDING_POSITION_SVG,
 	VERTEX_ATTR_SIZE,
 	CONNECT_TYPE,
-	COMMON_DATA,
 	BOUNDARY_ATTR_SIZE,
 	ACTION_TYPE,
 	OBJECT_TYPE
-} from '../const/index'
-import { setMinBoundaryGraph, checkModePermission } from './common.util'
+} from '../const/index';
+import { setMinBoundaryGraph, checkModePermission } from './common.util';
 import HistoryElement from '../new-type-define/historyElement';
 
 class ObjectUtils {
@@ -22,18 +21,18 @@ class ObjectUtils {
    */
 	setPositionObjectJustInSvg(event, object) {
 		// Limit left
-		let x = event.x < PADDING_POSITION_SVG.MIN_OFFSET_X ? PADDING_POSITION_SVG.MIN_OFFSET_X : event.x
-		let y = event.y < PADDING_POSITION_SVG.MIN_OFFSET_Y ? PADDING_POSITION_SVG.MIN_OFFSET_Y : event.y
+		let x = event.x < PADDING_POSITION_SVG.MIN_OFFSET_X ? PADDING_POSITION_SVG.MIN_OFFSET_X : event.x;
+		const y = event.y < PADDING_POSITION_SVG.MIN_OFFSET_Y ? PADDING_POSITION_SVG.MIN_OFFSET_Y : event.y;
     
 		// limit right
 		if (!checkModePermission(object.viewMode.value, 'horizontalScroll')) {
-			let limitWidth = $(`${object.svgId}`).width()
-			let {width} = this.getBBoxObject(object.id)
+			let limitWidth = $(`${object.svgId}`).width();
+			let {width} = this.getBBoxObject(object.id);
 			if (x + width > limitWidth)
-				x = limitWidth - width
+				x = limitWidth - width;
 		}
 
-		return {x, y}
+		return {x, y};
 	}
 
 	/**
@@ -42,10 +41,11 @@ class ObjectUtils {
    * @returns {*}
    */
 	getBBoxObject(selector) {
-		let node = d3.select(`${selector}`)
+		const node = d3.select(`${selector}`);
 		if (node)
-			return node.node().getBBox()
-		return null
+      return node.node().getBBox();
+      
+		return null;
 	}
 
 	/**
@@ -59,15 +59,15 @@ class ObjectUtils {
    */
 	getCoordPropRelativeToParent(info, prop, type) {
 		if (!type)
-			type = CONNECT_TYPE.OUTPUT
-		const {x, y, id, svgId: svg} = info
-		let axisX = x
-		let axisY = y
+			type = CONNECT_TYPE.OUTPUT;
+		const {x, y, id, svgId: svg} = info;
+		const axisX = x;
+		let axisY = y;
 		// Area draw element svg
-		let containerSvg = $(`#${svg}`)
+		const containerSvg = $(`#${svg}`);
 		// Parent id container the object SVG
-		let parent = $(`#${svg}`).parent().attr('id')
-		let parentSvg = $(`#${parent}`)
+		const parent = $(`#${svg}`).parent().attr('id');
+		const parentSvg = $(`#${parent}`);
 
 		if (!prop)
 			return {
@@ -76,16 +76,14 @@ class ObjectUtils {
 			}
 
 		if (prop.indexOf('boundary_title') != -1) {
-
-			axisY = axisY + BOUNDARY_ATTR_SIZE.HEADER_HEIGHT / 2
+			axisY = axisY + BOUNDARY_ATTR_SIZE.HEADER_HEIGHT / 2;
 
 			return {
 				x: type === CONNECT_TYPE.OUTPUT ? axisX + info.width + containerSvg.offset().left : axisX + containerSvg.offset().left,
 				y: axisY - parentSvg.scrollTop()
 			}
-		}else if (prop.indexOf('title') != -1) {
-
-			axisY = axisY + VERTEX_ATTR_SIZE.HEADER_HEIGHT / 2
+		} else if (prop.indexOf('title') != -1) {
+			axisY = axisY + VERTEX_ATTR_SIZE.HEADER_HEIGHT / 2;
 
 			return {
 				x: type === CONNECT_TYPE.OUTPUT ? axisX + VERTEX_ATTR_SIZE.GROUP_WIDTH + containerSvg.offset().left : axisX + containerSvg.offset().left,
@@ -93,10 +91,11 @@ class ObjectUtils {
 			}
 		} else{
 			// Get index prop in object
-			let index = this.findIndexPropInVertex(id, prop)
+			const index = this.findIndexPropInVertex(id, prop);
 			// Calculate coordinate of prop
 			// Get coordinate
-			axisY = axisY + VERTEX_ATTR_SIZE.HEADER_HEIGHT + index * VERTEX_ATTR_SIZE.PROP_HEIGHT + VERTEX_ATTR_SIZE.PROP_HEIGHT / 2
+      axisY = axisY + VERTEX_ATTR_SIZE.HEADER_HEIGHT + index * VERTEX_ATTR_SIZE.PROP_HEIGHT + VERTEX_ATTR_SIZE.PROP_HEIGHT / 2;
+      
 			return {
 				x: type === CONNECT_TYPE.OUTPUT ? axisX + VERTEX_ATTR_SIZE.GROUP_WIDTH + containerSvg.offset().left : axisX + containerSvg.offset().left,
 				y: axisY - parentSvg.scrollTop()
@@ -112,16 +111,17 @@ class ObjectUtils {
    */
 	findIndexPropInVertex(vertexId, prop) {
 		// Find index prop in object
-		let arrayProp = d3.select(`#${vertexId}`).selectAll('.property:not(.hide)')
-		let tmpArry = arrayProp._groups[0]
-		let length = tmpArry.length
+		const arrayProp = d3.select(`#${vertexId}`).selectAll('.property:not(.hide)');
+		const tmpArry = arrayProp._groups[0];
+		const length = tmpArry.length;
 		for (let i = 0; i < length; i++) {
-			let e = tmpArry[i]
+			const e = tmpArry[i];
 			if (d3.select(e).attr('prop') === prop) {
-				return i
+				return i;
 			}
-		}
-		return null
+    }
+    
+		return null;
 	}
 
   
@@ -131,17 +131,17 @@ class ObjectUtils {
    */
 	reSizeBoundaryWhenObjectDragged(obj) {
 		// Get box object
-		const {height, width} = this.getBBoxObject(`#${obj.id}`)
+		const { width } = this.getBBoxObject(`#${obj.id}`);
 
 		obj.dataContainer.boundary.forEach(boundary => {
 			if (boundary.id != obj.id && !boundary.parent) {
-				let boundaryBox = this.getBBoxObject(`#${boundary.id}`)
+				const boundaryBox = this.getBBoxObject(`#${boundary.id}`);
 
 				if (width >= boundaryBox.width) {
 					//2018.07.03 - Vinh Vo - save this height for restoring to origin size if the object not drag in/out this boundary
-					boundary.startWidth = boundary.width
-					boundary.setWidth(width + 15)
-					boundary.boundaryMgmt.edgeMgmt.updatePathConnectForVertex(boundary)
+					boundary.startWidth = boundary.width;
+					boundary.setWidth(width + 15);
+					boundary.boundaryMgmt.edgeMgmt.updatePathConnectForVertex(boundary);
 				}
 			}
 		})
@@ -151,99 +151,97 @@ class ObjectUtils {
    * Check drag outside boundary
    */
 	checkDragObjectOutsideBoundary(obj, state) {
-
 		// Get box object
-		const {id, parent} = obj
-		let {height, width} = this.getBBoxObject(`#${id}`)
-		let xSrc = obj.x
-		let ySrc = obj.y
-		let wBSrc = xSrc + width
-		let hBSrc = ySrc + height
+		const {id, parent} = obj;
+		const {height, width} = this.getBBoxObject(`#${id}`);
+		const xSrc = obj.x;
+		const ySrc = obj.y;
+		const wBSrc = xSrc + width;
+		const hBSrc = ySrc + height;
 
 		// Parent
-		const {x, y} = _.find(obj.dataContainer.boundary,{'id':parent})
-		let pBox = this.getBBoxObject(`#${parent}`)
-		let xParent = x + pBox.width
-		let yParent = y + pBox.height
+		const {x, y} = _.find(obj.dataContainer.boundary,{'id':parent});
+		const pBox = this.getBBoxObject(`#${parent}`);
+		const xParent = x + pBox.width;
+		const yParent = y + pBox.height;
 
 		// Check drag outside a boundary
 		if ((( wBSrc < x) || ( xParent < xSrc )) || ((hBSrc < y ) || ( yParent < ySrc ))) {
-			let oldObject = obj.getObjectInfo()
-			let parentObj = _.find(obj.dataContainer.boundary,{'id': parent})
-			parentObj.removeMemberFromBoundary(obj, true, state)
-			obj.parent = null
-			obj.childIndex = -1
+			const oldObject = obj.getObjectInfo();
+			let parentObj = _.find(obj.dataContainer.boundary,{'id': parent});
+			parentObj.removeMemberFromBoundary(obj, true, state);
+			obj.parent = null;
+			obj.childIndex = -1;
 
 			if (state) {
-				let he = new HistoryElement()
-				he.actionType = ACTION_TYPE.PARENT_CHANGE
-				he.oldObject = oldObject
-				he.dataObject = obj.getObjectInfo()
-				he.realObject = obj
-				state.add(he)
+				let he = new HistoryElement();
+				he.actionType = ACTION_TYPE.PARENT_CHANGE;
+				he.oldObject = oldObject;
+				he.dataObject = obj.getObjectInfo();
+				he.realObject = obj;
+				state.add(he);
 				
-				return true
+				return true;
 			}
 		}
 
-		return false
+		return false;
 	}
 
 	// Check drag inside boundary
 	checkDragObjectInsideBoundary(obj, state) {
-
-		let bIsInside = false
+		let bIsInside = false;
 		// Get box object
-		const {height, width} = this.getBBoxObject(`#${obj.id}`)
-		let xSrc = obj.x
-		let ySrc = obj.y
-		let wBSrc = xSrc + width
-		// let hBSrc = ySrc + height;
+		const { width } = this.getBBoxObject(`#${obj.id}`);
+		const xSrc = obj.x;
+		const ySrc = obj.y;
+		const wBSrc = xSrc + width;
 
 		// Define method reverse
-		let reverse = (input) => {
-			let ret = new Array
+		const reverse = (input) => {
+			let ret = new Array;
 			for (let i = input.length - 1; i >= 0; i--) {
-				ret.push(input[i])
-			}
-			return ret
+				ret.push(input[i]);
+      }
+      
+			return ret;
 		}
 
 		// Cause: When multi boundary overlap that drags an object inside
 		// then it will be added to => regulation add to the highest boundary
-		let reverseBoundary = reverse(obj.dataContainer.boundary)
+		const reverseBoundary = reverse(obj.dataContainer.boundary)
 		reverseBoundary.forEach((item) => {
 			if (!item.parent && item.id != obj.id && !obj.parent) {
 				// Calculate box for boundary
-				let xTar = item.x
-				let yTar = item.y
-				let bBoxTar = this.getBBoxObject(`#${item.id}`)
-				let wBTar = xTar + bBoxTar.width
-				let hBTar = yTar + bBoxTar.height
+				const xTar = item.x;
+				const yTar = item.y;
+				const bBoxTar = this.getBBoxObject(`#${item.id}`);
+				const wBTar = xTar + bBoxTar.width;
+				const hBTar = yTar + bBoxTar.height;
 
 				if ((xSrc >= xTar) && (ySrc >= yTar) && (wBSrc <= wBTar) && (ySrc <= hBTar)) {
-					let oldObject = obj.getObjectInfo()
+					const oldObject = obj.getObjectInfo();
 
-					let index = this.getIndexFromPositionForObject(item, obj)
-					item.addMemberToBoundaryWithIndex(obj, index, state)
-					obj.parent = item.id
-					obj.childIndex = index
+					const index = this.getIndexFromPositionForObject(item, obj);
+					item.addMemberToBoundaryWithIndex(obj, index, state);
+					obj.parent = item.id;
+					obj.childIndex = index;
 
-					bIsInside = true
+					bIsInside = true;
 
 					if (state) {
-						let he = new HistoryElement()
-						he.actionType = ACTION_TYPE.PARENT_CHANGE
-						he.oldObject = oldObject
-						he.dataObject = obj.getObjectInfo()
-						he.realObject = obj
-						state.add(he)
+						let he = new HistoryElement();
+						he.actionType = ACTION_TYPE.PARENT_CHANGE;
+						he.oldObject = oldObject;
+						he.dataObject = obj.getObjectInfo();
+						he.realObject = obj;
+						state.add(he);
 					}
 				}
 			}
 		})
 
-		return bIsInside
+		return bIsInside;
 	}
 
 	/**
@@ -255,8 +253,8 @@ class ObjectUtils {
 
 		const {parent} = obj;
 		let parentObj = _.find(obj.dataContainer.boundary, {'id': parent});
-		let indexOld = this.getIndexBy(parentObj.member, 'id', obj.id);
-		let indexNew = this.getIndexFromPositionForObject(parentObj, obj);
+		const indexOld = this.getIndexBy(parentObj.member, 'id', obj.id);
+		const indexNew = this.getIndexFromPositionForObject(parentObj, obj);
 		parentObj.changeIndexMemberToBoundary(indexOld, indexNew);
 		obj.parent = parent;
 		obj.childIndex = indexNew;
@@ -279,34 +277,32 @@ class ObjectUtils {
    * Function using get index for insert to boundary
    */
 	getIndexFromPositionForObject(parentObj, obj) {
-		let xSrc = obj.x
-		let ySrc = obj.y
-		let index = 0
+		const ySrc = obj.y;
+		let index = 0;
 
-		let memberAvailable = _.filter(parentObj.member, (e) => {
-			return e.show === true
-		})
+		const memberAvailable = _.filter(parentObj.member, (e) => {
+			return e.show === true;
+		});
 
-		for (let mem of memberAvailable) {
-
-			let memObj = null
+		for (const mem of memberAvailable) {
+			let memObj = null;
 			if(mem.type === OBJECT_TYPE.VERTEX) {
-				memObj = _.find(parentObj.dataContainer.vertex,{'id': mem.id})
+				memObj = _.find(parentObj.dataContainer.vertex,{'id': mem.id});
 			}else{
-				memObj = _.find(parentObj.dataContainer.boundary,{'id': mem.id})
+				memObj = _.find(parentObj.dataContainer.boundary,{'id': mem.id});
 			}
 
-			let {x, y} = memObj
+			const {y} = memObj;
 
 			if (y > ySrc) {
-				break
+				break;
 			}
 
-			if (mem.id === obj.id) continue
-			index++
+			if (mem.id === obj.id) continue;
+			index += 1;
 		}
 
-		return index
+		return index;
 	}
 
 	/**
@@ -318,17 +314,17 @@ class ObjectUtils {
 			//do not restore for parent, it was resize by checkDragObjectOutsideBoundary() or checkDragObjectInsideBoundary()
 			if (boundary.id != dragingObject.id && (boundary.id != dragingObject.parent)) {
 				if (boundary.startHeight != -1) {
-					boundary.setHeight(boundary.startHeight)
+					boundary.setHeight(boundary.startHeight);
 				}
 
 				if(boundary.startWidth != -1) {
-					boundary.setWidth(boundary.startWidth)
-					boundary.boundaryMgmt.edgeMgmt.updatePathConnectForVertex(boundary)
+					boundary.setWidth(boundary.startWidth);
+					boundary.boundaryMgmt.edgeMgmt.updatePathConnectForVertex(boundary);
 				}
 			}
 
-			boundary.startHeight = -1
-			boundary.startWidth = -1
+			boundary.startHeight = -1;
+			boundary.startWidth = -1;
 		})
 	}
 
@@ -341,7 +337,7 @@ class ObjectUtils {
 	getIndexBy(arr, name, value) {
 		for (let i = 0; i < arr.length; i++) {
 			if (arr[i][name] == value) {
-				return i
+				return i;
 			}
 		}
 		return -1
@@ -353,11 +349,11 @@ class ObjectUtils {
    */
 	setAllChildrenToShow(dataContainer) {
 		// Set all children of this boundary to show
-		let arrBoundary = dataContainer.boundary
+		const arrBoundary = dataContainer.boundary
 		arrBoundary.forEach(boundary => {
-			let members = boundary.member
+			const members = boundary.member
 			members.forEach(member => {
-				member.show = true
+				member.show = true;
 
 				if (member.type === OBJECT_TYPE.VERTEX) {
 					_.find(dataContainer.vertex, {id: member.id}).show = true;
@@ -376,90 +372,89 @@ class ObjectUtils {
    */
 	initListenerContainerScroll(containerId, edgeMgmt, arrDataContainer) {
 		$(`#${containerId}`).on('scroll', (e) => {
-			let svgId = $(e.target).attr('ref')
-			this.onContainerSvgScroll(svgId, edgeMgmt, arrDataContainer)
+			const svgId = $(e.target).attr('ref');
+			this.onContainerSvgScroll(svgId, edgeMgmt, arrDataContainer);
 		})
 	}
 
 	onContainerSvgScroll(pSvgId, edgeMgmt, arrDataContainer) {
 
 		if (edgeMgmt.isSelectingEdge()) {
-			edgeMgmt.cancleSelectedPath()
+			edgeMgmt.cancleSelectedPath();
 		}
 
-		let vertices = []
+		let vertices = [];
 		for (var i = 0; i < arrDataContainer.length; i++) {
-			vertices = vertices.concat(arrDataContainer[i].vertex)
-			vertices = vertices.concat(arrDataContainer[i].boundary)
+			vertices = vertices.concat(arrDataContainer[i].vertex);
+			vertices = vertices.concat(arrDataContainer[i].boundary);
 		}
     
 		// Find edge start from this SVG
 		const srcEdges = _.filter(edgeMgmt.dataContainer.edge, (e) => {
-			return e.source.svgId === pSvgId
-		})
+			return e.source.svgId === pSvgId;
+		});
     
 		// Find edge end at this SVG
 		const desEdges = _.filter(edgeMgmt.dataContainer.edge, (e) => {
-			return e.target.svgId === pSvgId
-		})
+			return e.target.svgId === pSvgId;
+		});
 
 		srcEdges.forEach(e => {
-			const {source: {vertexId: id, prop}} = e
-			let obj = _.find(vertices, {'id': id})
-			let {x: propX, y: propY} = this.getCoordPropRelativeToParent(obj, prop, CONNECT_TYPE.OUTPUT)
-			e.source.x = propX
-			e.source.y = propY
-			let options = {source: e.source}
-			e.updatePathConnect(options)
-			e.setStatusEdgeOnCurrentView()
+			const {source: {vertexId: id, prop}} = e;
+			const obj = _.find(vertices, {'id': id});
+			const {x: propX, y: propY} = this.getCoordPropRelativeToParent(obj, prop, CONNECT_TYPE.OUTPUT);
+			e.source.x = propX;
+			e.source.y = propY;
+			const options = {source: e.source};
+			e.updatePathConnect(options);
+			e.setStatusEdgeOnCurrentView();
 		})
 
 		desEdges.forEach(e => {
-			const {target: {vertexId: id, prop}} = e
-			let obj = _.find(vertices, {'id': id})
-			let {x: propX, y: propY} = this.getCoordPropRelativeToParent(obj, prop, CONNECT_TYPE.INPUT)
-			e.target.x = propX
-			e.target.y = propY
-			let options = {target: e.target}
-			e.updatePathConnect(options)
-			e.setStatusEdgeOnCurrentView()
+			const {target: {vertexId: id, prop}} = e;
+			const obj = _.find(vertices, {'id': id});
+			const {x: propX, y: propY} = this.getCoordPropRelativeToParent(obj, prop, CONNECT_TYPE.INPUT);
+			e.target.x = propX;
+			e.target.y = propY;
+			const options = {target: e.target};
+			e.updatePathConnect(options);
+			e.setStatusEdgeOnCurrentView();
 		})
 	}
 
 	initListenerOnWindowResize(edgeMgmt, arrDataContainer) {
 		$(window).resize(() => {
-      
 			if(edgeMgmt.isSelectingEdge()) {
-				edgeMgmt.cancleSelectedPath()
+				edgeMgmt.cancleSelectedPath();
 			}
 
-			this.updatePathConnectOnWindowResize(edgeMgmt, arrDataContainer)
+			this.updatePathConnectOnWindowResize(edgeMgmt, arrDataContainer);
 		})
 	}
 
 	updatePathConnectOnWindowResize(edgeMgmt, arrDataContainer) {
-		const edges = edgeMgmt.dataContainer.edge
+		const edges = edgeMgmt.dataContainer.edge;
 		let vertices = []
 		for (var i = 0; i < arrDataContainer.length; i++) {
-			vertices = vertices.concat(arrDataContainer[i].vertex)
-			vertices = vertices.concat(arrDataContainer[i].boundary)
+			vertices = vertices.concat(arrDataContainer[i].vertex);
+			vertices = vertices.concat(arrDataContainer[i].boundary);
 		}
 
 		edges.forEach(e => {
-			const {source: {vertexId: idSrc, prop: propSrc}, target: {vertexId: idDes, prop: propDes}} = e
-			let srcObj = _.find(vertices, {'id': idSrc})
-			let {x: newSX, y: newSY} = this.getCoordPropRelativeToParent(srcObj, propSrc, CONNECT_TYPE.OUTPUT)
-			e.source.x = newSX
-			e.source.y = newSY
+			const {source: {vertexId: idSrc, prop: propSrc}, target: {vertexId: idDes, prop: propDes}} = e;
+			const srcObj = _.find(vertices, {'id': idSrc});
+			const {x: newSX, y: newSY} = this.getCoordPropRelativeToParent(srcObj, propSrc, CONNECT_TYPE.OUTPUT);
+			e.source.x = newSX;
+			e.source.y = newSY;
 
-			let desObj = _.find(vertices, {'id': idDes})
-			let {x: newDX, y: newDY} = this.getCoordPropRelativeToParent(desObj, propDes, CONNECT_TYPE.INPUT)
-			e.target.x = newDX
-			e.target.y = newDY
+			const desObj = _.find(vertices, {'id': idDes});
+			const {x: newDX, y: newDY} = this.getCoordPropRelativeToParent(desObj, propDes, CONNECT_TYPE.INPUT);
+			e.target.x = newDX;
+			e.target.y = newDY;
 
-			let options = {source: e.source, target: e.target}
-			e.updatePathConnect(options)
-			e.setStatusEdgeOnCurrentView()
+			const options = {source: e.source, target: e.target};
+			e.updatePathConnect(options);
+			e.setStatusEdgeOnCurrentView();
 		})
 	}
 
@@ -470,14 +465,13 @@ class ObjectUtils {
    * Vertex: The vertices in group SHOW_FULL_ALWAYS not effected by show reduced
    * The remain vertex then show header and connected properties only
    */
-	async showReduced(dataContainer, svgId, viewMode, state) {
-		
+	showReduced(dataContainer, svgId, viewMode, state) {
 		dataContainer.vertex.forEach(vertex => {
 			vertex.showReduced(state);
 		});
 
-		if (dataContainer.boundary.length > 0)
-			await dataContainer.boundary[0].updateHeightBoundary();
+    if (dataContainer.boundary.length > 0)
+      this.updateHeightBoundary(dataContainer);
     
 		setMinBoundaryGraph(dataContainer, svgId, viewMode);
 	}
@@ -485,16 +479,15 @@ class ObjectUtils {
 	/**
    * Show full graph
    */
-	async showFull(dataContainer, svgId, viewMode, state) {
-
+	showFull(dataContainer, svgId, viewMode, state) {
 		dataContainer.vertex.forEach(vertex => {
 			vertex.showFull(state);
 		});
 
 		if (dataContainer.boundary.length > 0)
-			await dataContainer.boundary[0].updateHeightBoundary()
+      this.updateHeightBoundary(dataContainer);
 
-		setMinBoundaryGraph(dataContainer, svgId, viewMode)
+		setMinBoundaryGraph(dataContainer, svgId, viewMode);
 	}
 
 	/**
@@ -504,24 +497,24 @@ class ObjectUtils {
    * @returns {number}
    */
 	resetSizeVertex(dataContainer, isShowFull = false) {
-		let vertexes = dataContainer.vertex
-		vertexes.forEach(vertex => {
-			let exitConnect = false
-			let vertexId = vertex.id
+		const vertices = dataContainer.vertex;
+		vertices.forEach(vertex => {
+			let exitConnect = false;
+			const vertexId = vertex.id;
 			// Get all prop that not hide
-			let arrProp = d3.select(`#${vertexId}`).selectAll('.property:not(.hide)')
-			let tmpArry = arrProp._groups[0]
+			const arrProp = d3.select(`#${vertexId}`).selectAll('.property:not(.hide)');
+			const tmpArry = arrProp._groups[0];
 			// When not any edge connect to properties of vertex,
 			// Check exit edge connect to vertex
 			if (tmpArry.length < 1)
-				exitConnect = vertex.vertexMgmt.edgeMgmt.checkExitEdgeConnectToVertex(vertexId)
+				exitConnect = vertex.vertexMgmt.edgeMgmt.checkExitEdgeConnectToVertex(vertexId);
 
-			let element = $(`#${vertexId} .vertex_content`)
+			const element = $(`#${vertexId} .vertex_content`);
 			element.parent()
 				.attr('height', tmpArry.length ?
 					VERTEX_ATTR_SIZE.HEADER_HEIGHT + VERTEX_ATTR_SIZE.PROP_HEIGHT * tmpArry.length : isShowFull ?
-						VERTEX_ATTR_SIZE.HEADER_HEIGHT : exitConnect ? VERTEX_ATTR_SIZE.HEADER_HEIGHT : VERTEX_ATTR_SIZE.HEADER_HEIGHT)
-		})
+						VERTEX_ATTR_SIZE.HEADER_HEIGHT : exitConnect ? VERTEX_ATTR_SIZE.HEADER_HEIGHT : VERTEX_ATTR_SIZE.HEADER_HEIGHT);
+		});
 	}
 
 	/**
@@ -531,19 +524,31 @@ class ObjectUtils {
    */
 	updatePositionRectConnect(arrProp, vertex) {
 		for (var i = 0; i < arrProp.length; i++) {
-			let prop = arrProp[i]
+			const prop = arrProp[i];
 			if (prop != null) {
 				//get new index of this property in vertex after hiding all properties have no edge connected for updatting new position of "rect"
-				let newIndexOfPropInVertex = this.findIndexPropInVertex(vertex.id, prop)
-				let newY = VERTEX_ATTR_SIZE.HEADER_HEIGHT + VERTEX_ATTR_SIZE.PROP_HEIGHT * newIndexOfPropInVertex + 1
+				const newIndexOfPropInVertex = this.findIndexPropInVertex(vertex.id, prop);
+				const newY = VERTEX_ATTR_SIZE.HEADER_HEIGHT + VERTEX_ATTR_SIZE.PROP_HEIGHT * newIndexOfPropInVertex + 1;
 
 				//update position of "rect"
-				d3.select(`#${vertex.id}`).selectAll(`:not(.property)[prop=${prop}]`).attr('y', newY)
+				d3.select(`#${vertex.id}`).selectAll(`:not(.property)[prop=${prop}]`).attr('y', newY);
 			}
 		}
 	}
 
-  
+  /**
+   * update size for all root boundary
+   */
+  updateHeightBoundary(dataContainer) {
+    const boundaries = _.filter(dataContainer.boundary, (g) => {
+      return g.parent === null && g.member.length > 0;
+    });
+
+    boundaries.forEach(boundary => {
+      boundary.updateSize();
+      boundary.reorderPositionMember();
+    });
+  }
 }
 
-export default ObjectUtils
+export default ObjectUtils;

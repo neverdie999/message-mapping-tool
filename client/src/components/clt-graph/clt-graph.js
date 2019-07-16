@@ -18,6 +18,9 @@ import {
 	hideFileChooser,
 	filterPropertyData,
 	isPopupOpen,
+  checkKeyMisMatch,
+  checkLengthMisMatch,
+  removeDuplicates,
 } from '../../common/utilities/common.util';
 
 import { 
@@ -110,7 +113,7 @@ class CltGraph {
 	}
 
 	initSvgHtml() {
-		let sHtml = 
+		const sHtml = 
 		`<!-- Address bar (S) -->
 		<div id="addressBar" class="filename-bar">
 			<div id="${ID_TAB_SEGMENT_SET}" class="filename-tab tab-left" style="display: none"></div>
@@ -132,7 +135,7 @@ class CltGraph {
      */
 		d3.selection.prototype.moveToFront = function () {
 			return this.each(function () {
-				this.parentNode.appendChild(this)
+				this.parentNode.appendChild(this);
 			})
 		}
 
@@ -141,7 +144,7 @@ class CltGraph {
      */
 		d3.selection.prototype.moveToBack = function () {
 			this.each(function () {
-				this.parentNode.firstChild && this.parentNode.insertBefore(this, this.parentNode.firstChild)
+				this.parentNode.firstChild && this.parentNode.insertBefore(this, this.parentNode.firstChild);
 			})
 		}
 	}
@@ -203,7 +206,6 @@ class CltGraph {
 				}
 			} else if (e.keyCode == 46) {
 				// Delete key
-
 				const $focusedObject = $(`#${this.graphSvgId} .${FOCUSED_CLASS}`);
 
 				if ($focusedObject.length > 0) {
@@ -243,9 +245,9 @@ class CltGraph {
    * And reinit marker def
    */
 	clearAll(state) {
-		let oldDataContainer = {
+		const oldDataContainer = {
 			vertex: filterPropertyData(this.dataContainer.vertex, [], ['dataContainer']),
-			boundary: filterPropertyData(this.dataContainer.boundary, [], ['dataContainer']),
+			boundary: filterPropertyData(this.dataContainer.boundary, [], ['dataContainer'])
 		}
 
 		this.vertexMgmt.clearAll();
@@ -263,13 +265,13 @@ class CltGraph {
 	}
 
 	showReduced() {
-		let state = new State();
+		const state = new State();
 
 		this.isShowReduced = true;
 		this.objectUtils.showReduced(this.dataContainer, this.graphSvgId, this.viewMode.value, state);
 
 		if (this.history) {
-			let he = new HistoryElement();
+			const he = new HistoryElement();
 			he.actionType = ACTION_TYPE.UPDATE_SHOW_REDUCED_STATUS;
 			he.realObject = this;
 			state.add(he);
@@ -278,13 +280,13 @@ class CltGraph {
 	}
 
 	showFull() {
-		let state = new State();
+		const state = new State();
 		
 		this.isShowReduced = false;
 		this.objectUtils.showFull(this.dataContainer, this.graphSvgId, this.viewMode.value, state);
 
 		if (this.history) {
-			let he = new HistoryElement();
+			const he = new HistoryElement();
 			he.actionType = ACTION_TYPE.UPDATE_SHOW_FULL_STATUS;
 			he.realObject = this;
 			state.add(he);
@@ -292,45 +294,43 @@ class CltGraph {
 		}
 	}
 
-	async drawObjects(data) {
-		const { boundary: boundaries, vertex: vertices, position, edge } = data
+	drawObjects(data) {
+    const { boundary: boundaries, vertex: vertices, position, edge } = data;
+    
 		// Draw boundary
 		boundaries.forEach(e => {
-			let { x, y } = position.find(pos => {
-				return pos.id === e.id
-			})
+			const { x, y } = position.find(pos => {
+				return pos.id === e.id;
+			});
 
-			e.x = x
-			e.y = y
-			e.isImport = true
-			this.boundaryMgmt.create(e)
+			e.x = x;
+			e.y = y;
+			this.boundaryMgmt.create(e);
 		})
 		// Draw vertex
 		vertices.forEach(e => {
 			const { x, y } = position.find(pos => {
-				return pos.id === e.id
-			})
+				return pos.id === e.id;
+			});
 
-			e.x = x
-			e.y = y
-			e.isImport = true
-
-			this.vertexMgmt.create(e)
+			e.x = x;
+			e.y = y;
+			this.vertexMgmt.create(e);
 		})
 
 		edge.forEach(e =>{ 
-			this.edgeMgmt.create(e)
+			this.edgeMgmt.create(e);
 		})
     
 		if (this.dataContainer.boundary && this.dataContainer.boundary.length > 0) {
-			this.objectUtils.setAllChildrenToShow(this.dataContainer)
+			this.objectUtils.setAllChildrenToShow(this.dataContainer);
 			if (this.dataContainer.boundary.length > 0)
-				await this.dataContainer.boundary[0].updateHeightBoundary()
+        this.objectUtils.updateHeightBoundary(this.dataContainer);
 		}
 	}
 
-	async loadGraphData(graphData, fileName) {
-		let resMessage = await this.validateGraphDataStructure(graphData);
+	loadGraphData(graphData, fileName) {
+		const resMessage = this.validateGraphDataStructure(graphData);
 
 		if(resMessage.type !== 'ok') {
 			comShowMessage(resMessage.message);
@@ -350,8 +350,8 @@ class CltGraph {
 
 		//Reload Vertex Define and draw graph
 		const {vertexTypes} = graphData;
-		await this.vertexMgmt.processDataVertexTypeDefine(vertexTypes);
-		await this.drawObjects(graphData);
+		this.vertexMgmt.processDataVertexTypeDefine(vertexTypes);
+		this.drawObjects(graphData);
 		this.isShowReduced = false;
 		this.initMenuContext();
 		
@@ -372,7 +372,6 @@ class CltGraph {
 	}
 
 	save(fileName) {
-
 		if (!fileName) {
 			comShowMessage('Please input file name');
 			return;
@@ -384,16 +383,16 @@ class CltGraph {
 				return;
 			}
 			// stringify with tabs inserted at each level
-			let graph = JSON.stringify(content, null, '\t');
-			let blob = new Blob([graph], {type: 'application/json', charset: 'utf-8'});
+			const graph = JSON.stringify(content, null, '\t');
+			const blob = new Blob([graph], {type: 'application/json', charset: 'utf-8'});
 
 			if (navigator.msSaveBlob) {
 				navigator.msSaveBlob(blob, fileName);
 				return;
 			}
 
-			let fileUrl = window.URL.createObjectURL(blob);
-			let downLink = $('<a>');
+			const fileUrl = window.URL.createObjectURL(blob);
+			const downLink = $('<a>');
 			downLink.attr('download', `${fileName}.gds`);
 			downLink.attr('href', fileUrl);
 			downLink.css('display', 'none');
@@ -424,86 +423,72 @@ class CltGraph {
    * with embedded vertex type
    * Validate content
    */
-	async validateGraphDataStructure(data) {
+	validateGraphDataStructure(data) {
 		//Validate data exists
 		if(data===undefined)
 		{
-			console.log('Data does not exist')
-			return Promise.resolve({
+			console.log('Data does not exist');
+			return {
 				type: 'error',
 				message: 'Empty data.'
-			})
+			}
 		}
 
 		// Validate struct data
-		if (!data.vertex || !data.boundary || !data.position || !data.vertexTypes ||
-      (Object.keys(data.vertexTypes).length === 0 && data.vertexTypes.constructor === Object)) {
-			return Promise.resolve({
+    if (!data.vertex || !data.boundary || !data.position || !data.vertexTypes 
+      || (Object.keys(data.vertexTypes).length === 0 && data.vertexTypes.constructor === Object)) {
+			return {
 				type: 'error',
 				message: 'Message Spec is corrupted. You should check it!'
-			})
+			}
 		}
 
 		// Validate embedded vertex type with vertices
-		let dataTypes = data.vertexTypes['VERTEX']
-		let vertices = this.removeDuplicates(data.vertex, 'vertexType')
-		let types = this.getListVertexType(dataTypes)
-		for (let vertex of vertices) {
-
-			let type = vertex.vertexType
+		const dataTypes = data.vertexTypes['VERTEX'];
+		const vertices = removeDuplicates(data.vertex, 'vertexType');
+		const types = this.getListVertexType(dataTypes);
+		for (const vertex of vertices) {
+			const type = vertex.vertexType;
 			// If vertex type not exit in embedded vertex type
 			if (types.indexOf(type) < 0) {
-				console.log('Vertex type not exits in embedded vertex type')
-				return Promise.resolve({
+				console.log('Vertex type not exits in embedded vertex type');
+				return {
 					type: 'warning',
 					message: 'Vertex type not exits in embedded vertex type'
-				})
+				}
 			}
 
 			// Validate data key between embedded vertex and vetex in graph.
-			let dataSource = vertex.data
-			let dataTarget = _.find(dataTypes, {'vertexType': type})
-			let keySource = Object.keys(dataSource[0] || {})
-			let keyTarget = Object.keys(dataTarget.data[0] || {})
+			const dataSource = vertex.data;
+			const dataTarget = _.find(dataTypes, {'vertexType': type});
+			const keySource = Object.keys(dataSource[0] || {});
+			const keyTarget = Object.keys(dataTarget.data[0] || {});
 
 			// Check length key
-			if (this.checkLengthMisMatch(keySource, keyTarget)) {
-				console.log('Data\'s length is different')
-				return Promise.resolve({
+			if (checkLengthMisMatch(keySource, keyTarget)) {
+				console.log('Data\'s length is different');
+				return {
 					type: 'warning',
 					message: 'Data\'s length is different'
-				})
+				}
 			}
 
 			// Check mismatch key
-			let flag = await this.checkKeyMisMatch(keySource, keyTarget)
+			const flag = checkKeyMisMatch(keySource, keyTarget);
 
 			if (flag) {
-				console.log('Key vertex at source not exit in target')
-				return Promise.resolve({
+				console.log('Key vertex at source not exit in target');
+				return {
 					type: 'warning',
 					message: 'Key vertex at source not exit in target'
-				})
+				}
 			}
 		}
 
-		return Promise.resolve({
+		return {
 			type: 'ok',
 			message: ''
-		})
-	}
-
-	/**
-   * Removing Duplicate Objects From An Array By Property
-   * @param myArr
-   * @param prop
-   * @author: Dwayne
-   * @reference: https://ilikekillnerds.com/2016/05/removing-duplicate-objects-array-property-name-javascript/
-   */
-	removeDuplicates(myArr, prop) {
-		return myArr.filter((obj, pos, arr) => {
-			return arr.map(mapObj => mapObj[prop]).indexOf(obj[prop]) === pos
-		})
+		}
 	}
 
 	/**
@@ -512,48 +497,21 @@ class CltGraph {
    * @returns {*}
    */
 	getListVertexType(data) {
-		let types = []
-		let len = data.length
-		for (let i = 0; i < len; i++) {
-			let type = data[i]
-			types.push(type.vertexType)
+		const types = [];
+		const len = data.length;
+		for (let i = 0; i < len; i += 1) {
+			const type = data[i];
+			types.push(type.vertexType);
 		}
 
-		return types
-	}
-
-	/**
-   * Check length of source and target is match
-   * @param src
-   * @param tgt
-   * @returns {boolean}
-   */
-	checkLengthMisMatch(src, tgt) {
-		return src.length != tgt.length ? true : false
-	}
-
-	/**
-   * Check key of source and target is match
-   * @param src
-   * @param tgt
-   * @returns {boolean}
-   */
-	checkKeyMisMatch(src, tgt) {
-		let misMatch = false
-		src.forEach(key => {
-			if (tgt.indexOf(key) < 0) {
-				misMatch = true
-			}
-		})
-
-		return Promise.resolve(misMatch)
+		return types;
 	}
 
 	getContentGraphAsJson() {
-		let dataContent = {vertex: [], boundary: [],position: [], edge:[], vertexTypes: {}}
+		const dataContent = {vertex: [], boundary: [],position: [], edge:[], vertexTypes: {}};
 
 		if (this.isEmptyContainerData(this.dataContainer)) {
-			return Promise.reject('There is no Input data. Please import!')
+			return Promise.reject('There is no Input data. Please import!');
 		} 
 
 		// Process data to export
@@ -568,43 +526,43 @@ class CltGraph {
 			edge: filterPropertyData(this.dataContainer.edge, [], ['dataContainer']),
 		}
 		cloneData.vertex.forEach(vertex => {
-			let pos = new Object({
+			const pos = new Object({
 				'id': vertex.id,
 				'x': vertex.x,
 				'y': vertex.y
-			})
+			});
 
-			dataContent.vertex.push(this.getSaveDataVertex(vertex))
-			dataContent.position.push(pos)
+			dataContent.vertex.push(this.getSaveDataVertex(vertex));
+			dataContent.position.push(pos);
 		})
 
 		cloneData.boundary.forEach(boundary => {
-			let pos = new Object({
+			const pos = new Object({
 				'id': boundary.id,
 				'x': boundary.x,
 				'y': boundary.y
-			})
+			});
 
-			dataContent.boundary.push(this.getSaveDataBoundary(boundary))
-			dataContent.position.push(pos)
+			dataContent.boundary.push(this.getSaveDataBoundary(boundary));
+			dataContent.position.push(pos);
 		})
 
-		const cloneVertexDefine = _.cloneDeep(this.vertexMgmt.vertexDefinition)
-		let vertexDefine = {}
+		const cloneVertexDefine = _.cloneDeep(this.vertexMgmt.vertexDefinition);
+		let vertexDefine = {};
 		if(cloneVertexDefine.vertexGroup) {
 			vertexDefine = {
 				'VERTEX_GROUP': this.getSaveVertexGroup(cloneVertexDefine.vertexGroup),
 				'VERTEX': cloneVertexDefine.vertex
 			}
 		}
-		dataContent.vertexTypes = vertexDefine
+		dataContent.vertexTypes = vertexDefine;
 
 		//Edges    
 		cloneData.edge.forEach(edge => {
-			dataContent.edge.push(this.getSaveDataEdge(edge))
+			dataContent.edge.push(this.getSaveDataEdge(edge));
 		})
 
-		return Promise.resolve(dataContent)
+		return Promise.resolve(dataContent);
 	}
 
 	/**
@@ -612,20 +570,20 @@ class CltGraph {
    * @param {*} vertexGroup 
    */
 	getSaveVertexGroup(vertexGroup) {
-		let resObj = []
+		const resObj = [];
 
 		vertexGroup.forEach(group => {
-			let tmpGroup = {}
+			const tmpGroup = {};
 
-			tmpGroup.groupType = group.groupType
-			tmpGroup.option = group.option
-			tmpGroup.dataElementFormat = group.dataElementFormat
-			tmpGroup.vertexPresentation = group.vertexPresentation
+			tmpGroup.groupType = group.groupType;
+			tmpGroup.option = group.option;
+			tmpGroup.dataElementFormat = group.dataElementFormat;
+			tmpGroup.vertexPresentation = group.vertexPresentation;
 
-			resObj.push(tmpGroup)
+			resObj.push(tmpGroup);
 		})
     
-		return resObj
+		return resObj;
 	}
 
 	/**
@@ -686,7 +644,7 @@ class CltGraph {
 	}
 
 	isEmptyContainerData(containerData) {
-		return (containerData.vertex.length == 0 && containerData.boundary.length == 0)
+		return (containerData.vertex.length == 0 && containerData.boundary.length == 0);
 	}
 
 	/**
@@ -694,40 +652,40 @@ class CltGraph {
    */
 	edgeVerifySvgId(edges) {
 		if (edges.length > 0) {
-			let oldSvgId = edges[0].source.svgId
-			let index = edges[0].source.svgId.indexOf('_')
-			let oldSelectorName = oldSvgId.substring(index + 1, oldSvgId.length)
+			const oldSvgId = edges[0].source.svgId;
+			const index = edges[0].source.svgId.indexOf('_');
+			const oldSelectorName = oldSvgId.substring(index + 1, oldSvgId.length);
 
 			if (oldSelectorName != this.selectorName) {
 				edges.forEach(e => {
-					e.source.svgId = e.source.svgId.replace(oldSelectorName, this.selectorName)
-					e.target.svgId = e.target.svgId.replace(oldSelectorName, this.selectorName)
-				})
+					e.source.svgId = e.source.svgId.replace(oldSelectorName, this.selectorName);
+					e.target.svgId = e.target.svgId.replace(oldSelectorName, this.selectorName);
+				});
 			}
 		}
 	}
 
 	setViewMode(viewMode = VIEW_MODE.EDIT) {
-		this.viewMode.value = viewMode
+		this.viewMode.value = viewMode;
 	}
 
 	initOnMouseUpBackground() {
-		let selector = this.selector.prop('id')
+		let selector = this.selector.prop('id');
 
 		if (selector == '') {
-			selector = `.${this.selector.prop('class')}`
+			selector = `.${this.selector.prop('class')}`;
 		}else{
-			selector = `#${selector}`
+			selector = `#${selector}`;
 		}
     
-		let tmpEdgeMgmt = this.edgeMgmt
+		const tmpEdgeMgmt = this.edgeMgmt
 		d3.select(selector).on('mouseup', function() {
-			let mouse = d3.mouse(this)
-			let elem = document.elementFromPoint(mouse[0], mouse[1])
+			const mouse = d3.mouse(this);
+			const elem = document.elementFromPoint(mouse[0], mouse[1]);
 
 			//disable selecting effect if edge is selecting
 			if((!elem || !elem.tagName || elem.tagName != 'path') && tmpEdgeMgmt.isSelectingEdge()) {
-				tmpEdgeMgmt.cancleSelectedPath()
+				tmpEdgeMgmt.cancleSelectedPath();
 			}
 		})
 	}
@@ -736,22 +694,22 @@ class CltGraph {
 	 * 
 	 */
 	validateConnectionByUsage() {
-		let lstRootBoundary = []
+		const lstRootBoundary = [];
 		this.dataContainer.boundary.forEach(b => {
-			if (!b.parent) lstRootBoundary.push(b)
-		})
+			if (!b.parent) lstRootBoundary.push(b);
+		});
 
-		let lstNoneParentVertex = []
+		const lstNoneParentVertex = [];
 		this.dataContainer.vertex.forEach(v => {
-			if (!v.parent) lstNoneParentVertex.push(v)
+			if (!v.parent) lstNoneParentVertex.push(v);
 		})
 
 		lstRootBoundary.forEach(b => {
-			b.validateConnectionByUsage()
+			b.validateConnectionByUsage();
 		})
 
 		lstNoneParentVertex.forEach(item => {
-			item.validateConnectionByUsage()
+			item.validateConnectionByUsage();
 		})
 	}
 
@@ -784,12 +742,10 @@ class CltGraph {
 		const { boundary: boundaries, vertex: vertices} = dataContainer;
 		// Draw boundary
 		boundaries.forEach(e => {
-			e.isImport = true;
 			this.boundaryMgmt.create(e);
 		})
 		// Draw vertex
 		vertices.forEach(e => {
-			e.isImport = true;
 			this.vertexMgmt.create(e);
 		})
 
@@ -797,4 +753,4 @@ class CltGraph {
 	}
 }
   
-export default CltGraph
+export default CltGraph;

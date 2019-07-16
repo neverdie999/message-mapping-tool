@@ -32,6 +32,7 @@ import {
 	comShowMessage,
 	segmentName,
 	hideFileChooser,
+  initDialogDragEvent,
 } from '../../../common/utilities/common.util';
 
 const HTML_VERTEX_INFO_ID = 'vertexInfo';
@@ -62,12 +63,12 @@ class VertexMgmt {
 	}
 
 	initialize() {
-		this.colorHash = new ColorHash({lightness: 0.7})
-		this.colorHashConnection = new ColorHash({lightness: 0.8})
-		this.objectUtils = new ObjectUtils()
+		this.colorHash = new ColorHash({lightness: 0.7});
+		this.colorHashConnection = new ColorHash({lightness: 0.8});
+		this.objectUtils = new ObjectUtils();
 
-		this.selectorClass = `_vertex_${this.svgId}`
-		this.currentId = null //vertex is being edited
+		this.selectorClass = `_vertex_${this.svgId}`;
+		this.currentId = null; //vertex is being edited
 
 		new VertexMenu({
 			selector: `.${this.selectorClass}`,
@@ -75,19 +76,18 @@ class VertexMgmt {
 			dataContainer: this.dataContainer,
 			viewMode: this.viewMode,
 			history: this.history
-		})
+		});
 
-		this.initVertexPopupHtml()
-		this.bindEventForPopupVertex()
+		this.initVertexPopupHtml();
+		this.bindEventForPopupVertex();
 
 		this.handleDragVertex = d3.drag()
 			.on('start', this.startDrag(this))
 			.on('drag', this.dragTo(this))
-			.on('end', this.endDrag(this))
+			.on('end', this.endDrag(this));
 	}
 
 	initVertexPopupHtml() {
-
 		const repeatHtml = `
     <tr>
       <th>Max repeat</th>
@@ -98,9 +98,9 @@ class VertexMgmt {
         </label>
         <label class="input-group-addon" for="isVertexMandatory_${this.svgId}">Mandatory</label>
       </td>
-    </tr>`
+    </tr>`;
 
-		let sHtml = `
+		const sHtml = `
     <!-- Vertex Info Popup (S) -->
     <div id="${HTML_VERTEX_INFO_ID}_${this.svgId}" class="modal fade" role="dialog" tabindex="-1">
       <div class="modal-dialog">
@@ -163,60 +163,59 @@ class VertexMgmt {
         </div>
       </div>
     </div>
-    <!-- Vertex Info Popup (E) -->`
-		$($(`#${this.svgId}`)[0].parentNode).append(sHtml)
+    <!-- Vertex Info Popup (E) -->`;
 
-    
+		$($(`#${this.svgId}`)[0].parentNode).append(sHtml);
 	}
 
 	bindEventForPopupVertex() {
-		const main = this
+		const main = this;
 		if (checkModePermission(this.viewMode.value, 'vertexBtnConfirm')) {
 			$(`#vertexBtnConfirm_${main.svgId}`).click(() => {
-				this.confirmEditVertexInfo()
-			})
+				this.confirmEditVertexInfo();
+			});
 
 			$(`#vertexBtnAdd_${main.svgId}`).click(() => {
-				this.addDataElement()
-			})
+				this.addDataElement();
+			});
 
 			$(`#vertexBtnDelete_${main.svgId}`).click(() => {
-				this.removeDataElement()
-			})
+				this.removeDataElement();
+			});
 		}
 
 		$(`#vertexBtnCancel_${main.svgId}`).click(() => {
-			this.closePopVertexInfo()
-		})
+			this.closePopVertexInfo();
+		});
 
 		// Validate input number
 		if (checkModePermission(this.viewMode.value, 'vertexRepeat')) {
 			$(`#vertexRepeat_${main.svgId}`).keydown(function (e) {
-				allowInputNumberOnly(e)
-			})
-      
+				allowInputNumberOnly(e);
+			});
 
 			$(`#isVertexMandatory_${main.svgId}`).change(function () {
 				if (this.checked && $(`#vertexRepeat_${main.svgId}`).val() < 1) {
-					$(`#vertexRepeat_${main.svgId}`).val(1)
+					$(`#vertexRepeat_${main.svgId}`).val(1);
 				}
-			})
+			});
   
 			$(`#vertexRepeat_${main.svgId}`).focusout(function () {
-				let rtnVal = checkMinMaxValue(this.value, $(`#isVertexMandatory_${main.svgId}`).prop('checked') == true ? 1 : REPEAT_RANGE.MIN, REPEAT_RANGE.MAX)
-				this.value = rtnVal
-			})
+				const rtnVal = checkMinMaxValue(this.value, $(`#isVertexMandatory_${main.svgId}`).prop('checked') == true ? 1 : REPEAT_RANGE.MIN, REPEAT_RANGE.MAX);
+				this.value = rtnVal;
+			});
 		}
 
 		// Prevent refresh page after pressing enter on form control (Edit popup)
-		$('form').submit(function() { return false })
+		$('form').submit(function() { return false; });
 		
 		// Enable dragging for popup
-		this.initDialogDragEvent()
+    // this.initDialogDragEvent();
+    initDialogDragEvent(`${HTML_VERTEX_INFO_ID}_${this.svgId}`);
 	}
 
 	create(sOptions, state) {
-		let {vertexType, isMenu} = sOptions;
+		const {vertexType, isMenu} = sOptions;
 
 		if (!vertexType)
 			return null;
@@ -225,14 +224,14 @@ class VertexMgmt {
 		let newVertex = new Vertex({
 			mainParent: this.mainParent,
 			vertexMgmt: this
-		})
+		});
 
 		newVertex.create(sOptions, this.handleDragVertex, this.edgeMgmt.handleDragConnection);
 
 		if (isMenu) {
 			if (this.history) {
 				state = new State();
-				let he = new HistoryElement();
+				const he = new HistoryElement();
 				he.actionType = ACTION_TYPE.CREATE;
 				he.dataObject = newVertex.getObjectInfo();
 				he.realObject = newVertex;
@@ -242,7 +241,7 @@ class VertexMgmt {
 		} else {
 			if (state) {
 				// create vertex by Boundary update info popup
-				let he = new HistoryElement();
+				const he = new HistoryElement();
 				he.actionType = ACTION_TYPE.CREATE;
 				he.dataObject = newVertex.getObjectInfo();
 				he.realObject = newVertex;
@@ -278,16 +277,16 @@ class VertexMgmt {
 
 	dragTo(main) {
 		return function (d) {
-			updateSizeGraph(d)
-			autoScrollOnMousedrag(d.svgId, d.containerId, main.viewMode.value)
+			updateSizeGraph(d);
+			autoScrollOnMousedrag(d.svgId, d.containerId, main.viewMode.value);
       
 			// Prevent drag object outside the window
-			let {x, y} = main.objectUtils.setPositionObjectJustInSvg(d3.event, d)
-			d.x = x
-			d.y = y
+			const {x, y} = main.objectUtils.setPositionObjectJustInSvg(d3.event, d);
+			d.x = x;
+			d.y = y;
 			// Transform group
-			d3.select(`#${d.id}`).attr('transform', 'translate(' + [d.x, d.y] + ')')
-			main.edgeMgmt.updatePathConnectForVertex(d)
+			d3.select(`#${d.id}`).attr('transform', 'translate(' + [d.x, d.y] + ')');
+			main.edgeMgmt.updatePathConnectForVertex(d);
 		}
 	}
 
@@ -295,39 +294,38 @@ class VertexMgmt {
 		return function (d) {
 			// If really move
 			if (d.startX !== d.x || d.startY !== d.y) {
-
-				let state = new State()
+				const state = new State()
 
 				if (d.parent) {
 					//If object not out boundary parent , object change postion in boundary parent, so change index object
 					if (main.objectUtils.checkDragObjectOutsideBoundary(d, state)) {
-						d.validateConnectionByUsage()
+						d.validateConnectionByUsage();
 					} else {
-						main.objectUtils.changeIndexInBoundaryForObject(d, state)
+						main.objectUtils.changeIndexInBoundaryForObject(d, state);
 					}
 				} else {
 					if (main.objectUtils.checkDragObjectInsideBoundary(d, state)) {
-						d.validateConnectionByUsage()
+						d.validateConnectionByUsage();
 					}
 
-					main.objectUtils.restoreSizeBoundary(d)
+					main.objectUtils.restoreSizeBoundary(d);
 				}
 	
 				if (main.history) {
 					// none parent and there is no moving in/out boundary => moving itself
 					if (!d.parent && state.listOfHistoryElement.length === 0) {
-						let he = new HistoryElement()
-						he.actionType = ACTION_TYPE.MOVE
-						he.dataObject = d.getObjectInfo()
-						he.realObject = d
+						const he = new HistoryElement();
+						he.actionType = ACTION_TYPE.MOVE;
+						he.dataObject = d.getObjectInfo();
+						he.realObject = d;
 
-						state.add(he)
+						state.add(he);
 					}
 					
-					main.history.add(state)
+					main.history.add(state);
 				}
 				
-				setMinBoundaryGraph(main.dataContainer, main.svgId, main.viewMode.value)
+				setMinBoundaryGraph(main.dataContainer, main.svgId, main.viewMode.value);
 			}
 		}
 	}
@@ -337,9 +335,9 @@ class VertexMgmt {
    * @param vertexId
    */
 	makePopupEditVertex(vertexId) {
-		let {name, description, repeat, mandatory, data, id, groupType} = _.find(this.dataContainer.vertex, {'id': vertexId});
+		const {name, description, repeat, mandatory, data, id, groupType} = _.find(this.dataContainer.vertex, {'id': vertexId});
 		// Get vertex group with group type
-		let group = _.find(this.vertexDefinition.vertexGroup, {'groupType': groupType});
+		const group = _.find(this.vertexDefinition.vertexGroup, {'groupType': groupType});
 
 		this.currentId = id;
 		// Append content to popup
@@ -352,15 +350,15 @@ class VertexMgmt {
 		}
 
 		// Generate properties vertex
-		let columnTitle = Object.keys(group.dataElementFormat);
-		let cols = columnTitle.length;
-		let rows = data.length;
+		const columnTitle = Object.keys(group.dataElementFormat);
+		const cols = columnTitle.length;
+		const rows = data.length;
 		const dataType = group.elementDataType;
 
-		let $table = $(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId}`).empty();
-		let $contentHeader = $('<thead>');
+		const $table = $(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId}`).empty();
+		const $contentHeader = $('<thead>');
 		// Generate header table
-		let $headerRow = $('<tr>');
+		const $headerRow = $('<tr>');
 		//let $colGroup = $('<colgroup>')
 		let $popWidth = 0;
 		
@@ -415,13 +413,13 @@ class VertexMgmt {
 		$contentHeader.appendTo($table);
 
 		// Generate content table
-		let $contentBody = $('<tbody>');
+		const $contentBody = $('<tbody>');
 		for (let i = 0; i < rows; i++) {
 			const dataRow = data[i];
 			const $row = $('<tr>');
 
 			// id
-			let $colId = $('<td>');
+			const $colId = $('<td>');
 			$colId.attr('name', 'id');
 			$colId.text(i);
 			$colId.hide();
@@ -430,7 +428,7 @@ class VertexMgmt {
 			// Checkbox
 			if (isDynamicDataSet) {
 				// Append del check to row
-				let $col = this.initCellDelCheck({
+				const $col = this.initCellDelCheck({
 					'className': 'checkbox_center',
 					'name': `${ATTR_DEL_CHECK}_${this.svgId}` ,
 					'checked': false,
@@ -441,9 +439,9 @@ class VertexMgmt {
 
 			//data
 			for (let j = 0; j < cols; j++) {
-				let prop = columnTitle[j];
-				let type = dataType[prop];
-				let val = dataRow[prop];
+				const prop = columnTitle[j];
+				const type = dataType[prop];
+				const val = dataRow[prop];
 				let opt = [];
 
 				const $col = $('<td>')
@@ -454,7 +452,7 @@ class VertexMgmt {
 					$col.attr('class', 'checkbox_center');
 				}
 
-				let $control = this.generateControlByType({i, type, val, prop, opt, groupType});
+				const $control = this.generateControlByType({i, type, val, prop, opt, groupType});
 				$control.appendTo($col);
 				$col.appendTo($row);
 			}
@@ -508,172 +506,173 @@ class VertexMgmt {
    * @returns {*}
    */
 	generateControlByType(options) {
-		let $control = null
-		let {i, type, val, prop, opt, groupType} = options
-		let defaultVal = _.find(this.vertexDefinition.vertexGroup, {'groupType':groupType}).dataElementFormat[prop]
-		i = 0
+		let $control = null;
+		const {type, val, prop, opt, groupType} = options;
+		const defaultVal = _.find(this.vertexDefinition.vertexGroup, {'groupType':groupType}).dataElementFormat[prop];
+		
 		switch (type) {
 		case VERTEX_FORMAT_TYPE.BOOLEAN:
-			$control = $('<input>')
-			$control.attr('type', 'checkbox')
-			$control.attr('name', `${prop}`)
-			$control.prop('checked', typeof(val) == 'boolean' ? val : defaultVal)
-			$control.attr('value', val)
-			break
+			$control = $('<input>');
+			$control.attr('type', 'checkbox');
+			$control.attr('name', `${prop}`);
+			$control.prop('checked', typeof(val) == 'boolean' ? val : defaultVal);
+			$control.attr('value', val);
+			break;
 		case VERTEX_FORMAT_TYPE.ARRAY:
-			let firstOpt = opt[0]
-			$control = $('<select>')
-			$control.attr('name', `${prop}`)
-			$control.attr('class', 'form-control')
+      const firstOpt = opt[0];
+			$control = $('<select>');
+			$control.attr('name', `${prop}`);
+			$control.attr('class', 'form-control');
 			$.each(opt, (key, value) => {
 				$control
 					.append($('<option></option>')
 						.attr('value', value || firstOpt)
 						.prop('selected', value === (val || firstOpt))
-						.text(value))
+						.text(value));
 			})
-			break
+			break;
 		case VERTEX_FORMAT_TYPE.NUMBER:
-			$control = $('<input>')
-			$control.attr('type', 'text')
-			$control.attr('name', `${prop}`)
-			$control.attr('value', !isNaN(val) ? val : defaultVal)
-			$control.attr('class', 'form-control')
+			$control = $('<input>');
+			$control.attr('type', 'text');
+			$control.attr('name', `${prop}`);
+			$control.attr('value', !isNaN(val) ? val : defaultVal);
+			$control.attr('class', 'form-control');
 			$control
 				.on('keydown', function (e) {
-					allowInputNumberOnly(e)
+					allowInputNumberOnly(e);
 				})
 				.on('focusout', function (e) {
 					if (this.value && !checkIsMatchRegexNumber(this.value)) {
-						comShowMessage('Input invalid')
-						this.value = ''
+						comShowMessage('Input invalid');
+						this.value = '';
 					} else {
 						if (isNaN(this.value)) {
-							comShowMessage('Input invalid')
-							this.value = ''
+							comShowMessage('Input invalid');
+							this.value = '';
 						}
 					}
-				})
+				});
 			break
 		default:
-			$control = $('<input>')
-			$control.attr('type', 'text')
-			$control.attr('autocomplete', 'off')
-			$control.attr('name', `${prop}`)
-			$control.attr('value', val != undefined ? val : defaultVal)
-			$control.attr('class', 'form-control')
+			$control = $('<input>');
+			$control.attr('type', 'text');
+			$control.attr('autocomplete', 'off');
+			$control.attr('name', `${prop}`);
+			$control.attr('value', val != undefined ? val : defaultVal);
+			$control.attr('class', 'form-control');
 		}
 
-		return $control
+		return $control;
 	}
 
 	/**
    * Upper case first letter
    */
 	capitalizeFirstLetter(string) {
-		return string.charAt(0).toUpperCase() + string.slice(1)
+		return string.charAt(0).toUpperCase() + string.slice(1);
 	}
 
 	findLongestContent(configs) {
-		let {data, prop, type, value} = configs
-		let firstRow = data[0]
-		let arr = []
+		const {data, prop, type, value} = configs;
+		const firstRow = data[0];
+		let arr = [];
 
 		// If type is boolean or first undefined or firstRow is empty
 		if ((type === VERTEX_FORMAT_TYPE.BOOLEAN) || !firstRow)
-			return this.getLongestSpecialCase(prop, value)
+			return this.getLongestSpecialCase(prop, value);
 		// prop.toString().length * POPUP_CONFIG.WIDTH_CHAR + POPUP_CONFIG.PADDING_CHAR;
 
 		//  If object firstRow hasn't it own the specified property
 		if (!firstRow.hasOwnProperty(prop)) {
-			return this.getLongestSpecialCase(prop, value)
+			return this.getLongestSpecialCase(prop, value);
 		}
 
 		// From an array of objects, extract value of a property as array
 		if (type === VERTEX_FORMAT_TYPE.ARRAY) {
-			arr = value
+			arr = value;
 		} else {
-			arr = data.map(e => e[prop])
+			arr = data.map(e => e[prop]);
 		}
-		let longest = this.getLongestContentFromArry(arr)
+		const longest = this.getLongestContentFromArry(arr);
 		if (longest.toString().length < prop.toString().length)
-			return prop.toString().length * POPUP_CONFIG.WIDTH_CHAR + POPUP_CONFIG.PADDING_CHAR
+			return prop.toString().length * POPUP_CONFIG.WIDTH_CHAR + POPUP_CONFIG.PADDING_CHAR;
 
-		return longest.toString().length * (type === VERTEX_FORMAT_TYPE.ARRAY ? POPUP_CONFIG.WIDTH_CHAR_UPPER : POPUP_CONFIG.WIDTH_CHAR) + POPUP_CONFIG.PADDING_CHAR
+		return longest.toString().length * (type === VERTEX_FORMAT_TYPE.ARRAY ? POPUP_CONFIG.WIDTH_CHAR_UPPER : POPUP_CONFIG.WIDTH_CHAR) + POPUP_CONFIG.PADDING_CHAR;
 	}
 
 	getLongestSpecialCase(prop, value) {
-		let lengthProp = prop.toString().length
-		let lengthDef = value.toString().length
-		let type = typeof(value)
+		const lengthProp = prop.toString().length;
+		let lengthDef = value.toString().length;
+		let type = typeof(value);
 		// Has type is array
 		if (type === 'object' && Array.isArray(value)) {
-			type = VERTEX_FORMAT_TYPE.ARRAY
-			lengthDef = this.getLongestContentFromArry(value).toString().length
+			type = VERTEX_FORMAT_TYPE.ARRAY;
+			lengthDef = this.getLongestContentFromArry(value).toString().length;
 		}
 
 		return (lengthProp > lengthDef ? lengthProp * POPUP_CONFIG.WIDTH_CHAR :
 			lengthDef * (type === VERTEX_FORMAT_TYPE.ARRAY ? POPUP_CONFIG.WIDTH_CHAR_UPPER : POPUP_CONFIG.WIDTH_CHAR ))
-      + POPUP_CONFIG.PADDING_CHAR
+      + POPUP_CONFIG.PADDING_CHAR;
 	}
 
 	getLongestContentFromArry(arr) {
 		return arr.reduce((a, b) => {
-			let firstTmp = a + ''
-			let secondTmp = b + ''
-			return firstTmp.length > secondTmp.length ? firstTmp : secondTmp
-		})
+			const firstTmp = a + '';
+      const secondTmp = b + '';
+      
+			return firstTmp.length > secondTmp.length ? firstTmp : secondTmp;
+		});
 	}
 
 	addDataElement() {
 		if (!this.currentId)
-			return
+			return;
     
-		const {groupType} = _.find(this.dataContainer.vertex, {'id': this.currentId})
-		const vertexGroup = _.find(this.vertexDefinition.vertexGroup, {'groupType': groupType})
-		const columnTitle = Object.keys(vertexGroup.dataElementFormat)
-		const cols = columnTitle.length
-		const dataType = vertexGroup.elementDataType
-		let $appendTo = $(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId} > tbody`)
+		const {groupType} = _.find(this.dataContainer.vertex, {'id': this.currentId});
+		const vertexGroup = _.find(this.vertexDefinition.vertexGroup, {'groupType': groupType});
+		const columnTitle = Object.keys(vertexGroup.dataElementFormat);
+		const cols = columnTitle.length;
+		const dataType = vertexGroup.elementDataType;
+		const $appendTo = $(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId} > tbody`);
 
-		const $row = $('<tr>')
+		const $row = $('<tr>');
 		// id
-		$('<td name="id">').hide().appendTo($row)
+		$('<td name="id">').hide().appendTo($row);
 
-		let group = _.find(this.vertexDefinition.vertexGroup,{'groupType': groupType})
-		let option = group.option
-		const isDynamicDataSet = option.indexOf(VERTEX_GROUP_OPTION.DYNAMIC_DATASET) > -1
+		const group = _.find(this.vertexDefinition.vertexGroup,{'groupType': groupType});
+		const option = group.option;
+		const isDynamicDataSet = option.indexOf(VERTEX_GROUP_OPTION.DYNAMIC_DATASET) > -1;
 		if (isDynamicDataSet) {
 			// Append del check to row
-			let $col = this.initCellDelCheck({
+			const $col = this.initCellDelCheck({
 				'className': 'checkbox_center',
 				'name': `${ATTR_DEL_CHECK}_${this.svgId}`,
 				'checked': false,
 				'colType': '<td>'
-			})
-			$col.appendTo($row)
+			});
+			$col.appendTo($row);
 		}
 
 		for (let j = 0; j < cols; j++) {
-			let prop = columnTitle[j]
-			let type = dataType[prop]
+			const prop = columnTitle[j];
+			const type = dataType[prop];
 			// let val = dataRow[prop];
-			let opt = []
+			let opt = [];
 
-			const $col = $('<td>')
+			const $col = $('<td>');
 			// Get option if type is array
 			if (type === VERTEX_FORMAT_TYPE.ARRAY) {
-				opt = vertexGroup.dataElementFormat[prop]
+				opt = vertexGroup.dataElementFormat[prop];
 			} else if (type === VERTEX_FORMAT_TYPE.BOOLEAN) {
-				$col.attr('class', 'checkbox_center')
+				$col.attr('class', 'checkbox_center');
 			}
 
-			let $control = this.generateControlByType({'i': j, type, prop, opt, groupType})
-			$control.appendTo($col)
-			$col.appendTo($row)
+			const $control = this.generateControlByType({'i': j, type, prop, opt, groupType});
+			$control.appendTo($col);
+			$col.appendTo($row);
 		}
 
-		$row.appendTo($appendTo)
+		$row.appendTo($appendTo);
 
 		// Set column with for table data
 		const main = this;
@@ -692,41 +691,42 @@ class VertexMgmt {
 	removeDataElement() {
 		$(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId} > tbody`).find(`input[name=${ATTR_DEL_CHECK}_${this.svgId}]`).each(function () {
 			if ($(this).is(':checked')) {
-				$(this).parents('tr').remove()
+				$(this).parents('tr').remove();
 			}
-		})
+		});
 
 		// Uncheck all
-		$(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId} #${ATTR_DEL_CHECK_ALL}_${this.svgId}`).prop('checked', false)
+		$(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId} #${ATTR_DEL_CHECK_ALL}_${this.svgId}`).prop('checked', false);
 	}
 
 	initCellDelCheck(options) {
-		const {className, name, checked, colType, isCheckAll} = options
+		const {className, name, checked, colType, isCheckAll} = options;
     
-		let $col = $(colType)
-		$col.attr('class', className)
-		let $chk = $('<input>')
-		$chk.attr('type', 'checkbox')
+		const $col = $(colType);
+		$col.attr('class', className);
+		const $chk = $('<input>');
+		$chk.attr('type', 'checkbox');
 		if (isCheckAll) {
-			$chk.attr('id', name)
+			$chk.attr('id', name);
 		}
-		$chk.prop('checked', checked)
+		$chk.prop('checked', checked);
 
-		const main = this
+		const main = this;
 		$chk.attr('name', name)
 			.on('click', function () {
 				if (isCheckAll)
 					$(this).closest('table').find(`tbody :checkbox[name=${ATTR_DEL_CHECK}_${main.svgId}]`)
-						.prop('checked', this.checked)
+						.prop('checked', this.checked);
 				else {
 					$(`#${HTML_VERTEX_PROPERTIES_ID}_${main.svgId} #${ATTR_DEL_CHECK_ALL}_${main.svgId}`).prop('checked',
 						($(this).closest('table').find(`tbody :checkbox[name=${ATTR_DEL_CHECK}_${main.svgId}]:checked`).length ==
-              $(this).closest('table').find(`tbody :checkbox[name=${ATTR_DEL_CHECK}_${main.svgId}]`).length))
+              $(this).closest('table').find(`tbody :checkbox[name=${ATTR_DEL_CHECK}_${main.svgId}]`).length));
 				}
-			})
-		$chk.appendTo($col)
+      });
+      
+		$chk.appendTo($col);
 
-		return $col
+		return $col;
 	}
 
 	/**
@@ -743,7 +743,7 @@ class VertexMgmt {
    */
 	confirmEditVertexInfo() {
 		// Get data on form
-		let forms = {};
+		const forms = {};
 		forms.id = this.currentId;
 		forms.name = $(`#vertexName_${this.svgId}`).val();
 		forms.description = $(`#vertexDesc_${this.svgId}`).val();
@@ -753,25 +753,25 @@ class VertexMgmt {
 			forms.mandatory = $(`#isVertexMandatory_${this.svgId}`).prop('checked');
 		}
 
-		let vertex = _.find(this.dataContainer.vertex, {'id': this.currentId});
-		let oldVertex = vertex.getObjectInfo(); // for history
+		const vertex = _.find(this.dataContainer.vertex, {'id': this.currentId});
+		const oldVertex = vertex.getObjectInfo(); // for history
 		const {groupType} = vertex;
     
 		const dataType = _.find(this.vertexDefinition.vertexGroup, {'groupType': groupType}).elementDataType;
-		let elements = [];
+		const elements = [];
 		// Get data element
-		let arrPosition = [];
+		const arrPosition = [];
 		$(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId}`).find('tr').each(function (rowIndex) {
 			// Skip for header row
 			if (rowIndex > 0) {
-				let row = {};
+				const row = {};
 
 				//array of new position of connectors
 				arrPosition.push($(this).find('td[name=\'id\']').text());
 
 				$(this).find('td input:text, td input:checkbox, td select').each(function () {
-					let prop = $(this).attr('name');
-					let type = dataType[prop];
+					const prop = $(this).attr('name');
+					const type = dataType[prop];
 					if (prop != `${ATTR_DEL_CHECK}_${this.svgId}`) {
 						row[prop] = type === VERTEX_FORMAT_TYPE.BOOLEAN ? ($(this).is(':checked') ? true : false) : this.value;
 					}
@@ -784,14 +784,14 @@ class VertexMgmt {
 		forms.groupType = groupType;
 
 		// For histrory
-		let state = new State();
+		const state = new State();
 
 		this.edgeMgmt.updateConnectorPositionRelatedToVertex(this.currentId, arrPosition, state);
 		this.updateVertexInfo(forms);
 
 		// Create history
 		if (this.history) {
-			let he = new HistoryElement();
+			const he = new HistoryElement();
 			he.actionType = ACTION_TYPE.UPDATE_INFO;
 			he.oldObject = oldVertex;
 			he.dataObject = vertex.getObjectInfo();
@@ -812,7 +812,7 @@ class VertexMgmt {
    */
 	updateVertexInfo(forms, isEffectToParent = true) {
 		const {id, name, description, repeat, mandatory, data, groupType} = forms;
-		let vertex = _.find(this.dataContainer.vertex, {'id': id});
+		const vertex = _.find(this.dataContainer.vertex, {'id': id});
 		vertex.name = name;
 		vertex.description = description;
 		vertex.repeat = repeat;
@@ -827,13 +827,13 @@ class VertexMgmt {
 			this.reRenderContentInsideVertex(vertex, isEffectToParent);
 		} else {
 			// Update properties
-			let header = d3.select(`#${id}Name`);
+			const header = d3.select(`#${id}Name`);
 			header.text(segmentName(vertex, this.viewMode.value)).attr('title', description);
 			d3.select(header.node().parentNode).style('background-color', `${this.colorHash.hex(name)}`);
 			let rows = data.length;
 			let presentation = group.vertexPresentation;
 			for (let i = 0; i < rows; i++) {
-				let dataRow = data[i];
+				const dataRow = data[i];
 
 				//Key
 				d3.select(`#${replaceSpecialCharacter(`${id}${presentation.key}${i}`)}`)
@@ -855,7 +855,7 @@ class VertexMgmt {
 		}
 	}
 
-	async reRenderContentInsideVertex(vertex, isEffectToParent = true) {
+	reRenderContentInsideVertex(vertex, isEffectToParent = true) {
 		const {vertexType, parent} = vertex;
 
 		if (!vertexType)
@@ -869,10 +869,10 @@ class VertexMgmt {
 		vertex.markedAllConnector();
 
 		if (isEffectToParent && parent) {
-			let parentObj = _.find(this.dataContainer.boundary, {'id': parent});
-			let ancesstor = await parentObj.findAncestorOfMemberInNestedBoundary();
-			await ancesstor.updateSize();
-			await ancesstor.reorderPositionMember();
+			const parentObj = _.find(this.dataContainer.boundary, {'id': parent});
+			const ancesstor = parentObj.findAncestorOfMemberInNestedBoundary();
+			ancesstor.updateSize();
+			ancesstor.reorderPositionMember();
 		}
     
 		setMinBoundaryGraph(this.dataContainer, this.svgId, this.viewMode.value);
@@ -910,8 +910,7 @@ class VertexMgmt {
 	validateVertexDefineStructure(data) {
 
 		//Validate data exists
-		if(data===undefined)
-		{
+		if(data===undefined) {
 			return false;
 		}
 
@@ -927,42 +926,42 @@ class VertexMgmt {
 	}
 
 	processDataVertexTypeDefine(data) {
-		this.resetVertexDefinition()
+		this.resetVertexDefinition();
 
-		const {VERTEX_GROUP, VERTEX} = data
-		this.vertexDefinition.vertexGroup = VERTEX_GROUP
-		this.vertexDefinition.vertex = VERTEX
-		this.getVertexFormatType(VERTEX_GROUP)
+		const {VERTEX_GROUP, VERTEX} = data;
+		this.vertexDefinition.vertexGroup = VERTEX_GROUP;
+		this.vertexDefinition.vertex = VERTEX;
+		this.getVertexFormatType(VERTEX_GROUP);
 	}
 
 	resetVertexDefinition() {
-		this.vertexDefinition.vertexGroup = []
-		this.vertexDefinition.vertex = []
+		this.vertexDefinition.vertexGroup = [];
+		this.vertexDefinition.vertex = [];
 	}
 
 	getVertexFormatType(vertexGroup) {
 		for (let i = 0; i < vertexGroup.length; i++) {
-			const {dataElementFormat} = vertexGroup[i]
-			let dataType = {}
-			let header = Object.keys(dataElementFormat)
-			let len = header.length
+			const {dataElementFormat} = vertexGroup[i];
+			const dataType = {};
+			const header = Object.keys(dataElementFormat);
+			const len = header.length;
 			for (let i = 0; i < len; i++) {
-				let key = header[i]
-				let value = dataElementFormat[key]
-				let type = typeof(value)
+				const key = header[i];
+				const value = dataElementFormat[key];
+				const type = typeof(value);
 
-				dataType[key] = VERTEX_FORMAT_TYPE.STRING // For string and other type
+				dataType[key] = VERTEX_FORMAT_TYPE.STRING; // For string and other type
 				if (type === 'boolean')
-					dataType[key] = VERTEX_FORMAT_TYPE.BOOLEAN // For boolean
+					dataType[key] = VERTEX_FORMAT_TYPE.BOOLEAN; // For boolean
 
 				if (type === 'object' && Array.isArray(value))
-					dataType[key] = VERTEX_FORMAT_TYPE.ARRAY // For array
+					dataType[key] = VERTEX_FORMAT_TYPE.ARRAY; // For array
 
 				if (type === 'number')
-					dataType[key] = VERTEX_FORMAT_TYPE.NUMBER // For number
+					dataType[key] = VERTEX_FORMAT_TYPE.NUMBER; // For number
 			}
 
-			this.vertexDefinition.vertexGroup[i].elementDataType = dataType
+			this.vertexDefinition.vertexGroup[i].elementDataType = dataType;
 		}
 	}
 	
@@ -970,9 +969,9 @@ class VertexMgmt {
 	 * Enable dragging for popup
 	 */
 	initDialogDragEvent() {
-		let main = this
+		const main = this;
 		$(`#${HTML_VERTEX_INFO_ID}_${main.svgId} .dialog-title`).css('cursor', 'move').on('mousedown', (e) => {
-			let $drag = $(`#${HTML_VERTEX_INFO_ID}_${main.svgId} .modal-dialog`).addClass('draggable')
+			let $drag = $(`#${HTML_VERTEX_INFO_ID}_${main.svgId} .modal-dialog`).addClass('draggable');
 				
 			let pos_y = $drag.offset().top - e.pageY,
 				pos_x = $drag.offset().left - e.pageX,

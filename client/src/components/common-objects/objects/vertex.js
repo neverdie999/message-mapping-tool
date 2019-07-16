@@ -71,22 +71,13 @@ class Vertex {
   }
 
   /**
-   * Create vertex with options
-   * @param x => type: number, require: true, purpose: coordinate x
-   * @param y => type: number, require: true, purpose: coordinate y
-   * @param name => type: string, require: false, purpose: vertex name
-   * @param description => type: string, require: false, purpose: content title when hover to vertex
-   * @param id => type: string, require: true, purpose: identify for vertex
-   * @param data => type: array, require: false, default: empty array, purpose: define the content of vertex
-   * @param connectSide => type: string, require: false, the default value is an anonymous function not handle anything.
-   * @param presentation => type: object, require: true if @param[data] defined
-   * and selector for menu context on vertex
+   * @param sOptions
    * @param callbackDragVertex => type: function, require: false, default: anonymous function, purpose: call back drag vertex
    * @param callbackDragConnection => type: function, require: false, default: anonymous function, purpose: call back drag connection
    */
   create(sOptions = {}, callbackDragVertex = () => {}, callbackDragConnection = () => {}) {
     const {
-      id, x, y, vertexType, name, parent, mandatory, isMenu, isImport, isMemberManagement, show, isShowReduced
+      id, x, y, vertexType, name, parent, mandatory, isMenu, isMemberManagement, show, isShowReduced
     } = sOptions;
     let {
       groupType, data, description, repeat,
@@ -285,7 +276,8 @@ class Vertex {
   copy() {
     let {
       x, y, name, description, vertexType, data, repeat, mandatory, groupType,
-    } = _.cloneDeep(this);
+    } = this.getObjectInfo();
+
     x += VERTEX_ATTR_SIZE.SPACE_COPY;
     y += VERTEX_ATTR_SIZE.SPACE_COPY;
 
@@ -294,8 +286,8 @@ class Vertex {
     });
 
     if (this.history) {
-      let state = new State();
-      let he = new HistoryElement();
+      const state = new State();
+      const he = new HistoryElement();
       he.actionType = ACTION_TYPE.CREATE;
       he.dataObject = vertex.getObjectInfo();
       he.realObject = vertex;
@@ -310,6 +302,8 @@ class Vertex {
    * Remove vertex
    */
   remove(isMenu = true, state) {
+    if (this.history && !state) state = new State();
+    
     // Remove all edge relate to vertex
     this.vertexMgmt.edgeMgmt.removeAllEdgeConnectToVertex(this, state);
 
@@ -326,9 +320,8 @@ class Vertex {
 
     if (this.history) {
       if (isMenu) {
-         // remove vertex by menu context
-        state = new State();
-        let he = new HistoryElement();
+        // remove vertex by menu context
+        const he = new HistoryElement();
         he.actionType = ACTION_TYPE.DELETE;
         he.dataObject = this.getObjectInfo();
         he.realObject = this;
@@ -339,7 +332,7 @@ class Vertex {
 
       } else if (state) {
         // remove vertex by Boundary update info popup
-        let he = new HistoryElement();
+        const he = new HistoryElement();
         he.actionType = ACTION_TYPE.DELETE;
         he.dataObject = this.getObjectInfo();
         he.realObject = this;
@@ -365,7 +358,7 @@ class Vertex {
     const vertex = _.remove(this.dataContainer.vertex, e => e.id === this.id)[0];
 
     if (state) {
-      let he = new HistoryElement();
+      const he = new HistoryElement();
       he.actionType = ACTION_TYPE.DELETE;
       he.dataObject = vertex.getObjectInfo();
       he.realObject = vertex;
@@ -554,7 +547,6 @@ class Vertex {
 
   /**
 	 * Checking if any connection to each data element
-	 * @param {*} vertexId
 	 * @param {*} dataElement
 	 */
   getConnectionStatus(dataElement) {
@@ -639,7 +631,7 @@ class Vertex {
 
     // Create history
 		if (state) {
-			let he = new HistoryElement();
+			const he = new HistoryElement();
 			he.actionType = ACTION_TYPE.UPDATE_INFO;
 			he.oldObject = oldVertex;
 			he.dataObject = this.getObjectInfo();
@@ -658,17 +650,17 @@ class Vertex {
     if (!this.parent) 
       return this; 
  
-    let parentObj = _.find(this.dataContainer.boundary, {"id": this.parent}); 
+    const parentObj = _.find(this.dataContainer.boundary, {"id": this.parent}); 
  
     return parentObj.findAncestorOfMemberInNestedBoundary(); 
   }
 
-	async refresh() {
-		let ancestor = await this.findAncestorOfMemberInNestedBoundary();
+	refresh() {
+		const ancestor = this.findAncestorOfMemberInNestedBoundary();
 		if (!ancestor || ancestor.type !== OBJECT_TYPE.BOUNDARY) return;
 		
-		await ancestor.updateSize();
-		await ancestor.reorderPositionMember();
+		ancestor.updateSize();
+		ancestor.reorderPositionMember();
 		ancestor.boundaryMgmt.edgeMgmt.updatePathConnectForVertex(ancestor);
 	}
 
@@ -717,7 +709,7 @@ class Vertex {
   showReduced(state) {
     if (this.isShowReduced) return;
 
-    let arrShowFullAlwayGroup = [];
+    const arrShowFullAlwayGroup = [];
 		this.vertexDefinition.vertexGroup.forEach(vertexGroup => {
 			if (vertexGroup.option.indexOf('SHOW_FULL_ALWAYS') != -1) {
 				arrShowFullAlwayGroup.push(vertexGroup.groupType);
@@ -733,7 +725,7 @@ class Vertex {
     d3.select(`#${this.id}`).selectAll('.property').classed('hide', true);
 
     // Get all prop that have the connection then show them
-    let lstProp = [];
+    const lstProp = [];
     this.vertexMgmt.edgeMgmt.dataContainer.edge.forEach((edge) => {
       if (edge.source.vertexId === this.id) {
         lstProp.push({
@@ -749,7 +741,7 @@ class Vertex {
     });
     
     // filter for property only
-    let arrPropOfVertex = [];
+    const arrPropOfVertex = [];
     lstProp.forEach((propItem) => {
       if (arrPropOfVertex.indexOf(propItem.prop) === -1 && propItem.prop.indexOf('title') === -1) {
         arrPropOfVertex.push(propItem.prop);
@@ -775,7 +767,7 @@ class Vertex {
     this.isShowReduced = true;
 
     if (state) {
-      let he = new HistoryElement();
+      const he = new HistoryElement();
       he.actionType = ACTION_TYPE.SHOW_REDUCED;
       he.realObject = this;
       state.add(he);
@@ -783,10 +775,9 @@ class Vertex {
   }
 
   showFull(state) {
-
     if (!this.isShowReduced) return;
 
-    let arrShowFullAlwayGroup = [];
+    const arrShowFullAlwayGroup = [];
 		this.vertexDefinition.vertexGroup.forEach(vertexGroup => {
 			if (vertexGroup.option.indexOf('SHOW_FULL_ALWAYS') != -1) {
 				arrShowFullAlwayGroup.push(vertexGroup.groupType);
@@ -801,7 +792,7 @@ class Vertex {
     // show all property
     d3.select(`#${this.id}`).selectAll('.property').classed('hide', false);
 
-    let arrPropOfVertex = []; //list of properties that have edge connected
+    const arrPropOfVertex = []; //list of properties that have edge connected
     let bFlag = false; // If this vertex has edge connected then this flag will be active
 
     d3.select(`#${this.id}`).selectAll('.reduced')._groups[0].forEach(e => {
@@ -823,7 +814,7 @@ class Vertex {
     this.isShowReduced = false;
 
     if (state) {
-      let he = new HistoryElement();
+      const he = new HistoryElement();
       he.actionType = ACTION_TYPE.SHOW_FULL;
       he.realObject = this;
       state.add(he);
@@ -832,7 +823,7 @@ class Vertex {
 
   resetSize(isShowFull = false) {
     let exitConnect = false;
-    let vertexId = this.id;
+    const vertexId = this.id;
 
     // Get all prop that not hide
     let arrProp = d3.select(`#${vertexId}`).selectAll('.property:not(.hide)');

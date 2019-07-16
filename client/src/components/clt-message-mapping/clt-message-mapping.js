@@ -8,7 +8,7 @@ import ObjectUtils from '../../common/utilities/object.util';
 const ScannerWriterFactory = require('./generation-lib/scanner_writer/scanner_writer_factory');
 const MessageSpecReader = require('./generation-lib/message_spec/message_spec_reader');
 const MapperWriter = require('./generation-lib/mapper_writer/mapper_writer');
-import History from '../../common/new-type-define/history'
+import History from '../../common/new-type-define/history';
 
 import {
 	comShowMessage,
@@ -17,14 +17,16 @@ import {
 	unsetAddressTabName,
 	hideFileChooser,
 	filterPropertyData,
-	isPopupOpen
+	isPopupOpen,
+  checkKeyMisMatch,
+  checkLengthMisMatch,
+  removeDuplicates
 } from '../../common/utilities/common.util';
 
 import { 
 	VERTEX_ATTR_SIZE, BOUNDARY_ATTR_SIZE, CONNECT_TYPE, ACTION_TYPE, OBJECT_TYPE
 } from '../../common/const/index';
 
-import { __await } from 'tslib';
 import State from '../../common/new-type-define/state';
 import HistoryElement from '../../common/new-type-define/historyElement';
 
@@ -59,9 +61,9 @@ class CltMessageMapping {
 
 	initialize() {
 
-		this.objectUtils = new ObjectUtils()
-		this.history = new History()
-		this.initSvgHtml()
+		this.objectUtils = new ObjectUtils();
+		this.history = new History();
+		this.initSvgHtml();
 		this.storeConnect = {
 			edge: [],
 		}
@@ -143,7 +145,7 @@ class CltMessageMapping {
 	}
 
 	initSvgHtml() {
-		let sHtml = 
+		const sHtml = 
     `<!-- Address bar (S) -->
 		<div id="addressBar" class="filename-bar">
 			<div id="${ID_TAB_MESSAGE_MAPPING_DEFINITION}" class="filename-tab tab-left" style="display: none"></div>
@@ -162,9 +164,9 @@ class CltMessageMapping {
       <div id="${this.outputMessageContainerId}" class="right-svg container-svg" ref="${this.outputMessageSvgId}">
         <svg id="${this.outputMessageSvgId}" class="svg"></svg>
       </div>
-      <svg id="${this.connectSvgId}" class="connect-svg"></svg>`
+      <svg id="${this.connectSvgId}" class="connect-svg"></svg>`;
 
-		this.selector.append(sHtml)
+		this.selector.append(sHtml);
 	}
 
 	initShortcutKeyEvent() {
@@ -187,8 +189,8 @@ class CltMessageMapping {
      */
 		d3.selection.prototype.moveToFront = function () {
 			return this.each(function () {
-				this.parentNode.appendChild(this)
-			})
+				this.parentNode.appendChild(this);
+			});
 		}
 
 		/**
@@ -196,49 +198,47 @@ class CltMessageMapping {
      */
 		d3.selection.prototype.moveToBack = function () {
 			this.each(function () {
-				this.parentNode.firstChild && this.parentNode.insertBefore(this, this.parentNode.firstChild)
-			})
+				this.parentNode.firstChild && this.parentNode.insertBefore(this, this.parentNode.firstChild);
+			});
 		}
 	}
 
 	initListenerOnWindowResize() {
 		$(window).resize(() => {
-
 			if(this.connectMgmt.edgeMgmt.isSelectingEdge()) {
-				this.connectMgmt.edgeMgmt.cancleSelectedPath()
+				this.connectMgmt.edgeMgmt.cancleSelectedPath();
 			}
 
-			this.inputMgmt.setCenterAlignmentGarph()
-			this.outputMgmt.setCenterAlignmentGarph()
+			this.inputMgmt.setCenterAlignmentGarph();
+			this.outputMgmt.setCenterAlignmentGarph();
       
-			this.objectUtils.updatePathConnectOnWindowResize(this.connectMgmt.edgeMgmt, [this.storeInputMessage, this.storeOperations, this.storeOutputMessage])
+			this.objectUtils.updatePathConnectOnWindowResize(this.connectMgmt.edgeMgmt, [this.storeInputMessage, this.storeOperations, this.storeOutputMessage]);
 		})
 	}
 
 	initOnMouseUpBackground() {
-		let selector = this.selector.prop('id')
+		let selector = this.selector.prop('id');
 
 		if (selector == '') {
-			selector = `.${this.selector.prop('class')}`
+			selector = `.${this.selector.prop('class')}`;
 		}else{
-			selector = `#${selector}`
+			selector = `#${selector}`;
 		}
     
-		let tmpEdgeMgmt = this.connectMgmt.edgeMgmt
+		const tmpEdgeMgmt = this.connectMgmt.edgeMgmt;
 		d3.select(selector).on('mouseup', function() {
-			let mouse = d3.mouse(this)
-			let elem = document.elementFromPoint(mouse[0], mouse[1])
+			const mouse = d3.mouse(this)
+			const elem = document.elementFromPoint(mouse[0], mouse[1])
 
 			//disable selecting effect if edge is selecting
 			if((!elem || !elem.tagName || elem.tagName != 'path') && tmpEdgeMgmt.isSelectingEdge()) {
-				tmpEdgeMgmt.cancleSelectedPath()
+				tmpEdgeMgmt.cancleSelectedPath();
 			}
-		})
+		});
 	}
 
-	async LoadInputMessage(graphData, fileName) {
-    
-		const resMessage = await this.validateGraphDataStructure(graphData);
+	LoadInputMessage(graphData, fileName) {
+		const resMessage = this.validateGraphDataStructure(graphData);
 
 		if(resMessage.type !== 'ok') {
 			comShowMessage(resMessage.message);
@@ -273,10 +273,10 @@ class CltMessageMapping {
 		setMinBoundaryGraph(this.storeInputMessage,this.inputMessageSvgId, this.inputMgmt.viewMode.value);
 	}
 
-	async LoadOutputMessage(graphData, fileName) {
+	LoadOutputMessage(graphData, fileName) {
 		const {vertexTypes} = graphData;
 
-		const resMessage = await this.validateGraphDataStructure(graphData);
+		const resMessage = this.validateGraphDataStructure(graphData);
 
 		if (resMessage.type !== 'ok') {
 			comShowMessage(resMessage.message);
@@ -285,7 +285,7 @@ class CltMessageMapping {
 				return;
 		}
 
-		const isError = await this.validatesSameGraph(graphData, 'O');
+		const isError = this.validatesSameGraph(graphData, 'O');
 		if (isError) {
 			comShowMessage('There was duplicate data with Iutput graph.\nYou should check it or choose another one!');
 			return;
@@ -300,12 +300,12 @@ class CltMessageMapping {
 		this.outputMgmt.clearAll();
 
 		//Reload Vertex Define and draw graph
-		await this.outputMgmt.processDataVertexTypeDefine(vertexTypes);
-		await this.outputMgmt.drawObjectsOnOutputGraph(graphData);
+		this.outputMgmt.processDataVertexTypeDefine(vertexTypes);
+		this.outputMgmt.drawObjectsOnOutputGraph(graphData);
 		this.outputMgmt.isShowReduced = false;
 		this.outputMgmt.initMenuContext();
 		setAddressTabName(ID_TAB_OUTPUT_MESSAGE, fileName);
-		this.showFileNameOnApplicationTitleBar()
+		this.showFileNameOnApplicationTitleBar();
 		
 		// Validate for mandatory Data Element
 		this.outputMgmt.validateConnectionByUsage();
@@ -313,11 +313,11 @@ class CltMessageMapping {
 		setMinBoundaryGraph(this.storeOutputMessage,this.outputMessageSvgId, this.outputMgmt.viewMode.value);
 	}
 
-	async LoadMesseageMapping(messageMappingData, fileName) {
+	LoadMesseageMapping(messageMappingData, fileName) {
 		const {inputMessage, outputMessage, operations, edges} = messageMappingData;
 
 		//Validate Input data
-		let resMessage = await this.validateGraphDataStructure(inputMessage);
+		let resMessage = this.validateGraphDataStructure(inputMessage);
 
 		if (resMessage.type !== 'ok') {
 			comShowMessage(`Input Message: ${resMessage.message}`);
@@ -327,7 +327,7 @@ class CltMessageMapping {
 		}
 
 		//Validate Output data
-		resMessage = await this.validateGraphDataStructure(outputMessage);
+		resMessage = this.validateGraphDataStructure(outputMessage);
 
 		if (resMessage.type !== 'ok') {
 			comShowMessage(`Output Message: ${resMessage.message}`);
@@ -337,7 +337,7 @@ class CltMessageMapping {
 		}
 
 		//Validate Operations data
-		resMessage = await this.validateGraphDataStructure(operations);
+		resMessage = this.validateGraphDataStructure(operations);
 
 		if(resMessage.type !== 'ok') {
 			comShowMessage(`Operations: ${resMessage.message}`);
@@ -362,35 +362,35 @@ class CltMessageMapping {
 
 		//Input Graph - Reload Vertex define and draw new graph
 		let vertexTypes = inputMessage.vertexTypes;
-		await this.inputMgmt.processDataVertexTypeDefine(vertexTypes);
-		await this.inputMgmt.drawObjectsOnInputGraph(inputMessage);
+		this.inputMgmt.processDataVertexTypeDefine(vertexTypes);
+		this.inputMgmt.drawObjectsOnInputGraph(inputMessage);
 		this.inputMgmt.initMenuContext();
 
 		//Output Graph - Reload Vertex define and draw new graph
 		vertexTypes = {};
 		vertexTypes = outputMessage.vertexTypes;
-		await this.outputMgmt.processDataVertexTypeDefine(vertexTypes);
-		await this.outputMgmt.drawObjectsOnOutputGraph(outputMessage);
+		this.outputMgmt.processDataVertexTypeDefine(vertexTypes);
+		this.outputMgmt.drawObjectsOnOutputGraph(outputMessage);
 		this.outputMgmt.initMenuContext();
 		this.outputMgmt.validateConnectionByUsage();
 
 		//Operations Graph - Reload Vertex define and draw new graph.
 		vertexTypes = {};
 		vertexTypes = operations.vertexTypes;
-		await this.operationsMgmt.processDataVertexTypeDefine(vertexTypes);
-		await this.operationsMgmt.drawObjectsOnOperationsGraph(operations);
+		this.operationsMgmt.processDataVertexTypeDefine(vertexTypes);
+		this.operationsMgmt.drawObjectsOnOperationsGraph(operations);
 		this.operationsMgmt.initMenuContext();
     
 		//Draw edges
 		this.edgeVerifySvgId(edges);
-		await this.connectMgmt.drawEdgeOnConnectGraph(edges);
+		this.connectMgmt.drawEdgeOnConnectGraph(edges);
 
 		setMinBoundaryGraph(this.storeInputMessage,this.inputMessageSvgId, this.inputMgmt.viewMode.value);
 		setMinBoundaryGraph(this.storeOutputMessage,this.outputMessageSvgId, this.outputMgmt.viewMode.value);
 		setMinBoundaryGraph(this.storeOperations,this.operationsSvgId, this.operationsMgmt.viewMode.value);
 
 		//Solve in case of save and import from different window size
-		await this.objectUtils.updatePathConnectOnWindowResize(this.connectMgmt.edgeMgmt, [this.storeInputMessage, this.storeOperations, this.storeOutputMessage]);
+		this.objectUtils.updatePathConnectOnWindowResize(this.connectMgmt.edgeMgmt, [this.storeInputMessage, this.storeOperations, this.storeOutputMessage]);
 	}
 
 	save(fileName) {
@@ -411,16 +411,16 @@ class CltMessageMapping {
 				return;
 			}
 			// stringify with tabs inserted at each level
-			let graph = JSON.stringify(content, null, '\t');
-			let blob = new Blob([graph], {type: 'application/json', charset: 'utf-8'});
+			const graph = JSON.stringify(content, null, '\t');
+			const blob = new Blob([graph], {type: 'application/json', charset: 'utf-8'});
 
 			if (navigator.msSaveBlob) {
 				navigator.msSaveBlob(blob, fileName);
 				return;
 			}
 
-			let fileUrl = window.URL.createObjectURL(blob);
-			let downLink = $('<a>');
+			const fileUrl = window.URL.createObjectURL(blob);
+			const downLink = $('<a>');
 			downLink.attr('download', `${fileName}.mmd`);
 			downLink.attr('href', fileUrl);
 			downLink.css('display', 'none');
@@ -435,7 +435,7 @@ class CltMessageMapping {
 		})
 	}
 
-	LoadOperationsVertexDefinition(vertexDefinitionData, fileName) {
+	LoadOperationsVertexDefinition(vertexDefinitionData) {
 		if (this.operationsMgmt.LoadVertexDefinition(vertexDefinitionData)) {
 			this.operationsMgmt.initMenuContext();
 		}
@@ -446,83 +446,68 @@ class CltMessageMapping {
    * with embedded vertex type
    * Validate content
    */
-	async validateGraphDataStructure(data) {
+	validateGraphDataStructure(data) {
 		//Validate data exists
-		if(data===undefined)
-		{
-			console.log('Data does not exist')
-			return Promise.resolve({
+		if(data===undefined) {
+			console.log('Data does not exist');
+			return {
 				type: 'error',
 				message: 'Empty data.'
-			})
+			}
 		}
 
 		// Validate struct data
 		if (!data.vertex || !data.boundary || !data.position || !data.vertexTypes ||
       (Object.keys(data.vertexTypes).length === 0 && data.vertexTypes.constructor === Object)) {
-			return Promise.resolve({
+			return {
 				type: 'error',
 				message: 'Message Spec is corrupted. You should check it!'
-			})
+			}
 		}
 
 		// Validate embedded vertex type with vertices
-		let dataTypes = data.vertexTypes['VERTEX']
-		let vertices = this.removeDuplicates(data.vertex, 'vertexType')
-		let types = this.getListVertexType(dataTypes)
-		for (let vertex of vertices) {
-
-			let type = vertex.vertexType
+		const dataTypes = data.vertexTypes['VERTEX'];
+		const vertices = removeDuplicates(data.vertex, 'vertexType');
+		const types = this.getListVertexType(dataTypes);
+		for (const vertex of vertices) {
+			const type = vertex.vertexType
 			// If vertex type not exit in embedded vertex type
 			if (types.indexOf(type) < 0) {
-				return Promise.resolve({
+				return {
 					type: 'warning',
 					message: 'Vertex type not exits in embedded vertex type'
-				})
+				}
 			}
 
 			// Validate data key between embedded vertex and vetex in graph.
-			let dataSource = vertex.data
-			let dataTarget = _.find(dataTypes, {'vertexType': type})
-			let keySource = Object.keys(dataSource[0] || {})
-			let keyTarget = Object.keys(dataTarget.data[0] || {})
+			const dataSource = vertex.data;
+			const dataTarget = _.find(dataTypes, {'vertexType': type});
+			const keySource = Object.keys(dataSource[0] || {});
+			const keyTarget = Object.keys(dataTarget.data[0] || {});
 
 			// Check length key
-			if (this.checkLengthMisMatch(keySource, keyTarget)) {
-				return Promise.resolve({
+			if (checkLengthMisMatch(keySource, keyTarget)) {
+				return {
 					type: 'warning',
 					message: 'Data\'s length is different'
-				})
+				}
 			}
 
 			// Check mismatch key
-			const flag = await this.checkKeyMisMatch(keySource, keyTarget)
+			const flag = checkKeyMisMatch(keySource, keyTarget);
 
 			if (flag) {
-				return Promise.resolve({
+				return {
 					type: 'warning',
 					message: 'Key vertex at source not exit in target'
-				})
+				}
 			}
 		}
 
-		return Promise.resolve({
+		return {
 			type: 'ok',
 			message: ''
-		})
-	}
-
-	/**
-   * Removing Duplicate Objects From An Array By Property
-   * @param myArr
-   * @param prop
-   * @author: Dwayne
-   * @reference: https://ilikekillnerds.com/2016/05/removing-duplicate-objects-array-property-name-javascript/
-   */
-	removeDuplicates(myArr, prop) {
-		return myArr.filter((obj, pos, arr) => {
-			return arr.map(mapObj => mapObj[prop]).indexOf(obj[prop]) === pos
-		})
+		}
 	}
 
 	/**
@@ -531,94 +516,66 @@ class CltMessageMapping {
    * @returns {*}
    */
 	getListVertexType(data) {
-		let types = []
-		let len = data.length
-		for (let i = 0; i < len; i++) {
-			let type = data[i]
-			types.push(type.vertexType)
+		const types = [];
+		const len = data.length;
+		for (let i = 0; i < len; i += 1) {
+			const type = data[i];
+			types.push(type.vertexType);
 		}
 
-		return types
-	}
-
-	/**
-   * Check length of source and target is match
-   * @param src
-   * @param tgt
-   * @returns {boolean}
-   */
-	checkLengthMisMatch(src, tgt) {
-		return src.length != tgt.length ? true : false
-	}
-
-	/**
-   * Check key of source and target is match
-   * @param src
-   * @param tgt
-   * @returns {boolean}
-   */
-	checkKeyMisMatch(src, tgt) {
-		let misMatch = false
-		src.forEach(key => {
-			if (tgt.indexOf(key) < 0) {
-				misMatch = true
-			}
-		})
-
-		return Promise.resolve(misMatch)
-	}
-
+		return types;
+  }
+  
 	/**
    * Check duplicate data when import Input or Output graph
    * @param dataContainer the data of current graph
    * @param type type current graph (Input: "I", Output: "O")
    */
 	validatesSameGraph(dataContainer, type) {
-
 		//Variable to store data of the other
-		let tmpDataContainer = {}
+		let tmpDataContainer = {};
 
 		if(type == 'I') {
-			tmpDataContainer = this.storeOutputMessage
+			tmpDataContainer = this.storeOutputMessage;
 		}else{
-			tmpDataContainer = this.storeInputMessage
+			tmpDataContainer = this.storeInputMessage;
 		}
 
 		//Check duplicate Vertex ID between Input and Output
 		if (tmpDataContainer.vertex.length > 0) {
-			for (let vertext1 of dataContainer.vertex) {
-				for (let vertext2 of tmpDataContainer.vertex) {
+			for (const vertext1 of dataContainer.vertex) {
+				for (const vertext2 of tmpDataContainer.vertex) {
 					if(vertext1.id === vertext2.id)
-						return true
+						return true;
 				}
 			}
 		}
 
 		//Check duplicate Boundary ID between Input and Output
 		if(tmpDataContainer.boundary.length > 0) {
-			for (let boudary1 of dataContainer.boundary) {
-				for (let boudary2 of tmpDataContainer.boundary) {
+			for (const boudary1 of dataContainer.boundary) {
+				for (const boudary2 of tmpDataContainer.boundary) {
 					if(boudary1.id === boudary2.id)
-						return true
+						return true;
 				}
 			}
 		}
 
-		return false
+		return false;
 	}
 
 	getContentGraphAsJson() {
-		let dataContent = {inputMessage: {}, outputMessage: {}, operations: {}, edges: []}
+		const dataContent = {inputMessage: {}, outputMessage: {}, operations: {}, edges: []};
 
-		let inputMessage = {vertex: [], boundary: [],position: [], vertexTypes: {}}
-		let outputMessage = {vertex: [], boundary: [],position: [], vertexTypes: {}}
-		let operations = {vertex: [], boundary: [],position: [], vertexTypes: {}}
+		const inputMessage = {vertex: [], boundary: [],position: [], vertexTypes: {}};
+		const outputMessage = {vertex: [], boundary: [],position: [], vertexTypes: {}};
+		const operations = {vertex: [], boundary: [],position: [], vertexTypes: {}};
 
 		if (this.isEmptyContainerData(this.storeInputMessage)) {
-			return Promise.reject('There is no Input data. Please import!')
+			return Promise.reject('There is no Input data. Please import!');
 		} 
 		if (this.isEmptyContainerData(this.storeOutputMessage)) {
-			return Promise.reject('There is no Output data. Please import!')
+			return Promise.reject('There is no Output data. Please import!');
 		}
 
 		// Process data to export
@@ -633,77 +590,76 @@ class CltMessageMapping {
 		}
 
 		cloneInputData.vertex.forEach(vertex => {
-			let pos = new Object({
+			const pos = new Object({
 				'id': vertex.id,
 				'x': vertex.x,
 				'y': vertex.y
-			})
+			});
 
-			inputMessage.vertex.push(this.getSaveDataVertex(vertex))
-			inputMessage.position.push(pos)
-		})
+			inputMessage.vertex.push(this.getSaveDataVertex(vertex));
+			inputMessage.position.push(pos);
+		});
 
 		cloneInputData.boundary.forEach(boundary => {
-			let pos = new Object({
+			const pos = new Object({
 				'id': boundary.id,
 				'x': boundary.x,
 				'y': boundary.y
-			})
+			});
 
-			inputMessage.boundary.push(this.getSaveDataBoundary(boundary))
-			inputMessage.position.push(pos)
+			inputMessage.boundary.push(this.getSaveDataBoundary(boundary));
+			inputMessage.position.push(pos);
 		})
 
-		const cloneVertexInputDefine = _.cloneDeep(this.inputMgmt.vertexMgmt.vertexDefinition)
+		const cloneVertexInputDefine = _.cloneDeep(this.inputMgmt.vertexMgmt.vertexDefinition);
 
-		let inputVertexDefine = {}
+		let inputVertexDefine = {};
 		if(cloneVertexInputDefine.vertexGroup) {
 			inputVertexDefine = {
 				'VERTEX_GROUP': this.getSaveVertexGroup(cloneVertexInputDefine.vertexGroup),
 				'VERTEX': cloneVertexInputDefine.vertex
 			}
 		}
-		inputMessage.vertexTypes = inputVertexDefine
+		inputMessage.vertexTypes = inputVertexDefine;
 
 		//Output data
-
 		const cloneOutputData = {
 			vertex: filterPropertyData(this.storeOutputMessage.vertex, [], ['dataContainer']),
 			boundary: filterPropertyData(this.storeOutputMessage.boundary, [], ['dataContainer'])
 		}
 		
 		cloneOutputData.vertex.forEach(vertex => {
-			let pos = new Object({
+			const pos = new Object({
 				'id': vertex.id,
 				'x': vertex.x,
 				'y': vertex.y
-			})
+			});
 
-			outputMessage.vertex.push(this.getSaveDataVertex(vertex))
-			outputMessage.position.push(pos)
-		})
+			outputMessage.vertex.push(this.getSaveDataVertex(vertex));
+			outputMessage.position.push(pos);
+		});
 
 		cloneOutputData.boundary.forEach(boundary => {
-			let pos = new Object({
+			const pos = new Object({
 				'id': boundary.id,
 				'x': boundary.x,
 				'y': boundary.y
-			})
+			});
 
-			outputMessage.boundary.push(this.getSaveDataBoundary(boundary))
-			outputMessage.position.push(pos)
-		})
+			outputMessage.boundary.push(this.getSaveDataBoundary(boundary));
+			outputMessage.position.push(pos);
+		});
 
-		const cloneVertexOutputDefine = _.cloneDeep(this.outputMgmt.vertexMgmt.vertexDefinition)
+		const cloneVertexOutputDefine = _.cloneDeep(this.outputMgmt.vertexMgmt.vertexDefinition);
 
-		let outputVertexDefine = {}
+		let outputVertexDefine = {};
 		if(cloneVertexOutputDefine.vertexGroup) {
 			outputVertexDefine = {
 				'VERTEX_GROUP': this.getSaveVertexGroup(cloneVertexOutputDefine.vertexGroup),
 				'VERTEX': cloneVertexOutputDefine.vertex
 			}
 		}
-		outputMessage.vertexTypes = outputVertexDefine
+		outputMessage.vertexTypes = outputVertexDefine;
 
 		//Operations data
 		const cloneOperationsData = {
@@ -712,54 +668,54 @@ class CltMessageMapping {
 		}
 
 		cloneOperationsData.vertex.forEach(vertex => {
-			let pos = new Object({
+			const pos = new Object({
 				'id': vertex.id,
 				'x': vertex.x,
 				'y': vertex.y
-			})
+			});
 
-			operations.vertex.push(this.getSaveDataVertex(vertex))
-			operations.position.push(pos)
-		})
+			operations.vertex.push(this.getSaveDataVertex(vertex));
+			operations.position.push(pos);
+		});
 
 		cloneOperationsData.boundary.forEach(boundary => {
-			let pos = new Object({
+			const pos = new Object({
 				'id': boundary.id,
 				'x': boundary.x,
 				'y': boundary.y
-			})
+			});
 
-			operations.boundary.push(this.getSaveDataBoundary(boundary))
-			operations.position.push(pos)
-		})
+			operations.boundary.push(this.getSaveDataBoundary(boundary));
+			operations.position.push(pos);
+		});
 
-		const cloneVertexOperationDefine = _.cloneDeep(this.operationsMgmt.vertexMgmt.vertexDefinition)
-		let operationVertexDefine = {}
+		const cloneVertexOperationDefine = _.cloneDeep(this.operationsMgmt.vertexMgmt.vertexDefinition);
+		let operationVertexDefine = {};
 		if(cloneVertexOperationDefine.vertexGroup) {
 			operationVertexDefine = {
 				'VERTEX_GROUP': this.getSaveVertexGroup(cloneVertexOperationDefine.vertexGroup),
 				'VERTEX': cloneVertexOperationDefine.vertex
 			}
 		}
-		operations.vertexTypes = operationVertexDefine
+		operations.vertexTypes = operationVertexDefine;
 
 		//Edges    
-		let edges = []
+		const edges = [];
 		const cloneEdgesData = {
 			edge: filterPropertyData(this.storeConnect.edge, [], ['dataContainer'])
 		}
 
 		cloneEdgesData.edge.forEach(edge => {
-			edges.push(this.getSaveDataEdge(edge))
-		})
+			edges.push(this.getSaveDataEdge(edge));
+		});
 
 		//Data content
-		dataContent.inputMessage = inputMessage
-		dataContent.outputMessage = outputMessage
-		dataContent.operations = operations
-		dataContent.edges = edges
+		dataContent.inputMessage = inputMessage;
+		dataContent.outputMessage = outputMessage;
+		dataContent.operations = operations;
+		dataContent.edges = edges;
 
-		return Promise.resolve(dataContent)
+		return Promise.resolve(dataContent);
 	}
 
 	/**
@@ -821,7 +777,7 @@ class CltMessageMapping {
 	}
 
 	isEmptyContainerData(containerData) {
-		return (containerData.vertex.length == 0 && containerData.boundary.length == 0)
+		return (containerData.vertex.length == 0 && containerData.boundary.length == 0);
 	}
 
 	/**
@@ -829,15 +785,15 @@ class CltMessageMapping {
    */
 	edgeVerifySvgId(edges) {
 		if (edges.length > 0) {
-			let oldSvgId = edges[0].source.svgId
-			let index = edges[0].source.svgId.indexOf('_')
-			let oldSelectorName = oldSvgId.substring(index + 1, oldSvgId.length)
+			const oldSvgId = edges[0].source.svgId;
+			const index = edges[0].source.svgId.indexOf('_');
+			const oldSelectorName = oldSvgId.substring(index + 1, oldSvgId.length);
 
 			if (oldSelectorName != this.selectorName) {
 				edges.forEach(e => {
-					e.source.svgId = e.source.svgId.replace(oldSelectorName, this.selectorName)
-					e.target.svgId = e.target.svgId.replace(oldSelectorName, this.selectorName)
-				})
+					e.source.svgId = e.source.svgId.replace(oldSelectorName, this.selectorName);
+					e.target.svgId = e.target.svgId.replace(oldSelectorName, this.selectorName);
+				});
 			}
 		}
 	}
@@ -847,155 +803,154 @@ class CltMessageMapping {
    * @param {*} vertexGroup 
    */
 	getSaveVertexGroup(vertexGroup) {
-		let resObj = []
+		const resObj = [];
 
 		vertexGroup.forEach(group => {
-			let tmpGroup = {}
+			const tmpGroup = {};
+			tmpGroup.groupType = group.groupType;
+			tmpGroup.option = group.option;
+			tmpGroup.dataElementFormat = group.dataElementFormat;
+			tmpGroup.vertexPresentation = group.vertexPresentation;
 
-			tmpGroup.groupType = group.groupType
-			tmpGroup.option = group.option
-			tmpGroup.dataElementFormat = group.dataElementFormat
-			tmpGroup.vertexPresentation = group.vertexPresentation
-
-			resObj.push(tmpGroup)
+			resObj.push(tmpGroup);
 		})
     
-		return resObj
+		return resObj;
 	}
 
 	operationsAutoAlignment() {
 		// for history
-		let oldPositionStore = {
+		const oldPositionStore = {
 			vertex: filterPropertyData(this.storeOperations.vertex, ['id', 'x', 'y']),
 			boundary: filterPropertyData(this.storeOperations.boundary, ['id', 'x', 'y'])
-		};
+		}
 
 		// Calculate for arranging branch
-		let arrRes = []
-		let operationsContainer = _.cloneDeep(this.storeOperations);
+		const arrRes = [];
+		const operationsContainer = _.cloneDeep(this.storeOperations);
 		
 		// All edge start from input message
-		let arrEdgeStartFromInput = []
+		let arrEdgeStartFromInput = [];
 		arrEdgeStartFromInput = this.storeConnect.edge.filter(e => {
-			return e.source.svgId == this.inputMessageSvgId && e.target.svgId == this.operationsSvgId
-		})
+			return e.source.svgId == this.inputMessageSvgId && e.target.svgId == this.operationsSvgId;
+		});
 		
 		// sort from top to bottom
 		arrEdgeStartFromInput.sort(function(a, b) {
-			return a.source.y - b.source.y
-		})
+			return a.source.y - b.source.y;
+		});
 
 		// Find all object connect to input area
 		arrEdgeStartFromInput.forEach(e => {
-			let object = null
+			let object = null;
 			if (e.target.vertexId[0] == OBJECT_TYPE.VERTEX) {
 				object = _.find(operationsContainer.vertex, el => {
-					return el.id == e.target.vertexId
-				})
+					return el.id == e.target.vertexId;
+				});
 			} else {
 				object = _.find(operationsContainer.boundary, el => {
-					return el.id == e.target.vertexId
-				})
+					return el.id == e.target.vertexId;
+				});
 			}
 
 			if (object) {
 				if (object.parent) {
-					let parent = _.find(operationsContainer.boundary, {'id': object.parent})
-					parent = parent.findAncestorOfMemberInNestedBoundary()
+					let parent = _.find(operationsContainer.boundary, {'id': object.parent});
+					parent = parent.findAncestorOfMemberInNestedBoundary();
 					if (this.notIn(arrRes, parent.id)) {
-						arrRes.push(parent)
+						arrRes.push(parent);
 					}
 				} else {
 					if (this.notIn(arrRes, object.id)) {
-						arrRes.push(object)
+						arrRes.push(object);
 					}
 				}
 			}
-		})
+		});
 
 		// Finding and pushing objects related to each object in current array
 		for(let i = 0; i < arrRes.length; i++) {
-			this.findNextObjects(arrRes[i], operationsContainer)
+			this.findNextObjects(arrRes[i], operationsContainer);
 		}
 
 		// Find all child branch for each branch
-		let arrFinalResult = []
+		const arrFinalResult = [];
 		for(let i = 0; i < arrRes.length; i++) {
-			let branch = []
-			arrFinalResult.push(branch)
-			let childBranch = []
-			branch.push(childBranch)
-			this.findChildBranch(arrRes[i], childBranch, branch, 1)
+			const branch = [];
+			arrFinalResult.push(branch);
+			const childBranch = [];
+			branch.push(childBranch);
+			this.findChildBranch(arrRes[i], childBranch, branch, 1);
 		}
 
-		if (arrFinalResult.length === 0) return
+		if (arrFinalResult.length === 0) return;
 
-		this.removeUnexpectedResult(arrFinalResult)
+		this.removeUnexpectedResult(arrFinalResult);
 
 		// link to real object
 		for (let i = 0; i < arrFinalResult.length; i++) {
-			let branch = arrFinalResult[i]
+			const branch = arrFinalResult[i];
 			for (let j = 0; j < branch.length; j++) {
-				let childBranch = branch[j]
+				const childBranch = branch[j];
 				for (let k = 0; k < childBranch.length; k++) {
-					let level = childBranch[k][0].level
+					let level = childBranch[k][0].level;
 					if (childBranch[k][0].type == OBJECT_TYPE.VERTEX) {
-						childBranch[k][0] = _.find(this.storeOperations.vertex, {'id': childBranch[k][0].id})
+						childBranch[k][0] = _.find(this.storeOperations.vertex, {'id': childBranch[k][0].id});
 					} else {
-						childBranch[k][0] = _.find(this.storeOperations.boundary, {'id': childBranch[k][0].id})
+						childBranch[k][0] = _.find(this.storeOperations.boundary, {'id': childBranch[k][0].id});
 					}
-					childBranch[k][0].level = level
+					childBranch[k][0].level = level;
 				}
 			}
 		}
 
 		// ============================ Calculate for arranging mapping constanst ================================================
 
-		let arrMappingConstObj = []
+		const arrMappingConstObj = [];
 		// Find all object connect to output message
 		this.storeConnect.edge.forEach(e => {
 			if (e.target.svgId == this.outputMessageSvgId && e.source.svgId == this.operationsSvgId) {
-				let object = null
+				let object = null;
 				if (e.source.vertexId[0] == OBJECT_TYPE.VERTEX) {
 					object = _.find(operationsContainer.vertex, el => {
-						return el.id == e.source.vertexId
-					})
+						return el.id == e.source.vertexId;
+					});
 				} else {
 					object = _.find(operationsContainer.boundary, el => {
-						return el.id == e.source.vertexId
-					})
+						return el.id == e.source.vertexId;
+					});
 				}
 
 				if (object) {
 					if (object.parent) {
-						let parent = _.find(operationsContainer.boundary, {'id':object.parent})
-						parent = parent.findAncestorOfMemberInNestedBoundary()
+						let parent = _.find(operationsContainer.boundary, {'id':object.parent});
+						parent = parent.findAncestorOfMemberInNestedBoundary();
 						if (this.notIn(arrMappingConstObj, parent.id)) {
-							arrMappingConstObj.push(parent)
+							arrMappingConstObj.push(parent);
 						}
 					} else {
 
 						if (this.notIn(arrMappingConstObj, object.id)) {
-							arrMappingConstObj.push(object)
+							arrMappingConstObj.push(object);
 						}
 					}
 				} 
 			}
-		})
+		});
 
 		// Remove all objects that have left connection
 		this.storeConnect.edge.forEach(e => {
 			_.remove(arrMappingConstObj, item => {				
-				return this.isNodeConnectToObject(item, e.target)
-			})
-		})
+				return this.isNodeConnectToObject(item, e.target);
+			});
+		});
 
 		// link to real object
 		for (let i = 0; i < arrMappingConstObj.length; i++) {
 			if (arrMappingConstObj[i].type == OBJECT_TYPE.VERTEX) {
-				arrMappingConstObj[i] = _.find(this.storeOperations.vertex, {'id': arrMappingConstObj[i].id})
+				arrMappingConstObj[i] = _.find(this.storeOperations.vertex, {'id': arrMappingConstObj[i].id});
 			} else {
-				arrMappingConstObj[i] = _.find(this.storeOperations.boundary, {'id': arrMappingConstObj[i].id})
+				arrMappingConstObj[i] = _.find(this.storeOperations.boundary, {'id': arrMappingConstObj[i].id});
 			}
 		}
 
@@ -1004,41 +959,41 @@ class CltMessageMapping {
 		this.storeConnect.edge.forEach((edge) => {
 			arrMappingConstObj.forEach(item => {
 				if (this.isNodeConnectToObject(item, edge.source)) {
-					listEdgeConnectToMappingConstObj.push(edge)
+					listEdgeConnectToMappingConstObj.push(edge);
 				}
-			})
-		})
+			});
+		});
 
 		// get the coordinate in output svg for target
 		listEdgeConnectToMappingConstObj = filterPropertyData(listEdgeConnectToMappingConstObj, [], ['dataContainer']);
-		listEdgeConnectToMappingConstObj.forEach((item, index) => {
-			this.doCalculateCoordinateForNodeOfEdge(item.target, CONNECT_TYPE.INPUT, this.storeOutputMessage)
+		listEdgeConnectToMappingConstObj.forEach((item) => {
+			this.doCalculateCoordinateForNodeOfEdge(item.target, CONNECT_TYPE.INPUT, this.storeOutputMessage);
 		})
 
 		// sort by y coordinate from Top to Bottom then use them to arrange Mapping constant from Top to Bottom
 		listEdgeConnectToMappingConstObj.sort(function(a, b) {
-			return a.target.y - b.target.y
+			return a.target.y - b.target.y;
 		})
 		
 		// Move Constant object to family branch
 		for (let i = 0; i < arrFinalResult.length; i++) {
-			let branch = arrFinalResult[i]
+			const branch = arrFinalResult[i];
 			for (let j = 0; j < branch.length; j++) {
-				let childBranch = branch[j]
-				let obj = childBranch[childBranch.length-1][0]
+				const childBranch = branch[j];
+				const obj = childBranch[childBranch.length-1][0];
 				// Find any constant object that connect to the same output object with obj
 				for (let k = 0; k < this.storeConnect.edge.length; k++) {
 					// Find edge that connect obj to output object
-					let edge = this.storeConnect.edge[k]
+					const edge = this.storeConnect.edge[k];
 					if (edge.source.svgId == this.operationsSvgId && edge.target.svgId == this.outputMessageSvgId && this.isNodeConnectToObject(obj, edge.source)) {
 						for (let m = 0; m < listEdgeConnectToMappingConstObj.length; m++) {
 							// Find const edge that have the same target with above edge
-							let constEdge = listEdgeConnectToMappingConstObj[m]
+							const constEdge = listEdgeConnectToMappingConstObj[m];
 							if (constEdge.target.vertexId == edge.target.vertexId) {
 								for ( let n = arrMappingConstObj.length - 1; n >= 0; n--) {
 									if (this.isNodeConnectToObject(arrMappingConstObj[n], constEdge.source)) {
-										let lastChildBranch = branch[branch.length - 1]
-										lastChildBranch[lastChildBranch.length - 1].push(arrMappingConstObj.splice(n,1)[0])
+										const lastChildBranch = branch[branch.length - 1];
+										lastChildBranch[lastChildBranch.length - 1].push(arrMappingConstObj.splice(n,1)[0]);
 									}
 								}
 							}
@@ -1049,65 +1004,66 @@ class CltMessageMapping {
 		}
 
 		// start arrange for branch
-		let top = 5
+		let top = 5;
 		for (let i = 0; i < arrFinalResult.length; i++) {
 			if (i > 0) {
-				top = this.maxHeight(arrFinalResult[i-1]) + 100
+				top = this.maxHeight(arrFinalResult[i-1]) + 100;
 			}
 
 			// Arrange for each Branch
-			this.arrangeBranch(arrFinalResult[i], top)
+			this.arrangeBranch(arrFinalResult[i], top);
 			
 			// avoid edge draw draw through objects for each Branch
-			this.avoidEdgeGoThrowObject(arrFinalResult[i])
+			this.avoidEdgeGoThrowObject(arrFinalResult[i]);
 		}
 
 		// start arrange Mapping Constant
 		// Move all Mapping Constant object to a temp place then arrange them by new position
 		arrMappingConstObj.forEach(item => {
-			item.setPosition({x: 5, y: 5})
-		})
+			item.setPosition({x: 5, y: 5});
+		});
 
 		// arrange Mapping Constant
-		let arrArrangedObj = []
-		let {maxLength, idxBranch, idxChildBranch} = this.maxLength(arrFinalResult)
+		const arrArrangedObj = [];
+		const {maxLength, idxBranch, idxChildBranch} = this.maxLength(arrFinalResult);
 
-		let colChild = arrFinalResult[idxBranch][idxChildBranch][maxLength-1]
-		let maxLengthObj = colChild[0]
-		let rect = $(`#${maxLengthObj.id}`).get(0).getBoundingClientRect()
-		let maxLengthBranch = maxLengthObj.x + rect.width
+		const colChild = arrFinalResult[idxBranch][idxChildBranch][maxLength-1];
+		const maxLengthObj = colChild[0];
+		const rect = $(`#${maxLengthObj.id}`).get(0).getBoundingClientRect();
+		const maxLengthBranch = maxLengthObj.x + rect.width;
 
-		listEdgeConnectToMappingConstObj.forEach((edge, index) => {
+		listEdgeConnectToMappingConstObj.forEach((edge) => {
 			// if haven't been arranged and is a Mapping Constant object
-			let isArrangedObj = _.find(arrArrangedObj, obj => {
-				return this.isNodeConnectToObject(obj, edge.source)
-			})
-			let isConstObj = _.find(arrMappingConstObj, obj => {
-				return this.isNodeConnectToObject(obj, edge.source)
-			})
+			const isArrangedObj = _.find(arrArrangedObj, obj => {
+				return this.isNodeConnectToObject(obj, edge.source);
+      });
+      
+			const isConstObj = _.find(arrMappingConstObj, obj => {
+				return this.isNodeConnectToObject(obj, edge.source);
+      });
+      
 			if (!isArrangedObj && isConstObj) {
-
-				let obj = _.find(arrMappingConstObj, {'id': edge.source.vertexId})
+				let obj = _.find(arrMappingConstObj, {'id': edge.source.vertexId});
 				if (!obj) {
-					obj = _.find([].concat(this.storeOperations.vertex).concat(this.storeOperations.boundary), {'id': edge.source.vertexId})
+					obj = _.find([].concat(this.storeOperations.vertex).concat(this.storeOperations.boundary), {'id': edge.source.vertexId});
 				}
 
 				// If obj have parent then just arrange for parent then all childs will be effect
 				if (obj && obj.parent) {
-					obj = _.find(this.storeOperations.boundary, {'id': obj.parent})
-					obj = obj.findAncestorOfMemberInNestedBoundary()
+					obj = _.find(this.storeOperations.boundary, {'id': obj.parent});
+					obj = obj.findAncestorOfMemberInNestedBoundary();
 				}
 
-				this.arrangeForMappingConstantObject(obj, arrArrangedObj, maxLengthBranch)
+				this.arrangeForMappingConstantObject(obj, arrArrangedObj, maxLengthBranch);
 				
-				arrArrangedObj.push(obj)
+				arrArrangedObj.push(obj);
 			}
 		});
 
 		// For history
 		if (this.history) {
-			let state = new State();
-			let he = new HistoryElement();
+			const state = new State();
+			const he = new HistoryElement();
 			he.actionType = ACTION_TYPE.AUTO_ALIGNMENT;
 			he.oldObject = oldPositionStore;
 			he.dataObject = { 
@@ -1119,7 +1075,7 @@ class CltMessageMapping {
 			this.history.add(state);
 		}
 
-		setMinBoundaryGraph(this.storeOperations, this.operationsSvgId, this.operationsMgmt.viewMode.value)
+		setMinBoundaryGraph(this.storeOperations, this.operationsSvgId, this.operationsMgmt.viewMode.value);
 	}
 
 	/**
@@ -1129,21 +1085,21 @@ class CltMessageMapping {
 	 * @param {*} maxLengthBranch 
 	 */
 	arrangeForMappingConstantObject(object, arrArrangedObj, maxLengthBranch) {
-		let finalX = maxLengthBranch + 200
-		let finalY = 5
+		const finalX = maxLengthBranch + 200;
+		let finalY = 5;
 		if (arrArrangedObj.length > 0) {
-			let prevObj = arrArrangedObj[arrArrangedObj.length - 1]
-			let rect = $(`#${prevObj.id}`).get(0).getBoundingClientRect()
-			finalY = prevObj.y + rect.height + 5
+			const prevObj = arrArrangedObj[arrArrangedObj.length - 1];
+			const rect = $(`#${prevObj.id}`).get(0).getBoundingClientRect();
+			finalY = prevObj.y + rect.height + 5;
 		}
 
-		let rect = $(`#${object.id}`).get(0).getBoundingClientRect()
-		let overridePosition
+		const rect = $(`#${object.id}`).get(0).getBoundingClientRect();
+		let overridePosition;
 		while ((overridePosition = this.haveOverride({id: object.id, x: finalX, y: finalY, width: rect.width, height: rect.height})) != -1) {
-			finalY = overridePosition + 5
+			finalY = overridePosition + 5;
 		}
 
-		object.setPosition({x: finalX, y: finalY})
+		object.setPosition({x: finalX, y: finalY});
 	}
 
 	/**
@@ -1155,49 +1111,49 @@ class CltMessageMapping {
 	 * @param {*} isUpdate 
 	 */
 	setPositionForChildBranch(branch, idxChildBranch, top, arrArrangedObj) {
-		let distance = 100
+		const distance = 100;
 
-		let curChildBranch = branch[idxChildBranch]
+		const curChildBranch = branch[idxChildBranch];
 
 		for (let i = 0; i < curChildBranch.length; i++) {
-			let colChild = curChildBranch[i]
+			const colChild = curChildBranch[i];
 			for (let j = 0; j < colChild.length; j++) {
-				let obj = colChild[j]
-				if (this.in(arrArrangedObj, obj.id)) continue
+				let obj = colChild[j];
+				if (this.in(arrArrangedObj, obj.id)) continue;
 
-				let x, y
+				let x, y;
 				if (j == 0) {
 					// Normal case
-					x = (obj.level - 1) * VERTEX_ATTR_SIZE.GROUP_WIDTH + obj.level * distance
+					x = (obj.level - 1) * VERTEX_ATTR_SIZE.GROUP_WIDTH + obj.level * distance;
 				} else {
 					// Contant object will be locate under lastest item of lastest childBranch
-					let aboveObj = curChildBranch[i][0]
-					x = aboveObj.x 
+					let aboveObj = curChildBranch[i][0];
+					x = aboveObj.x;
 				}
 				
 				// y
 				if (idxChildBranch == 0 && j == 0) {
-					y = top
+					y = top;
 				} else {
-					let tmpY = 0
+					let tmpY = 0;
 					if (j == 0) {
-						let preChildBranch = branch[idxChildBranch - 1]
-						let prevObj = curChildBranch[i-1][0]
-						tmpY = this.maxHeightOfChildBranch(preChildBranch, i) + 20
+						const preChildBranch = branch[idxChildBranch - 1];
+						const prevObj = curChildBranch[i-1][0];
+						tmpY = this.maxHeightOfChildBranch(preChildBranch, i) + 20;
 
-						if (tmpY < prevObj.y) tmpY = prevObj.y
+						if (tmpY < prevObj.y) tmpY = prevObj.y;
 						
 					} else {
-						let aboveObj = colChild[j-1]
-						let rect = $(`#${aboveObj.id}`).get(0).getBoundingClientRect()
-						tmpY = aboveObj.y + rect.height + 5
+						const aboveObj = colChild[j-1];
+						const rect = $(`#${aboveObj.id}`).get(0).getBoundingClientRect();
+						tmpY = aboveObj.y + rect.height + 5;
 					}
 
 					y = tmpY
 				}
 
-				obj.setPosition({x,y})
-				arrArrangedObj.push(obj)
+				obj.setPosition({x,y});
+				arrArrangedObj.push(obj);
 			}
 		}
 	}
@@ -1208,9 +1164,9 @@ class CltMessageMapping {
 	 * @param {*} top 
 	 */
 	arrangeBranch(branch, top) {
-		let arrArrangedObj = []
+		const arrArrangedObj = [];
 		for (let i = 0; i < branch.length; i++) {
-			this.setPositionForChildBranch(branch, i, top, arrArrangedObj)
+			this.setPositionForChildBranch(branch, i, top, arrArrangedObj);
 		}
 	}
 
@@ -1220,68 +1176,66 @@ class CltMessageMapping {
 	 */
 	avoidEdgeGoThrowObject(branch) {
 		// All edges in Operations area
-		let listEdge = []
+		let listEdge = [];
 		this.storeConnect.edge.forEach(edge => {
 			if (edge.source.svgId == this.operationsSvgId && edge.target.svgId == this.operationsSvgId) {
-				listEdge.push(edge)
+				listEdge.push(edge);
 			}
-		})
+		});
 
 		listEdge = filterPropertyData(listEdge, [], ['dataContainer']);
-		this.calculateCoordinateByOperationsAreaForEdge(listEdge)
+		this.calculateCoordinateByOperationsAreaForEdge(listEdge);
 
 		for (let i = 0; i < branch.length; i++) {
-			let childBranch = branch[i]
+			const childBranch = branch[i];
 
-			let bHaveUpdate = false
+			let bHaveUpdate = false;
 			for (let j = 1; j < childBranch.length; j++) {
-				let colChild = childBranch[j]
-				let obj = colChild[0]
-				let pointRes = null
+				const colChild = childBranch[j];
+				const obj = colChild[0];
+				let pointRes = null;
 
 				// Find all edge that crossing objects
-				listEdge.forEach((item, index)=>{
-					let point = this.getIntersectionObject(item, obj)
+				listEdge.forEach((item) => {
+					const point = this.getIntersectionObject(item, obj);
 					// Choose the highest point
 					if (point) {
 						if (!pointRes || point.y > pointRes.y) {
-							pointRes = point
+							pointRes = point;
 						}
 					}
 				})
 
 				if (pointRes) {
-					bHaveUpdate = true
+					bHaveUpdate = true;
 
-					let offset = pointRes.y - obj.y
-					obj.setPosition({x: obj.x, y: obj.y + offset + 50})
+					const offset = pointRes.y - obj.y;
+					obj.setPosition({x: obj.x, y: obj.y + offset + 50});
 				}
 			}
 
 			if (bHaveUpdate) {
-				let arrArrangedObj = []
+				const arrArrangedObj = [];
 				for (let l = 0; l <=i; l++) {
-					let childBranch = branch[l]
+					const childBranch = branch[l];
 					for (let m = 0; m < childBranch.length; m++) {
 						// Because constant objects are alway in last childBranch, so just case first object in each colChild of childBranch
-						let colChild = childBranch[m]
-						let obj = colChild[0]
+						const colChild = childBranch[m];
+						const obj = colChild[0];
 						if (this.notIn(arrArrangedObj, obj.id)) {
-							arrArrangedObj.push(obj)
+							arrArrangedObj.push(obj);
 						}
 					}
 				}
 				
 				for (let k = i + 1; k < branch.length; k++) {
-					this.setPositionForChildBranch(branch, k, null, arrArrangedObj)
+					this.setPositionForChildBranch(branch, k, null, arrArrangedObj);
 				}
 
-				this.calculateCoordinateByOperationsAreaForEdge(listEdge)
+				this.calculateCoordinateByOperationsAreaForEdge(listEdge);
 			}
 		}
 	}
-
-	
 
 	/**
 	 * get the intersection point between the edge and object then choose a point that has the highest y coordinate
@@ -1289,102 +1243,100 @@ class CltMessageMapping {
 	 * @param {*} object 
 	 */
 	getIntersectionObject(edge, object) {
-
 		if (object.type == OBJECT_TYPE.BOUNDARY) {
-			if (object.isParentOf(edge.target.vertexId) || object.isParentOf(edge.source.vertexId)) return null
+			if (object.isParentOf(edge.target.vertexId) || object.isParentOf(edge.source.vertexId)) return null;
 		}
 
-		let inputRect = $(`#${this.inputMessageContainerId}`).get(0).getBoundingClientRect()
-		inputRect.width = 0
+		const inputRect = $(`#${this.inputMessageContainerId}`).get(0).getBoundingClientRect();
+		inputRect.width = 0;
 
 		// edge
-		let eA = {x: edge.source.x, y: edge.source.y}
-		let eB = {x: edge.target.x, y: edge.target.y}
+		const eA = {x: edge.source.x, y: edge.source.y};
+		const eB = {x: edge.target.x, y: edge.target.y};
 
-		let objRect = $(`#${object.id}`).get(0).getBoundingClientRect()
+		const objRect = $(`#${object.id}`).get(0).getBoundingClientRect();
 		// left edge of object
-		let leftA = {x: object.x + inputRect.width, y: object.y}
-		let leftB = {x: object.x + inputRect.width, y: object.y + objRect.height}
+		const leftA = {x: object.x + inputRect.width, y: object.y};
+		const leftB = {x: object.x + inputRect.width, y: object.y + objRect.height};
 
 		// right edge of object
-		let rightA = {x: object.x + objRect.width + inputRect.width, y: object.y}
-		let rightB = {x: object.x + objRect.width + inputRect.width, y: object.y + objRect.height}
+		const rightA = {x: object.x + objRect.width + inputRect.width, y: object.y};
+		const rightB = {x: object.x + objRect.width + inputRect.width, y: object.y + objRect.height};
 
 		// top edge of object
-		let topA = {x: object.x + inputRect.width, y: object.y}
-		let topB = {x: object.x + inputRect.width + inputRect.width, y: object.y}
+		const topA = {x: object.x + inputRect.width, y: object.y};
+		const topB = {x: object.x + inputRect.width + inputRect.width, y: object.y};
 
 		// bottom edge of object
-		let bottomA = {x: object.x + inputRect.width, y: object.y + objRect.height}
-		let bottomB = {x: object.x + inputRect.width + inputRect.width, y: object.y + objRect.height}
+		const bottomA = {x: object.x + inputRect.width, y: object.y + objRect.height};
+		const bottomB = {x: object.x + inputRect.width + inputRect.width, y: object.y + objRect.height};
 
-		let pointRes = null
+		let pointRes = null;
 		// Left edge
-		let point = this.getIntersection({A: leftA, B: leftB}, {A: eA, B: eB})
+		let point = this.getIntersection({A: leftA, B: leftB}, {A: eA, B: eB});
 		if (point && point.y > leftA.y && point.y < leftB.y && point.x > eA.x && point.x < eB.x) {
-			if (!pointRes || point.y > pointRes.y) pointRes = point
+			if (!pointRes || point.y > pointRes.y) pointRes = point;
 		}
 
 		// Right edge
-		point = this.getIntersection({A: rightA, B: rightB}, {A: eA, B: eB})
+		point = this.getIntersection({A: rightA, B: rightB}, {A: eA, B: eB});
 		if (point && point.y > leftA.y && point.y < leftB.y && point.x > eA.x && point.x < eB.x) {
-			if (!pointRes || point.y > pointRes.y) pointRes = point
+			if (!pointRes || point.y > pointRes.y) pointRes = point;
 		}
 
 		// Top edge
-		point = this.getIntersection({A: topA, B: topB}, {A: eA, B: eB})
+		point = this.getIntersection({A: topA, B: topB}, {A: eA, B: eB});
 		if (point && point.x > topA.x && point.x < topB.x && point.x > eA.x && point.x < eB.x) {
-			if (!pointRes || point.y > pointRes.y) pointRes = point
+			if (!pointRes || point.y > pointRes.y) pointRes = point;
 		}
 
 		// Bottom edge
-		point = this.getIntersection({A: bottomA, B: bottomB}, {A: eA, B: eB})
+		point = this.getIntersection({A: bottomA, B: bottomB}, {A: eA, B: eB});
 		if (point && point.x > bottomA.x && point.x < bottomB.x && point.x > eA.x && point.x < eB.x) {
-			if (!pointRes || point.y > pointRes.y) pointRes = point
+			if (!pointRes || point.y > pointRes.y) pointRes = point;
 		}
 
-		return pointRes
+		return pointRes;
 	}
 
 	// Find all objects connect to this object from right side
 	findNextObjects(object, operationsContainer) {
 		// If this object was run findNextObjects before then do nothing
-		if (object.child) return
+		if (object.child) return;
 		
-		let arrEdges = _.filter(this.storeConnect.edge, edge => {
-			return edge.source.svgId == this.operationsSvgId && edge.target.svgId == this.operationsSvgId
+		const arrEdges = _.filter(this.storeConnect.edge, edge => {
+			return edge.source.svgId == this.operationsSvgId && edge.target.svgId == this.operationsSvgId;
 		})
 
 		arrEdges.sort((a,b) => {
-			return a.source.y - b.source.y
+			return a.source.y - b.source.y;
 		})
 
-		object.child = []
+		object.child = [];
 		arrEdges.forEach(e => {
 			if (this.isNodeConnectToObject(object, e.source)) {
-				let tmpObj = null
-
+				let tmpObj = null;
 				if (e.target.vertexId[0] == OBJECT_TYPE.VERTEX) {
-					tmpObj = _.find(operationsContainer.vertex, {'id': e.target.vertexId})
+					tmpObj = _.find(operationsContainer.vertex, {'id': e.target.vertexId});
 				} else {
-					tmpObj = _.find(operationsContainer.boundary, {'id': e.target.vertexId})
+					tmpObj = _.find(operationsContainer.boundary, {'id': e.target.vertexId});
 				}
 
 				if (tmpObj) {
 					if (tmpObj.parent) {
-						tmpObj = _.find(operationsContainer.boundary, {'id':tmpObj.parent})
-						tmpObj = tmpObj.findAncestorOfMemberInNestedBoundary()
+						tmpObj = _.find(operationsContainer.boundary, {'id':tmpObj.parent});
+						tmpObj = tmpObj.findAncestorOfMemberInNestedBoundary();
 					}
 
 					if (this.notIn(object.child, tmpObj.id)) {
-						object.child.push(tmpObj)
+						object.child.push(tmpObj);
 					}
 				} 
 			}
 		})
 
 		for(let i = 0; i < object.child.length; i++) {
-			this.findNextObjects(object.child[i], operationsContainer)
+			this.findNextObjects(object.child[i], operationsContainer);
 		}
 	}
 
@@ -1395,10 +1347,10 @@ class CltMessageMapping {
 	 */
 	in(arr, objectId) {
 		for (let i = 0; i < arr.length; i++) {
-			if (arr[i].id == objectId) return true
+			if (arr[i].id == objectId) return true;
 		}
 
-		return false
+		return false;
 	}
 
 	/**
@@ -1408,10 +1360,10 @@ class CltMessageMapping {
 	 */
 	notIn(arr, objectId) {
 		for (let i = 0; i < arr.length; i++) {
-			if (arr[i].id == objectId) return false
+			if (arr[i].id == objectId) return false;
 		}
 
-		return true
+		return true;
 	}
 
 	/**
@@ -1422,16 +1374,16 @@ class CltMessageMapping {
 	 */
 	findChildBranch(object, childBranch, branch, level) {
 		if (!object.level || object.level < level) {
-			object.level = level
+			object.level = level;
 		}
 
-		childBranch.push([object])
+		childBranch.push([object]);
 
 		if (object.child.length > 0) {
 			for (let i = 0; i < object.child.length; i++) {
-				let newChildBranch = _.clone(childBranch)
-				branch.push(newChildBranch)
-				this.findChildBranch(object.child[i], newChildBranch, branch, level + 1)
+				let newChildBranch = _.clone(childBranch);
+				branch.push(newChildBranch);
+				this.findChildBranch(object.child[i], newChildBranch, branch, level + 1);
 			}
 		}
 	}
@@ -1440,24 +1392,24 @@ class CltMessageMapping {
 	 * 
 	 */
 	maxLength(arrBranch) {
-		if (arrBranch.length == 0) return 0
+		if (arrBranch.length == 0) return 0;
 
-		let max = 0
-		let idxBranch = -1
-		let idxChildBranch = -1
+		let max = 0;
+		let idxBranch = -1;
+		let idxChildBranch = -1;
 		for (let i = 0; i < arrBranch.length; i++) {
-			let branch = arrBranch[i]
+			let branch = arrBranch[i];
 			for (let j = 0; j < branch.length; j++) {
-				let childBranch = branch[j]
+				let childBranch = branch[j];
 				if (childBranch.length > max) {
-					max = childBranch.length
-					idxBranch = i
-					idxChildBranch = j
+					max = childBranch.length;
+					idxBranch = i;
+					idxChildBranch = j;
 				} 
 			}	
 		}
 
-		return {maxLength: max, idxBranch, idxChildBranch}
+		return {maxLength: max, idxBranch, idxChildBranch};
 	}
 
 	/**
@@ -1466,14 +1418,14 @@ class CltMessageMapping {
 	 */
 	removeUnexpectedResult(arrFinalResult) {
 		for (let i = 0; i < arrFinalResult.length; i++) {
-			let branch = arrFinalResult[i]
+			let branch = arrFinalResult[i];
 
 			for (let j = 0; j < branch.length; j++) {
 				for (let k = 0; k < branch.length; k++) {
 					if (j != k && this.isContain(branch[k], branch[j])) {
-						branch.splice(j,1)
-						j--
-						break
+						branch.splice(j,1);
+						j--;
+						break;
 					}
 				}	
 			}
@@ -1485,17 +1437,17 @@ class CltMessageMapping {
 	 * @param {*} arrLongestBranch 
 	 */
 	mergeFinalResult(arrLongestBranch) {
-		let arrRes = []
+		const arrRes = [];
 		for (let i = 0; i < arrLongestBranch.length; i++) {
-			let Branch = arrLongestBranch[i]
-			let tempBranch = Branch[0] // Choose the first item in Branch for the base then merge other item into it
-			let arrResTemp = [] // store the final result for each Branch
-			arrRes.push(arrResTemp)
+			const Branch = arrLongestBranch[i];
+			const tempBranch = Branch[0]; // Choose the first item in Branch for the base then merge other item into it
+			const arrResTemp = []; // store the final result for each Branch
+			arrRes.push(arrResTemp);
 
 			// use first item for base data
 			tempBranch.forEach((item, index) => {
-				arrResTemp[index] = []
-				arrResTemp[index].push(item)
+				arrResTemp[index] = [];
+				arrResTemp[index].push(item);
 			})
 
 			// if more than 1 item in Branch then merge them to the base
@@ -1503,19 +1455,19 @@ class CltMessageMapping {
 				for (let j = 1; j < Branch.length; j++) {
 					Branch[j].forEach((item, index) => {
 						if (index >= arrResTemp.length) {
-							arrResTemp[index] = []
-							arrResTemp[index].push(item)
+							arrResTemp[index] = [];
+							arrResTemp[index].push(item);
 						} else {
 							if (this.notIn(arrResTemp[index], item.id)) {
-								arrResTemp[index].push(item)
+								arrResTemp[index].push(item);
 							}
 						}
-					})
+					});
 				}
 			}
 		}
 
-		return arrRes
+		return arrRes;
 	}
 
 	/**
@@ -1523,13 +1475,12 @@ class CltMessageMapping {
 	 * @param {*} arrEdge 
 	 */
 	calculateCoordinateByOperationsAreaForEdge(arrEdge) {
-
-		arrEdge.forEach((item, index) => {
+		arrEdge.forEach((item) => {
 			// source
-			this.doCalculateCoordinateForNodeOfEdge(item.source, CONNECT_TYPE.OUTPUT, this.storeOperations)
+			this.doCalculateCoordinateForNodeOfEdge(item.source, CONNECT_TYPE.OUTPUT, this.storeOperations);
 
 			// target
-			this.doCalculateCoordinateForNodeOfEdge(item.target, CONNECT_TYPE.INPUT, this.storeOperations)
+			this.doCalculateCoordinateForNodeOfEdge(item.target, CONNECT_TYPE.INPUT, this.storeOperations);
 		})
 	}
 
@@ -1540,26 +1491,26 @@ class CltMessageMapping {
 	 * @param {*} dataContainer 
 	 */
 	doCalculateCoordinateForNodeOfEdge(node, connectType, dataContainer) {
-		let {vertexId, prop} = node
-		let vertices = []
-		vertices = vertices.concat(dataContainer.vertex)
-		vertices = vertices.concat(dataContainer.boundary)
+		const {vertexId, prop} = node;
+		let vertices = [];
+		vertices = vertices.concat(dataContainer.vertex);
+		vertices = vertices.concat(dataContainer.boundary);
 
-		let object = _.find(vertices, {'id': vertexId})
+		const object = _.find(vertices, {'id': vertexId});
 
 		if (prop.indexOf('boundary_title') != -1) {
-			node.y = object.y + BOUNDARY_ATTR_SIZE.HEADER_HEIGHT / 2
-			node.x = connectType === CONNECT_TYPE.OUTPUT ? object.x + object.width : object.x
+			node.y = object.y + BOUNDARY_ATTR_SIZE.HEADER_HEIGHT / 2;
+			node.x = connectType === CONNECT_TYPE.OUTPUT ? object.x + object.width : object.x;
 
-		}else if (prop.indexOf('title') != -1) {
+		} else if (prop.indexOf('title') != -1) {
 			node.y = object.y + VERTEX_ATTR_SIZE.HEADER_HEIGHT / 2
 			node.x = connectType === CONNECT_TYPE.OUTPUT ? object.x + VERTEX_ATTR_SIZE.GROUP_WIDTH : object.x
 
-		} else{
+		} else {
 			// Get index prop in object
-			let index = this.objectUtils.findIndexPropInVertex(vertexId, prop)
-			node.y = object.y + VERTEX_ATTR_SIZE.HEADER_HEIGHT + index * VERTEX_ATTR_SIZE.PROP_HEIGHT + VERTEX_ATTR_SIZE.PROP_HEIGHT / 2
-			node.x = connectType === CONNECT_TYPE.OUTPUT ? object.x + VERTEX_ATTR_SIZE.GROUP_WIDTH : object.x
+			const index = this.objectUtils.findIndexPropInVertex(vertexId, prop);
+			node.y = object.y + VERTEX_ATTR_SIZE.HEADER_HEIGHT + index * VERTEX_ATTR_SIZE.PROP_HEIGHT + VERTEX_ATTR_SIZE.PROP_HEIGHT / 2;
+			node.x = connectType === CONNECT_TYPE.OUTPUT ? object.x + VERTEX_ATTR_SIZE.GROUP_WIDTH : object.x;
 		}
 	}
 
@@ -1568,20 +1519,20 @@ class CltMessageMapping {
 	 * @param {*} branch 
 	 */
 	maxHeight(branch) {
-		let maxHeight = 0
-		let lastChildBranch = branch[branch.length - 1]
+		let maxHeight = 0;
+		const lastChildBranch = branch[branch.length - 1];
 
 		for (let i = 0; i < lastChildBranch.length; i++) {
-			let colChild = lastChildBranch[i]
-			let highestObj = colChild[colChild.length - 1]
+			const colChild = lastChildBranch[i];
+			const highestObj = colChild[colChild.length - 1];
 
-			let rect = $(`#${highestObj.id}`).get(0).getBoundingClientRect()
+			let rect = $(`#${highestObj.id}`).get(0).getBoundingClientRect();
 			if (maxHeight < highestObj.y + rect.height) {
-				maxHeight = highestObj.y + rect.height
+				maxHeight = highestObj.y + rect.height;
 			}
 		}
 
-		return maxHeight
+		return maxHeight;
 	}
 
 	/**
@@ -1590,41 +1541,41 @@ class CltMessageMapping {
 	 * @param {*} index 
 	 */
 	maxHeightOfChildBranch(childBranch, index) {
-		let maxHeight = 0
+		let maxHeight = 0;
 		for (let i = index; i < childBranch.length; i++) {
-			let colChild = childBranch[i]
-			let highestObj = colChild[colChild.length - 1]
+			const colChild = childBranch[i];
+			const highestObj = colChild[colChild.length - 1];
 
-			let rect = $(`#${highestObj.id}`).get(0).getBoundingClientRect()
+			const rect = $(`#${highestObj.id}`).get(0).getBoundingClientRect()
 			if (maxHeight < highestObj.y + rect.height) {
-				maxHeight = highestObj.y + rect.height
+				maxHeight = highestObj.y + rect.height;
 			}
 		}
 
-		return maxHeight
+		return maxHeight;
 	}
 
 	isNodeConnectToObject(object, node) {
 		if (object.type == OBJECT_TYPE.VERTEX) {
-			return object.id == node.vertexId
+			return object.id == node.vertexId;
 		} else {
 			if (object.id == node.vertexId) {
-				return true
+				return true;
 			} else {
 				for (let i = 0; i < object.member.length; i++) {
-					let memObj = null
+					let memObj = null;
 					if (object.member[i].type == OBJECT_TYPE.VERTEX) {
-						memObj = _.find(this.storeOperations.vertex, {'id': object.member[i].id})
+						memObj = _.find(this.storeOperations.vertex, {'id': object.member[i].id});
 					} else {
-						memObj = _.find(this.storeOperations.boundary, {'id': object.member[i].id})
+						memObj = _.find(this.storeOperations.boundary, {'id': object.member[i].id});
 					}
 
-					if (this.isNodeConnectToObject(memObj, node)) return true
+					if (this.isNodeConnectToObject(memObj, node)) return true;
 				}
 			}
 		}
 
-		return false
+		return false;
 	}
 
 	/**
@@ -1653,90 +1604,85 @@ class CltMessageMapping {
 		/* edge1 // edge2 then there is no intersection */
 		if (   (edge1.B.x - edge1.A.x == 0 && edge2.B.x - edge2.A.x == 0)
 				|| (edge1.B.y - edge1.A.y == 0 && edge2.B.y - edge2.A.y == 0) ) {
-			return null
+			return null;
 		}
 		
 		if (edge1.B.x - edge1.A.x == 0) {
 			/* edge1 // Oy */
-
-			let resX = edge1.A.x
+			const resX = edge1.A.x;
 
 			if (edge2.B.y - edge2.A.y == 0) {
 				// edge2 // Ox
-				return {x: resX, y: edge2.A.y}	
+				return {x: resX, y: edge2.A.y};
 			}
 
-			let a2 = (edge2.B.y - edge2.A.y) / (edge2.B.x - edge2.A.x)
-			let b2 = (edge2.A.y*edge2.B.x - edge2.B.y*edge2.A.x) / (edge2.B.x - edge2.A.x)
+			const a2 = (edge2.B.y - edge2.A.y) / (edge2.B.x - edge2.A.x);
+			const b2 = (edge2.A.y*edge2.B.x - edge2.B.y*edge2.A.x) / (edge2.B.x - edge2.A.x);
 
-			let resY = a2*resX + b2
+			const resY = a2*resX + b2;
 
-			return {x: resX, y: resY}
+			return {x: resX, y: resY};
 
 		} else if (edge1.B.y - edge1.A.y == 0) {
 			/* edge1 // Ox */
-
-			let resY = edge1.A.y
+			const resY = edge1.A.y;
 
 			if (edge2.B.x - edge2.A.x == 0) {
 				// edge2 // Oy
-				return {x: edge2.A.x, y: resY}	
+				return {x: edge2.A.x, y: resY};
 			}
 
-			let a2 = (edge2.B.y - edge2.A.y) / (edge2.B.x - edge2.A.x)
-			let b2 = (edge2.A.y*edge2.B.x - edge2.B.y*edge2.A.x) / (edge2.B.x - edge2.A.x)
+			const a2 = (edge2.B.y - edge2.A.y) / (edge2.B.x - edge2.A.x);
+			const b2 = (edge2.A.y*edge2.B.x - edge2.B.y*edge2.A.x) / (edge2.B.x - edge2.A.x);
 
-			let resX = (resY - b2)/a2
+			const resX = (resY - b2)/a2;
 
-			return {x: resX, y: resY}
+			return {x: resX, y: resY};
 
 		} else if (edge2.B.x - edge2.A.x == 0) {
 			/* edge2 // Oy */
-			let resX = edge2.A.x
+			const resX = edge2.A.x;
 
 			if (edge1.B.y - edge1.A.y == 0) {
 				// edge1 // Ox
-				return {x: resX, y: edge1.A.y}	
+				return {x: resX, y: edge1.A.y};
 			}
 
-			let a1 = (edge1.B.y - edge1.A.y) / (edge1.B.x - edge1.A.x)
-			let b1 = (edge1.A.y*edge1.B.x - edge1.B.y*edge1.A.x) / (edge1.B.x - edge1.A.x)
+			const a1 = (edge1.B.y - edge1.A.y) / (edge1.B.x - edge1.A.x);
+			const b1 = (edge1.A.y*edge1.B.x - edge1.B.y*edge1.A.x) / (edge1.B.x - edge1.A.x);
 
-			let resY = a1*resX + b1
+			const resY = a1*resX + b1;
 
-			return {x: resX, y: resY}
+			return {x: resX, y: resY};
 			
 		} else if (edge2.B.y - edge2.A.y == 0) {
 			/* edge2 // Ox */
-			
-			let resY = edge2.A.y
+			const resY = edge2.A.y;
 
 			if (edge1.B.x - edge1.A.x == 0) {
-				return {x: edge1.A.x, y: resY}	
+				return {x: edge1.A.x, y: resY};
 			}
 
-			let a1 = (edge1.B.y - edge1.A.y) / (edge1.B.x - edge1.A.x)
-			let b1 = (edge1.A.y*edge1.B.x - edge1.B.y*edge1.A.x) / (edge1.B.x - edge1.A.x)
+			const a1 = (edge1.B.y - edge1.A.y) / (edge1.B.x - edge1.A.x);
+			const b1 = (edge1.A.y*edge1.B.x - edge1.B.y*edge1.A.x) / (edge1.B.x - edge1.A.x);
 
-			let resX = (resY - b1)/a1
+			const resX = (resY - b1)/a1;
 
-			return {x: resX, y: resY}
+			return {x: resX, y: resY};
 
 		} else {
-			let a1 = (edge1.B.y - edge1.A.y) / (edge1.B.x - edge1.A.x)
-			let b1 = (edge1.A.y*edge1.B.x - edge1.B.y*edge1.A.x) / (edge1.B.x - edge1.A.x)
+			const a1 = (edge1.B.y - edge1.A.y) / (edge1.B.x - edge1.A.x);
+			const b1 = (edge1.A.y*edge1.B.x - edge1.B.y*edge1.A.x) / (edge1.B.x - edge1.A.x);
 
-			let a2 = (edge2.B.y - edge2.A.y) / (edge2.B.x - edge2.A.x)
-			let b2 = (edge2.A.y*edge2.B.x - edge2.B.y*edge2.A.x) / (edge2.B.x - edge2.A.x)
+			const a2 = (edge2.B.y - edge2.A.y) / (edge2.B.x - edge2.A.x);
+			const b2 = (edge2.A.y*edge2.B.x - edge2.B.y*edge2.A.x) / (edge2.B.x - edge2.A.x);
 
-			let resX = (a1 - a2) / (b2 - b1)
-			let resY = (b1*a2 - a1*b2) / (a2 - a1)
+			const resX = (a1 - a2) / (b2 - b1);
+			const resY = (b1*a2 - a1*b2) / (a2 - a1);
 
-			return {x: resX, y: resY}
+			return {x: resX, y: resY};
 		}
 	}
-
-	
 
 	/**
 	 * 
@@ -1745,21 +1691,21 @@ class CltMessageMapping {
 	 */
 	haveOverride(objectInfo) {
 		for (let i = 0; i < this.storeOperations.boundary.length; i++) {
-			let boundary = this.storeOperations.boundary[i]
+			const boundary = this.storeOperations.boundary[i];
 			if (boundary.id != objectInfo.id && this.isOverride(objectInfo, boundary)) {
-				return boundary.y + boundary.height
+				return boundary.y + boundary.height;
 			}
 		}
 
 		for (let i = 0; i < this.storeOperations.vertex.length; i++) {
-			let vertex = this.storeOperations.vertex[i]
-			let rect = $(`#${vertex.id}`).get(0).getBoundingClientRect()
+			const vertex = this.storeOperations.vertex[i];
+			const rect = $(`#${vertex.id}`).get(0).getBoundingClientRect();
 			if (vertex.id != objectInfo.id && this.isOverride(objectInfo, {x: vertex.x, y: vertex.y, width: rect.width, height: rect.height})) {
-				return vertex.y + rect.height
+				return vertex.y + rect.height;
 			}
 		}
 
-		return -1
+		return -1;
 	}
 
 	isOverride(object1, object2) {
@@ -1784,10 +1730,10 @@ class CltMessageMapping {
 				|| (object2.y  + object2.height >= object1.y && object2.y + object2.height <= object1.y + object1.height + 4 && object2.x + object2.width >= object1.x && object2.x + object2.width <= object1.x + object1.width)
 			)
 		) {
-			return true
+			return true;
 		}
 
-		return false
+		return false;
 	}
 
 	/**
@@ -1796,18 +1742,18 @@ class CltMessageMapping {
 	 * @param {*} arrObj2 
 	 */
 	isContain(arrObj1, arrObj2) {
-		if (arrObj1.length < arrObj2.length) return false
+		if (arrObj1.length < arrObj2.length) return false;
 
-		let cnt = 0
+		let cnt = 0;
 		for (let i = 0; i < arrObj1.length; i++) {
 			for (let j = 0; j < arrObj2.length; j++) {
 				if (arrObj2[j][0].id == arrObj1[i][0].id) {
-					cnt++
+					cnt += 1;
 				}
 			}
 		}
 
-		return cnt == arrObj2.length
+		return cnt == arrObj2.length;
 	}
 
 	/**
@@ -1815,10 +1761,9 @@ class CltMessageMapping {
 	 * @param {*} messageGroupType 
 	 */
 	generateScannerCode(messageGroupType) {
-
 		if (this.storeInputMessage.boundary.length === 0) {
-			comShowMessage('There is no input message data')
-			return
+			comShowMessage('There is no input message data');
+			return;
 		}
 
 		const messageSpecTree = MessageSpecReader.read(this.storeInputMessage);
@@ -1827,53 +1772,51 @@ class CltMessageMapping {
 		switch(messageGroupType) {
 			case 'FIXED_LENGTH_BY_LINE':
 				scannerWriter = ScannerWriterFactory.createFixedLengthByLine();
-				break
+				break;
 			case 'FIXED_LENGTH_WITH_INDEXED_ITEM':
 				scannerWriter = ScannerWriterFactory.createFixedLengthWithIndexedItem();
-				break
+				break;
 			case 'FIXED_LENGTH_WITH_NAMED_ITEM':
 				scannerWriter = ScannerWriterFactory.createFixedLengthWithNamedItem();
-				break
+				break;
 			case 'DELIMITER_WITH_INDEXED_ITEM':
 				scannerWriter = ScannerWriterFactory.createDelimiterWithIndexedItem();
-				break
+				break;
 			case 'DELIMITER_WITH_NAMED_ITEM':
 				scannerWriter = ScannerWriterFactory.createDelimiterWithNamedItem();
-				break
+				break;
 			case 'DICTIONARY':
 				scannerWriter = ScannerWriterFactory.createDictionary();
-				break
+				break;
 		}
 		
 		const result = scannerWriter.write(messageSpecTree.rootSegmentGroup);
-		// console.log(result)
 
 		// Create download dialog
 		if (!result) {
-			comShowMessage('No content to export')
-			return
+			comShowMessage('No content to export');
+			return;
 		}
 
 		// stringify with tabs inserted at each level
-		let blob = new Blob([result], {type: 'application/text', charset: 'utf-8'})
+		const blob = new Blob([result], {type: 'application/text', charset: 'utf-8'});
 
-		const fileName = 'scanner'
+		const fileName = 'scanner';
 
 		if (navigator.msSaveBlob) {
-			navigator.msSaveBlob(blob, fileName)
-			return
+			navigator.msSaveBlob(blob, fileName);
+			return;
 		}
 
-		let fileUrl = window.URL.createObjectURL(blob)
-		let downLink = $('<a>')
-		downLink.attr('download', `${fileName}.cpp`)
-		downLink.attr('href', fileUrl)
-		downLink.css('display', 'none')
-		$('body').append(downLink)
-		downLink[0].click()
-		downLink.remove()
+		const fileUrl = window.URL.createObjectURL(blob);
+		const downLink = $('<a>');
+		downLink.attr('download', `${fileName}.cpp`);
+		downLink.attr('href', fileUrl);
+		downLink.css('display', 'none');
+		$('body').append(downLink);
+		downLink[0].click();
+		downLink.remove();
 	}
-
 
 	/**
 	 * Generate Mapper Writer code
@@ -1881,20 +1824,19 @@ class CltMessageMapping {
 	 * @param {*} outputMessageGroupType 
 	 */
 	generateMapperWriterCode(inputMessageGroupType, outputMessageGroupType) {
-
 		if (this.storeInputMessage.vertex.length === 0 && this.storeInputMessage.boundary.length === 0) {
-			comShowMessage('There is no input message data')
-			return
+			comShowMessage('There is no input message data');
+			return;
 		}
 
 		if (this.storeOutputMessage.vertex.length === 0 && this.storeOutputMessage.boundary.length === 0) {
-			comShowMessage('There is no output message data')
-			return
+			comShowMessage('There is no output message data');
+			return;
 		}
 
 		if (this.storeOperations.vertex.length === 0 && this.storeOperations.boundary.length === 0) {
-			comShowMessage('There is no operations data')
-			return
+			comShowMessage('There is no operations data');
+			return;
 		}
 
 		const mapperWriter = new MapperWriter(inputMessageGroupType, outputMessageGroupType);
@@ -1903,28 +1845,28 @@ class CltMessageMapping {
 		
 		// Create download dialog
 		if (!result) {
-			comShowMessage('No content to export')
-			return
+			comShowMessage('No content to export');
+			return;
 		}
 
-		const fileName = 'mapper'
+		const fileName = 'mapper';
 
 		// stringify with tabs inserted at each level
-		let blob = new Blob([result], {type: 'application/text', charset: 'utf-8'})
+		const blob = new Blob([result], {type: 'application/text', charset: 'utf-8'});
 
 		if (navigator.msSaveBlob) {
-			navigator.msSaveBlob(blob, fileName)
-			return
+			navigator.msSaveBlob(blob, fileName);
+			return;
 		}
 
-		let fileUrl = window.URL.createObjectURL(blob)
-		let downLink = $('<a>')
-		downLink.attr('download', `${fileName}.cpp`)
-		downLink.attr('href', fileUrl)
-		downLink.css('display', 'none')
-		$('body').append(downLink)
-		downLink[0].click()
-		downLink.remove()
+		const fileUrl = window.URL.createObjectURL(blob);
+		const downLink = $('<a>');
+		downLink.attr('download', `${fileName}.cpp`);
+		downLink.attr('href', fileUrl);
+		downLink.css('display', 'none');
+		$('body').append(downLink);
+		downLink[0].click();
+		downLink.remove();
 	}
 
 	showFileNameOnApplicationTitleBar() {
@@ -1962,4 +1904,4 @@ class CltMessageMapping {
 	}
 }
   
-export default CltMessageMapping
+export default CltMessageMapping;

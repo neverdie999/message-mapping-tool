@@ -28,7 +28,6 @@ class MainMenu {
                 x: this.opt.x,
                 y: this.opt.y,
                 isMenu: this.opt.isMenu,
-                isImport: false,
               };
               this.parent.createBoundary(params);
               break;
@@ -180,7 +179,6 @@ class MainMenu {
         y: self.opt.y,
         isMenu: self.opt.isMenu,
         vertexType: this.value,
-        isImport: false,
       };
 
       self.parent.createVertex(params);

@@ -195,7 +195,6 @@ class CltSampleMessageViewer {
         $('#tableContent').show();
         $('#tableContent').empty();
 
-
         const $header = $('<thead>');
         const $row = $('<tr>');
         $row.append('<th class="col_header" >NAME</th>')

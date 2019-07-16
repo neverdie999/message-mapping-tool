@@ -3,11 +3,11 @@ import VertexMgmt from '../../common-objects/objects/vertex-mgmt';
 import BoundaryMgmt from '../../common-objects/objects/boundary-mgmt';
 import ObjectUtils from '../../../common/utilities/object.util';
 import FindMenu from '../../common-objects/menu-context/find-menu';
-import HistoryElement from '../../../common/new-type-define/historyElement'
+import HistoryElement from '../../../common/new-type-define/historyElement';
 
 import {
 	DEFAULT_CONFIG_GRAPH, VIEW_MODE, CONNECT_SIDE, ACTION_TYPE, OBJECT_TYPE
-} from '../../../common/const/index'
+} from '../../../common/const/index';
 
 import {
 	setSizeGraph, setMinBoundaryGraph, filterPropertyData, isPopupOpen
@@ -115,7 +115,6 @@ class OperationsMgmt {
 				}
 			} else if (e.keyCode == 46) {
 				// Delete key
-
 				const $focusedObject = $(`#${this.svgId} .${FOCUSED_CLASS}`);
 
 				if ($focusedObject.length > 0) {
@@ -159,7 +158,7 @@ class OperationsMgmt {
 		this.parent.outputMgmt.validateConnectionByUsage();
 
 		if (state) {
-			let he = new HistoryElement();
+			const he = new HistoryElement();
 			he.actionType = ACTION_TYPE.CLEAR_ALL_VERTEX_BOUNDARY;
 			he.dataObject = oldDataContainer;
 			he.realObject = this;
@@ -169,49 +168,46 @@ class OperationsMgmt {
 		setSizeGraph({ height: DEFAULT_CONFIG_GRAPH.MIN_HEIGHT }, this.svgId);
 	}
 
-	async drawObjectsOnOperationsGraph(data) {
-		const { boundary: boundaries, vertex: vertices, position } = data
+	drawObjectsOnOperationsGraph(data) {
+		const { boundary: boundaries, vertex: vertices, position } = data;
 		// Draw boundary
 		boundaries.forEach(e => {
-			let { x, y } = position.find(pos => {
-				return pos.id === e.id
-			})
+			const { x, y } = position.find(pos => {
+				return pos.id === e.id;
+			});
 
-			e.x = x
-			e.y = y
-			e.isImport = true
-			this.boundaryMgmt.create(e)
+			e.x = x;
+			e.y = y;
+			this.boundaryMgmt.create(e);
 		})
 		// Draw vertex
 		vertices.forEach(e => {
 			const { x, y } = position.find(pos => {
-				return pos.id === e.id
+				return pos.id === e.id;
 			})
 
-			e.x = x
-			e.y = y
-			e.isImport = true
-
-			this.vertexMgmt.create(e)
+			e.x = x;
+			e.y = y;
+			this.vertexMgmt.create(e);
 		})
 
 		if (this.dataContainer.boundary && this.dataContainer.boundary.length > 0) {
-			this.objectUtils.setAllChildrenToShow(this.dataContainer)
+			this.objectUtils.setAllChildrenToShow(this.dataContainer);
 			if (this.dataContainer.boundary.length > 0)
-				await this.dataContainer.boundary[0].updateHeightBoundary()
+      this.objectUtils.updateHeightBoundary(this.dataContainer);
 		}
 	}
 
 	LoadVertexDefinition(vertexDefinitionData) {
-		return this.vertexMgmt.LoadVertexDefinition(vertexDefinitionData)
+		return this.vertexMgmt.LoadVertexDefinition(vertexDefinitionData);
 	}
 
 	processDataVertexTypeDefine(vertexDefinitionData) {
-		this.vertexMgmt.processDataVertexTypeDefine(vertexDefinitionData)
+		this.vertexMgmt.processDataVertexTypeDefine(vertexDefinitionData);
 	}
 
 	operationsAutoAlignment() {
-		this.parent.operationsAutoAlignment()
+		this.parent.operationsAutoAlignment();
 	}
 
 	setWindowMousePoint(x, y) {
@@ -223,12 +219,10 @@ class OperationsMgmt {
 		const { boundary: boundaries, vertex: vertices} = dataContainer;
 		// Draw boundary
 		boundaries.forEach(e => {
-			e.isImport = true;
 			this.boundaryMgmt.create(e);
 		})
 		// Draw vertex
 		vertices.forEach(e => {
-			e.isImport = true;
 			this.vertexMgmt.create(e);
 		})
 

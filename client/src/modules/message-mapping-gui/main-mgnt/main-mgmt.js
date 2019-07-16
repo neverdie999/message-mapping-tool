@@ -1,9 +1,8 @@
-import FileMgmt from '../file-mgmt/file-mgmt'
-import CltMessageMapping from '../../../components/clt-message-mapping/clt-message-mapping'
+import FileMgmt from '../file-mgmt/file-mgmt';
+import CltMessageMapping from '../../../components/clt-message-mapping/clt-message-mapping';
 
 class MainMgmt {
 	constructor(props) {
-
 		const options = {
 			selector: $('.wrap-container-area'),
 			mandatoryDataElementConfig: {
@@ -20,11 +19,11 @@ class MainMgmt {
 			}
 		}
 
-		this.cltMessageMapping = new CltMessageMapping(options)
+		this.cltMessageMapping = new CltMessageMapping(options);
 
 		this.fileMgmt = new FileMgmt({
 			parent: this
-		})
+		});
 	}
 
 	/**
@@ -32,37 +31,38 @@ class MainMgmt {
    * @param data
    * @param option
    */
-	async separateDataToManagement(data, option, fileName) {
+	separateDataToManagement(data, option, fileName) {
 		if (option === 'DATA_INPUT_MESSAGE') {
-			await this.cltMessageMapping.LoadInputMessage(data, fileName)
+			this.cltMessageMapping.LoadInputMessage(data, fileName);
 
-		}else if (option === 'DATA_OUTPUT_MESSAGE') {
-			await this.cltMessageMapping.LoadOutputMessage(data, fileName)
+		} else if (option === 'DATA_OUTPUT_MESSAGE') {
+			this.cltMessageMapping.LoadOutputMessage(data, fileName);
 
-		}else if (option === 'DATA_VERTEX_DEFINE_OPERATIONS') {
-			await this.cltMessageMapping.LoadOperationsVertexDefinition(data, fileName)
+		} else if (option === 'DATA_VERTEX_DEFINE_OPERATIONS') {
+			this.cltMessageMapping.LoadOperationsVertexDefinition(data);
 
-		}else if (option === 'DATA_MESSAGE_MAPPING_DEFINITION') {
-			await this.cltMessageMapping.LoadMesseageMapping(data, fileName)
+		} else if (option === 'DATA_MESSAGE_MAPPING_DEFINITION') {
+			this.cltMessageMapping.LoadMesseageMapping(data, fileName);
 		}
 
 		if (this.cltMessageMapping.storeInputMessage.boundary.length > 0
 				&& this.cltMessageMapping.storeOutputMessage.boundary.length > 0
 				&& this.cltMessageMapping.operationsMgmt.vertexMgmt.vertexDefinition.vertex.length > 0) {
-			this.fileMgmt.slideToggle()
+			this.fileMgmt.slideToggle();
 		}
 	}
 
 	save(fileName) {
-		this.cltMessageMapping.save(fileName)
+		this.cltMessageMapping.save(fileName);
 	}
 
 	generateScannerCode(messageGroupType) {
-		this.cltMessageMapping.generateScannerCode(messageGroupType)
+		this.cltMessageMapping.generateScannerCode(messageGroupType);
 	}
 
 	generateMapperWriterCode (inputMessageGroupType, outputMessageGroupType) {
-		this.cltMessageMapping.generateMapperWriterCode(inputMessageGroupType, outputMessageGroupType)
+		this.cltMessageMapping.generateMapperWriterCode(inputMessageGroupType, outputMessageGroupType);
 	}
 }
-export default MainMgmt
+
+export default MainMgmt;

@@ -172,9 +172,6 @@ class EdgeMgmt {
    */
   draggedPoint(main) {
     return function () {
-      const edgeId = d3.select(`#${main.edgePathId}`).attr('ref');
-      const edgeObj = _.find(main.dataContainer.edge, { id: edgeId });
-
       let pathStr = null;
       const x = d3.mouse(main.svgSelector.node())[0];
       const y = d3.mouse(main.svgSelector.node())[1];
@@ -280,12 +277,12 @@ class EdgeMgmt {
       }
 
       main.handlerOnClickEdge(main.selectingEdge);
-    };
+    }
   }
 
   startConnect(main) {
     return function () {
-      if (main.isSelectingEdge()) { main.cancleSelectedPath() }
+      if (main.isSelectingEdge()) { main.cancleSelectedPath(); }
 
       main.isCreatingEdge = true;
       const prop = d3.select(d3.event.sourceEvent.target).attr('prop');
@@ -497,7 +494,7 @@ class EdgeMgmt {
     d3.selectAll('.marked_connector').classed('marked_connector', false);
 
     if (state) {
-      let he = new HistoryElement();
+      const he = new HistoryElement();
 			he.actionType = ACTION_TYPE.CLEAR_ALL_EDGE;
 			he.dataObject = oldDataContainer;
 			he.realObject = this;
@@ -533,7 +530,7 @@ class EdgeMgmt {
    * @returns {Array}
    */
   findEdgeRelateToVertex(vertexId) {
-    if (!vertexId) { return [] }
+    if (!vertexId) { return []; }
 
     return _.filter(this.dataContainer.edge, e => e.target.vertexId === vertexId || e.source.vertexId === vertexId,
     );
@@ -542,7 +539,7 @@ class EdgeMgmt {
   checkExitEdgeConnectToVertex(vertexId) {
 		const numEdges = this.findEdgeRelateToVertex(vertexId);
     if (numEdges.length)
-			{return true}
+			{return true;}
     return false;
   }
 

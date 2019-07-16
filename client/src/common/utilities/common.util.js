@@ -352,19 +352,10 @@ export function unsetAddressTabName(tabId) {
 export function initDialogDragEvent(dialogId) {
   $(`#${dialogId} .dialog-title`).css('cursor', 'move').on('mousedown', (e) => {
     const $drag = $(`#${dialogId} .modal-dialog`).addClass('draggable');
-
     const pos_y = $drag.offset().top - e.pageY;
-
-
     const pos_x = $drag.offset().left - e.pageX;
-
-
     const winH = window.innerHeight;
-
-
     const winW = window.innerWidth;
-
-
     const dlgW = $drag.get(0).getBoundingClientRect().width;
 
     $(window).on('mousemove', (e) => {
@@ -382,6 +373,7 @@ export function initDialogDragEvent(dialogId) {
         left: x,
       });
     });
+
     e.preventDefault(); // disable selection
   });
 
@@ -431,4 +423,46 @@ export function filterPropertyData(data, options = [], excludeOptions = []) {
  */
 export function isPopupOpen() {
   return $('.modal-backdrop').length >= 1 || $('#context-menu-layer').length >= 1;
+}
+
+/**
+ * Check key of source and target is match
+ * @param src
+ * @param tgt
+ * @returns {boolean}
+ */
+export function checkKeyMisMatch(src, tgt) {
+  let misMatch = false;
+  
+  for (let i = 0; i < src.length; i += 1) {
+    let key = src[i];
+    if (tgt.indexOf(key) < 0) {
+      misMatch = true;
+    }
+  }
+
+  return misMatch;
+}
+
+/**
+ * Check length of source and target is match
+ * @param src
+ * @param tgt
+ * @returns {boolean}
+ */
+export function checkLengthMisMatch(src, tgt) {
+  return src.length != tgt.length ? true : false;
+}
+
+/**
+ * Removing Duplicate Objects From An Array By Property
+ * @param myArr
+ * @param prop
+ * @author: Dwayne
+ * @reference: https://ilikekillnerds.com/2016/05/removing-duplicate-objects-array-property-name-javascript/
+ */
+export function removeDuplicates(myArr, prop) {
+  return myArr.filter((obj, pos, arr) => {
+    return arr.map(mapObj => mapObj[prop]).indexOf(obj[prop]) === pos;
+  })
 }

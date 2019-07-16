@@ -73,19 +73,10 @@ class Boundary {
   }
 
   /**
-   * Create boundary with options
-   * @param id => type: string, require: true, purpose: identify for boundary
-   * @param x => type: number, require: true, purpose: coordinate x
-   * @param y => type: number, require: true, purpose: coordinate y
-   * @param name => type: string, require: false, purpose: vertex name
-   * @param description => type: string, require: false, purpose: content title when hover to boundary
-   * @param member => type: array, require: false, purpose: content members of this boundary
-   
-   * @param width => type: number, require: true, purpose: width boundary
-   * @param height => type: number, require: true, purpose: height boundary
-   * @param parent => type: object, require: false, purpose: link to parent boundary that contain this boundary
-   * @param mandatory => type: bool, require: false
-   * @param repeat => type: number, require: false,
+   * * Create boundary with options
+   * @param {*} options 
+   * @param {*} callbackDragBoundary 
+   * @param {*} callbackDragConnection 
    */
   create(options = {}, callbackDragBoundary = () => { },  callbackDragConnection = ()=>{}) {
     let { id, x, y, name, description, member, width, height, parent, mandatory, repeat, isMenu, show} = options;
@@ -131,7 +122,7 @@ class Boundary {
         d3.select(`#${this.id}`).classed(FOCUSED_CLASS, true);
         
         this.boundaryMgmt.edgeMgmt.emphasizePathConnectForBoundary(this);        
-      })
+      });
     }
 
     group.append("foreignObject")
@@ -221,18 +212,6 @@ class Boundary {
     return this;
   }
 
-  updateHeightBoundary() {
-
-    let boundaries = _.filter(this.dataContainer.boundary, (g) => {
-      return g.parent === null && g.member.length > 0;
-    });
-
-    boundaries.forEach(boundary => {
-      boundary.updateSize();
-      boundary.reorderPositionMember();
-    });
-  }
-
   /**
    * Resize (height, width) of parent boundary
    * When add or remove elements
@@ -245,7 +224,6 @@ class Boundary {
 
     this.member.forEach(mem => {
       if (mem.show) {
-
         if (mem.type === OBJECT_TYPE.BOUNDARY) {
           let boundaryObj = _.find(this.dataContainer.boundary, {"id": mem.id});
           boundaryObj.updateSize();
@@ -259,7 +237,7 @@ class Boundary {
       }
     });
 
-    let hBoundary = hBeforeElements + marginTop * orderObject + 2;
+    const hBoundary = hBeforeElements + marginTop * orderObject + 2;
 
     this.setHeight(hBoundary);
     this.setWidth(wBoundary);
@@ -271,7 +249,7 @@ class Boundary {
    */
   setHeight(height) {
 
-    let hasShowedMember = _.find(this.member, {"show": true});
+    const hasShowedMember = _.find(this.member, {"show": true});
     // Set height for boundary
     if (height < BOUNDARY_ATTR_SIZE.BOUND_HEIGHT && (this.member.length === 0 || !hasShowedMember))
       height = BOUNDARY_ATTR_SIZE.BOUND_HEIGHT;
@@ -312,17 +290,16 @@ class Boundary {
   reorderPositionMember(pos) {
     let orderObject = 0;
     let hBeforeElements = 42;
-    let wBoundary = BOUNDARY_ATTR_SIZE.BOUND_WIDTH;
-    let marginTop = 3;
+    const marginTop = 3;
 
     // Get child of boundary
     if (!pos) {
       pos = { x: this.x, y: this.y };
     }
+
     this.member.forEach(mem => {
       if (mem.show) {
-
-        const { width, height } = this.objectUtils.getBBoxObject(`#${mem.id}`);
+        const { height } = this.objectUtils.getBBoxObject(`#${mem.id}`);
 
         // Vertex position center of boundary
         let position = { x: pos.x + 5, y: pos.y + hBeforeElements + marginTop * orderObject };
@@ -374,13 +351,13 @@ class Boundary {
  * Member format
  * {id: '', type: [V, B], show: true}
  */
-  async addMemberToBoundary(member, isEffectToParent = true, state) {
+  addMemberToBoundary(member, isEffectToParent = true, state) {
     const oldObject = this.getObjectInfo();
 
     this.member.push(member);
 
     if (state) {
-      let he = new HistoryElement();
+      const he = new HistoryElement();
       he.actionType = ACTION_TYPE.MEMBER_CHANGE;
       he.oldObject = oldObject;
       he.dataObject = this.getObjectInfo();
@@ -399,36 +376,36 @@ class Boundary {
    * Clone all child boundary, above child of child boundary
    * boundaryCloneId, cloneMembers
    */
-  async cloneChildElements(cMembers = [], state) {
+  cloneChildElements(cMembers = [], state) {
     for (let i = 0; i < cMembers.length; i++) {
       const member = cMembers[i];
-      let objectId = member.id;
+      const objectId = member.id;
       if (member.type === OBJECT_TYPE.VERTEX) {
-        let cVertex = _.find(this.dataContainer.vertex, {"id": objectId}).getObjectInfo();
-        let cVertexId = generateObjectId(OBJECT_TYPE.VERTEX);
+        const cVertex = _.find(this.dataContainer.vertex, {"id": objectId}).getObjectInfo();
+        const cVertexId = generateObjectId(OBJECT_TYPE.VERTEX);
         cVertex.id = cVertexId;
         cVertex.parent = this.id;
         cVertex.x = cVertex.x + 5;
         cVertex.y = cVertex.y + 5;
         cVertex.show = true;
-        let child = {id: cVertexId, type: OBJECT_TYPE.VERTEX, show: true};
+        const child = {id: cVertexId, type: OBJECT_TYPE.VERTEX, show: true};
         this.boundaryMgmt.vertexMgmt.create(cVertex, state);
         this.addMemberToBoundary(child, false, state);
       } else {
-        let cBoundary = _.find(this.dataContainer.boundary, {"id": objectId}).getObjectInfo();
-        let members = cBoundary.member.slice();
-        let cBoundaryId = generateObjectId(OBJECT_TYPE.BOUNDARY);
+        const cBoundary = _.find(this.dataContainer.boundary, {"id": objectId}).getObjectInfo();
+        const members = cBoundary.member.slice();
+        const cBoundaryId = generateObjectId(OBJECT_TYPE.BOUNDARY);
         cBoundary.id = cBoundaryId;
         cBoundary.parent = this.id;
         cBoundary.member = [];
         cBoundary.x = cBoundary.x + 5;
         cBoundary.y = cBoundary.y + 5;
         cBoundary.show = true;
-        let child = {id: cBoundaryId, type: OBJECT_TYPE.BOUNDARY, show: true};
+        const child = {id: cBoundaryId, type: OBJECT_TYPE.BOUNDARY, show: true};
         this.boundaryMgmt.create(cBoundary, state);
         this.addMemberToBoundary(child, false, state);
 
-        let boundaryObj = _.find(this.dataContainer.boundary, { "id": cBoundaryId });
+        const boundaryObj = _.find(this.dataContainer.boundary, { "id": cBoundaryId });
         if (members.length > 0)
           boundaryObj.cloneChildElements(members, state);
       }
@@ -439,19 +416,19 @@ class Boundary {
    * Copy boundary and all elements of it
    * Above vertex of boundary (Event child of boundary)
    */
-  async copyAll() {
-    let state = new State();
+  copyAll() {
+    const state = new State();
 
-    let cBoundaryId = generateObjectId(OBJECT_TYPE.BOUNDARY);
-    let cBoundary = this.getObjectInfo();
-    let cMembers = cBoundary.member.slice();
+    const cBoundaryId = generateObjectId(OBJECT_TYPE.BOUNDARY);
+    const cBoundary = this.getObjectInfo();
+    const cMembers = cBoundary.member.slice();
 
     cBoundary.member = [];
     cBoundary.id = cBoundaryId;
     cBoundary.x = cBoundary.x + 5;
     cBoundary.y = cBoundary.y + 5;
     cBoundary.parent = null;
-    let boudaryObj = this.boundaryMgmt.create(cBoundary, state);
+    const boudaryObj = this.boundaryMgmt.create(cBoundary, state);
     boudaryObj.cloneChildElements(cMembers, state);
 
     // for Show redeuced case
@@ -468,7 +445,6 @@ class Boundary {
    * Above vertex or boundary (Event child of boundary)
    */
   deleteAll(state) {
-
     if (!state) {
       state = new State();
     }
@@ -492,7 +468,7 @@ class Boundary {
 
      // Case that delete child boundary nested in boundary
      if(this.parent) {
-      let parentObj = this.getParentObject();
+      const parentObj = this.getParentObject();
       parentObj.removeMemberFromBoundary(this, false, state);
     }
 
@@ -508,7 +484,7 @@ class Boundary {
     });
 
     if (state) {
-      let he = new HistoryElement();
+      const he = new HistoryElement();
       he.actionType = ACTION_TYPE.DELETE;
       he.dataObject = this.getObjectInfo();
       he.realObject = this;
@@ -528,7 +504,7 @@ class Boundary {
     this.selectAllMemberVisible(true, false, null, isMenu);
 
     if (this.parent) {
-      let parentObj = _.find(this.dataContainer.boundary,{"id": this.parent});
+      const parentObj = _.find(this.dataContainer.boundary,{"id": this.parent});
       parentObj.removeMemberFromBoundary(this, false, state);
     }
 
@@ -547,7 +523,7 @@ class Boundary {
     this.resetParentForChild();
 
     if (isMenu && this.history) {
-      let he = new HistoryElement();
+      const he = new HistoryElement();
       he.actionType = ACTION_TYPE.DELETE;
       he.dataObject = this.getObjectInfo();
       he.realObject = this;
@@ -570,12 +546,12 @@ class Boundary {
     member.forEach(mem => {
       if (mem.type === OBJECT_TYPE.VERTEX) {
         //need to put deleteVertex function
-        let memObj = _.find(this.dataContainer.vertex, {"id": mem.id})
+        const memObj = _.find(this.dataContainer.vertex, {"id": mem.id})
         this.removeMemberFromBoundary(memObj, false, state);
         memObj.delete(state);
       } else {
         // Remove all child boundary
-        let memObj = _.find(this.dataContainer.boundary, {"id": mem.id})
+        const memObj = _.find(this.dataContainer.boundary, {"id": mem.id})
         memObj.doDeleteAll(state);
       }
     });
@@ -587,7 +563,7 @@ class Boundary {
    * @param status
    * @param isEffectToParent
    */
-  async selectMemberVisible(child, status, isEffectToParent = true, state = null, allowHistory = true) {
+  selectMemberVisible(child, status, isEffectToParent = true, state = null, allowHistory = true) {
     const oldObject = this.getObjectInfo();
 
     const { id: idChild, type } = child;
@@ -607,29 +583,26 @@ class Boundary {
 
     if (type === OBJECT_TYPE.BOUNDARY) {
       // TO-DO: Need improve this code
-      let childObj = _.find(this.dataContainer.boundary, {"id": child.id});
-      await childObj.setObjectShowHide(status);
+      const childObj = _.find(this.dataContainer.boundary, {"id": child.id});
+      childObj.setObjectShowHide(status);
     }
 
     if (isEffectToParent) {
-      let ancestor = await this.findAncestorOfMemberInNestedBoundary();
-      await ancestor.updateSize();
-      await ancestor.reorderPositionMember();
-      ancestor.boundaryMgmt.edgeMgmt.updatePathConnectForVertex(ancestor);
+      this.refresh();
   
       setMinBoundaryGraph(this.dataContainer, this.svgId, this.viewMode.value);
     }
 
     if (state) {
-      let he = new HistoryElement();
+      const he = new HistoryElement();
       he.actionType = ACTION_TYPE.VISIBLE_MEMBER;
       he.oldObject = oldObject;
       he.dataObject = this.getObjectInfo();
       he.realObject = this;
       state.add(he);
     } else if (allowHistory && this.history) {
-      let state = new State();
-      let he = new HistoryElement();
+      const state = new State();
+      const he = new HistoryElement();
       he.actionType = ACTION_TYPE.VISIBLE_MEMBER;
       he.oldObject = oldObject;
       he.dataObject = this.getObjectInfo();
@@ -644,7 +617,7 @@ class Boundary {
 	 * @param {*} status 
 	 * @param {*} isEffectToParent 
 	 */
-  async selectAllMemberVisible(status, isEffectToParent = true, state = null, allowHistory = true) {
+  selectAllMemberVisible(status, isEffectToParent = true, state = null, allowHistory = true) {
     const oldObject = this.getObjectInfo();
 
     this.member.forEach(e => {
@@ -657,15 +630,15 @@ class Boundary {
     }
 
     if (state) {
-      let he = new HistoryElement();
+      const he = new HistoryElement();
       he.actionType = ACTION_TYPE.VISIBLE_MEMBER;
       he.oldObject = oldObject;
       he.dataObject = this.getObjectInfo();
       he.realObject = this;
       state.add(he);
     } else if (allowHistory && this.history) {
-      let state = new State();
-      let he = new HistoryElement();
+      const state = new State();
+      const he = new HistoryElement();
       he.actionType = ACTION_TYPE.VISIBLE_MEMBER;
       he.oldObject = oldObject;
       he.dataObject = this.getObjectInfo();
@@ -682,7 +655,7 @@ class Boundary {
    * @param status
    */
   setBoundaryMemberStatus(childId, status) {
-    let select = _.find(this.member, (e) => {
+    const select = _.find(this.member, (e) => {
       return e.id === childId;
     });
 
@@ -703,7 +676,7 @@ class Boundary {
    * and resize boundary
    * @param status
    */
-  async setObjectShowHide(status) {
+  setObjectShowHide(status) {
     // Loop child
     this.member.forEach(member => {
       this.setBoundaryMemberStatus(member.id, status);
@@ -728,12 +701,12 @@ class Boundary {
   // Get child of boundary
     resetParentForChild() {
     this.member.forEach(mem => {
-      let id = mem.id;
+      const id = mem.id;
       if (mem.type === OBJECT_TYPE.VERTEX) {
-        let info = _.find(this.dataContainer.vertex, {"id": id});
+        const info = _.find(this.dataContainer.vertex, {"id": id});
         info.parent = null;
       } else {
-        let info = _.find(this.dataContainer.boundary, {"id": id});
+        const info = _.find(this.dataContainer.boundary, {"id": id});
         info.parent = null;
       }
     });
@@ -742,22 +715,20 @@ class Boundary {
   restoreParentForChild() {
     // Get child of boundary
     this.member.forEach(mem => {
-      let id = mem.id;
+      const id = mem.id;
       if (mem.type === OBJECT_TYPE.VERTEX) {
-        let info = _.find(this.dataContainer.vertex, {"id": id});
+        const info = _.find(this.dataContainer.vertex, {"id": id});
         info.parent = this.id;
       } else {
-        let info = _.find(this.dataContainer.boundary, {"id": id});
+        const info = _.find(this.dataContainer.boundary, {"id": id});
         info.parent = this.id;
       }
     });
   }
 
   moveMember(offsetX, offsetY) {
-
     this.member.forEach(member => {
       if (member.show) {
-
         let memberobj = null;
         if (member.type === OBJECT_TYPE.VERTEX) {
           memberobj = _.find(this.dataContainer.vertex, {"id": member.id});
@@ -776,7 +747,6 @@ class Boundary {
    * @param {*} offsetY
    */
   move( offsetX, offsetY) {
-
     this.x = this.x + offsetX;
     this.y = this.y + offsetY;
 
@@ -799,33 +769,33 @@ class Boundary {
    */
   addMemberToBoundaryWithIndex(child, index, state) {
 		// For history
-		let oldObject = this.getObjectInfo()
+		const oldObject = this.getObjectInfo();
 
 		this.member.splice(index, 0, {id: child.id, type: child.type, show: child.show});
     
     if (state) {
-      let he = new HistoryElement()
-      he.actionType = ACTION_TYPE.MEMBER_CHANGE
-      he.oldObject = oldObject
-      he.dataObject = this.getObjectInfo()
-      he.realObject = this
-      state.add(he)
+      const he = new HistoryElement();
+      he.actionType = ACTION_TYPE.MEMBER_CHANGE;
+      he.oldObject = oldObject;
+      he.dataObject = this.getObjectInfo();
+      he.realObject = this;
+      state.add(he);
     }
 
-		this.refresh()
+		this.refresh();
 		
     setMinBoundaryGraph(this.dataContainer, this.svgId, this.viewMode.value);
   }
 
-  async removeMemberFromBoundary(obj, isEffectToParent = true, state = null) {
-		let oldBoundary = this.getObjectInfo();
+  removeMemberFromBoundary(obj, isEffectToParent = true, state = null) {
+		const oldBoundary = this.getObjectInfo();
 
     _.remove(this.member, (e) => {
       return e.id === obj.id;
 		});
     
     if (state) {
-      let he = new HistoryElement();
+      const he = new HistoryElement();
       he.actionType = ACTION_TYPE.MEMBER_CHANGE;
       he.oldObject = oldBoundary;
       he.dataObject = this.getObjectInfo();
@@ -846,7 +816,7 @@ class Boundary {
     d3.select(`#${this.id}`).moveToFront();
 
     if (this.dataContainer.boundary.length > 1) {
-      let curIndex = _.findIndex(this.dataContainer.boundary, {"id": this.id});
+      const curIndex = _.findIndex(this.dataContainer.boundary, {"id": this.id});
 
       arrayMove(this.dataContainer.boundary, curIndex, this.dataContainer.boundary.length - 1);
     }
@@ -870,11 +840,11 @@ class Boundary {
 	 */
 	isParentOf(objectId) {
 		for (let i = 0; i < this.member.length; i++) {
-			let mem = this.member[i];
+			const mem = this.member[i];
 			if (mem.id === objectId) {
 				return true;
 			} else if (mem.type === OBJECT_TYPE.BOUNDARY) {
-				let memObj = _.find(this.dataContainer.boundary, {"id": mem.id});
+				const memObj = _.find(this.dataContainer.boundary, {"id": mem.id});
 				if (memObj.isParentOf(objectId)) {
 					return true;
 				}
@@ -897,7 +867,7 @@ class Boundary {
 		let bFlag = true;
 
 		for (let i = 0; i < this.member.length; i++) {
-			let mem = this.member[i];
+			const mem = this.member[i];
 			if (!this.doValidateConnectionByUsage(mem) && bFlag)  bFlag = false;
 		}
 
@@ -912,14 +882,14 @@ class Boundary {
 		let bFlag = true;
 		
 		if (mem.type === OBJECT_TYPE.VERTEX) {
-			let vertex = _.find(this.dataContainer.vertex, {"id": mem.id})
+			const vertex = _.find(this.dataContainer.vertex, {"id": mem.id})
 			if (vertex) {
 				if (!vertex.validateConnectionByUsage() && bFlag) {
 					bFlag = false;
 				}
 			}
 		} else {
-			let boundary = _.find(this.dataContainer.boundary, {"id": mem.id})
+			const boundary = _.find(this.dataContainer.boundary, {"id": mem.id})
 			boundary.member.forEach(item => {
 				if (!this.doValidateConnectionByUsage(item) && bFlag) {
 					bFlag = false;
@@ -1004,7 +974,7 @@ class Boundary {
 
     // Create history
 		if (state) {
-			let he = new HistoryElement();
+			const he = new HistoryElement();
 			he.actionType = ACTION_TYPE.UPDATE_INFO;
 			he.oldObject = oldObject;
 			he.dataObject = this.getObjectInfo();
@@ -1013,12 +983,12 @@ class Boundary {
 		}
   }
 
-  async refresh() {
-		let ancestor = await this.findAncestorOfMemberInNestedBoundary();
+  refresh() {
+		const ancestor = this.findAncestorOfMemberInNestedBoundary();
 		if (!ancestor) return;
 
-		await ancestor.updateSize();
-		await ancestor.reorderPositionMember();
+		ancestor.updateSize();
+		ancestor.reorderPositionMember();
 		ancestor.boundaryMgmt.edgeMgmt.updatePathConnectForVertex(ancestor);
 	}
 

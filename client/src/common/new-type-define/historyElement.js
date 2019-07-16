@@ -175,7 +175,7 @@ class HistoryElement {
 
         if (isLastObject) {
           if (this.realObject.dataContainer.boundary.length > 0) {
-            this.realObject.dataContainer.boundary[0].updateHeightBoundary();
+            this.objectUtils.updateHeightBoundary(this.realObject.dataContainer);
           }
 
           setMinBoundaryGraph(this.realObject.dataContainer, this.realObject.svgId, this.realObject.viewMode.value);
@@ -188,7 +188,7 @@ class HistoryElement {
 
         if (isLastObject) {
           if (this.realObject.dataContainer.boundary.length > 0) {
-            this.realObject.dataContainer.boundary[0].updateHeightBoundary();
+            this.objectUtils.updateHeightBoundary(this.realObject.dataContainer);
           }
 
           setMinBoundaryGraph(this.realObject.dataContainer, this.realObject.svgId, this.realObject.viewMode.value);
@@ -216,7 +216,7 @@ class HistoryElement {
           this.parent.updateRealObject(obj);
         } else if (this.dataObject.type === OBJECT_TYPE.BOUNDARY) {
           obj = this.realObject.boundaryMgmt.create(this.dataObject);
-          this.parent.updateRealObject(obj);          
+          this.parent.updateRealObject(obj);
         } else if (this.realObject.type === OBJECT_TYPE.EDGE) {
           const edge = this.realObject.edgeMgmt.create(this.dataObject);
           this.parent.updateRealObject(edge);
@@ -365,7 +365,7 @@ class HistoryElement {
 
         if (isLastObject) {
           if (this.realObject.dataContainer.boundary.length > 0) {
-            this.realObject.dataContainer.boundary[0].updateHeightBoundary();
+            this.objectUtils.updateHeightBoundary(this.realObject.dataContainer);
           }
 
           setMinBoundaryGraph(this.realObject.dataContainer, this.realObject.svgId, this.realObject.viewMode.value);
@@ -378,7 +378,7 @@ class HistoryElement {
 
         if (isLastObject) {
           if (this.realObject.dataContainer.boundary.length > 0) {
-            this.realObject.dataContainer.boundary[0].updateHeightBoundary();
+            this.objectUtils.updateHeightBoundary(this.realObject.dataContainer);
           }
 
           setMinBoundaryGraph(this.realObject.dataContainer, this.realObject.svgId, this.realObject.viewMode.value);

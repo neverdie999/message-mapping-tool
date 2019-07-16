@@ -16,17 +16,16 @@ import {
   updateSizeGraph,
   setMinBoundaryGraph,
   checkModePermission,
-  segmentName,
   hideFileChooser,
   checkIsMatchRegexNumber,
   comShowMessage,
+  initDialogDragEvent,
 } from '../../../common/utilities/common.util';
 
 import {
-  REPEAT_RANGE, BOUNDARY_ATTR_SIZE, VERTEX_FORMAT_TYPE, PADDING_POSITION_SVG, ACTION_TYPE, OBJECT_TYPE,
+  REPEAT_RANGE, BOUNDARY_ATTR_SIZE, VERTEX_FORMAT_TYPE, ACTION_TYPE, OBJECT_TYPE,
 } from '../../../common/const/index';
 
-const CONNECT_KEY = 'Connected';
 const FOCUSED_CLASS = 'focused-object';
 
 const ATTR_ID = 'id';
@@ -227,7 +226,8 @@ class BoundaryMgmt {
     $('form').submit(() => false);
 
     // Enable dragging for popup
-    this.initDialogDragEvent();
+    // this.initDialogDragEvent();
+    initDialogDragEvent(`boundaryInfo_${this.svgId}`);
   }
 
   create(sOptions, state) {
@@ -362,7 +362,7 @@ class BoundaryMgmt {
    * The box simulate new position of vertex or boundary dragged.
    */
   initBBoxGroup() {
-    if ($(`#${this.dummyBoxId}`).length > 0 ) return;
+    if ($(`#${this.dummyBoxId}`).length > 0) return;
 
     d3.select(`#${this.svgId}`).append('svg:g')
       .attr('transform', 'translate(0.5, 0.5)')
@@ -540,7 +540,6 @@ class BoundaryMgmt {
     }
     $chk.prop('checked', checked);
 
-    const main = this;
     $chk.attr('name', name)
       .on('click', function () {
         if (isCheckAll) {
