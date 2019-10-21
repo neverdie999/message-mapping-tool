@@ -1,13 +1,10 @@
-import * as d3 from 'd3';
-import _ from 'lodash';
-import ColorHash from 'color-hash';
-import Boundary from './boundary';
-import PopUtils from '../../../common/utilities/popup.util';
-import ObjectUtils from '../../../common/utilities/object.util';
-import BoundaryMenu from '../menu-context/boundary-menu';
-import BoundaryMenuItems from '../menu-context/boundary-menu-items';
-import State from '../../../common/new-type-define/state';
-import HistoryElement from '../../../common/new-type-define/historyElement';
+import Boundary from './boundary.js';
+import PopUtils from '../../../common/utilities/popup.util.js';
+import ObjectUtils from '../../../common/utilities/object.util.js';
+import BoundaryMenu from '../menu-context/boundary-menu.js';
+import BoundaryMenuItems from '../menu-context/boundary-menu-items.js';
+import State from '../../../common/new-type-define/state.js';
+import HistoryElement from '../../../common/new-type-define/historyElement.js';
 
 import {
   checkMinMaxValue,
@@ -20,11 +17,11 @@ import {
   checkIsMatchRegexNumber,
   comShowMessage,
   initDialogDragEvent,
-} from '../../../common/utilities/common.util';
+} from '../../../common/utilities/common.util.js';
 
 import {
   REPEAT_RANGE, BOUNDARY_ATTR_SIZE, VERTEX_FORMAT_TYPE, ACTION_TYPE, OBJECT_TYPE,
-} from '../../../common/const/index';
+} from '../../../common/const/index.js';
 
 const FOCUSED_CLASS = 'focused-object';
 

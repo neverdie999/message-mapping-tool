@@ -1,6 +1,6 @@
-import FileMgmt from '../file-mgmt/file-mgmt';
-import CltGraph from '../../../components/clt-graph/clt-graph';
-import { VIEW_MODE } from '../../../common/const/index';
+import FileMgmt from '../file-mgmt/file-mgmt.js';
+import CltGraph from '../../../components/clt-graph/clt-graph.js';
+import { VIEW_MODE } from '../../../common/const/index.js';
 
 class MainMgmt {
 	constructor() {

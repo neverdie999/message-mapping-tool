@@ -14,3 +14,5 @@ dist/sampleMessageViewer\.js
 dist/segmentSetEditor\.js
 
 release-builds/
+
+yarn.lock

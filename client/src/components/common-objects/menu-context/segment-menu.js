@@ -1,5 +1,4 @@
-import _ from 'lodash';
-import { checkModePermission } from '../../../common/utilities/common.util';
+import { checkModePermission } from '../../../common/utilities/common.util.js';
 
 class SegmentMenu {
   constructor(props) {

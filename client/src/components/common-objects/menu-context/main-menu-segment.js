@@ -1,5 +1,4 @@
-import _ from 'lodash';
-import { getCoorMouseClickRelativeToParent, checkModePermission, filterPropertyData } from '../../../common/utilities/common.util';
+import { getCoorMouseClickRelativeToParent, checkModePermission, filterPropertyData } from '../../../common/utilities/common.util.js';
 
 class MainMenuSegment {
   constructor(props) {

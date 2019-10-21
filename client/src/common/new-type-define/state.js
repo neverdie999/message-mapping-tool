@@ -1,4 +1,4 @@
-import { OBJECT_TYPE, ACTION_TYPE } from '../const';
+import { OBJECT_TYPE, ACTION_TYPE } from '../const/index.js';
 
 class State {
   constructor(props = {}) {

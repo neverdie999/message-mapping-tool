@@ -1,5 +1,4 @@
-import _ from 'lodash';
-import { filterPropertyData } from '../../../common/utilities/common.util';
+import { filterPropertyData } from '../../../common/utilities/common.util.js';
 
 class SegmentFindMenu {
   constructor(props) {

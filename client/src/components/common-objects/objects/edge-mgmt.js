@@ -1,18 +1,16 @@
-import * as d3 from 'd3';
-import _ from 'lodash';
-import Edge from './edge';
-import ObjectUtils from '../../../common/utilities/object.util';
-import EdgeMenu from '../menu-context/edge-menu';
-import State from '../../../common/new-type-define/state';
-import HistoryElement from '../../../common/new-type-define/historyElement';
+import Edge from './edge.js';
+import ObjectUtils from '../../../common/utilities/object.util.js';
+import EdgeMenu from '../menu-context/edge-menu.js';
+import State from '../../../common/new-type-define/state.js';
+import HistoryElement from '../../../common/new-type-define/historyElement.js';
 
 import {
   CONNECT_TYPE, ACTION_TYPE, OBJECT_TYPE,
-} from '../../../common/const/index';
+} from '../../../common/const/index.js';
 
 import {
   createPath, filterPropertyData,
-} from '../../../common/utilities/common.util';
+} from '../../../common/utilities/common.util.js';
 
 const CONNECT_KEY = 'Connected';
 const FOCUSED_CLASS = 'focused-object';

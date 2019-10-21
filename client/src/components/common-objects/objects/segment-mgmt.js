@@ -1,12 +1,9 @@
-import _ from 'lodash';
-import ColorHash from 'color-hash';
-import * as d3 from 'd3';
-import Vertex from './vertex';
-import PopUtils from '../../../common/utilities/popup.util';
-import ObjectUtils from '../../../common/utilities/object.util';
-import SegmentMenu from '../menu-context/segment-menu';
-import State from '../../../common/new-type-define/state';
-import HistoryElement from '../../../common/new-type-define/historyElement';
+import Vertex from './vertex.js';
+import PopUtils from '../../../common/utilities/popup.util.js';
+import ObjectUtils from '../../../common/utilities/object.util.js';
+import SegmentMenu from '../menu-context/segment-menu.js';
+import State from '../../../common/new-type-define/state.js';
+import HistoryElement from '../../../common/new-type-define/historyElement.js';
 
 import {
 	VERTEX_FORMAT_TYPE,
@@ -15,7 +12,7 @@ import {
 	VIEW_MODE,
 	ACTION_TYPE,
 
-} from '../../../common/const/index';
+} from '../../../common/const/index.js';
 
 import {
 	allowInputNumberOnly,
@@ -26,7 +23,7 @@ import {
 	comShowMessage,
 	hideFileChooser,
   initDialogDragEvent,
-} from '../../../common/utilities/common.util';
+} from '../../../common/utilities/common.util.js';
 
 
 const HTML_VERTEX_INFO_ID = 'vertexInfo';

@@ -1,6 +1,5 @@
-import _ from 'lodash';
-import { getCoorMouseClickRelativeToParent, checkModePermission } from '../../../common/utilities/common.util';
-import State from '../../../common/new-type-define/state';
+import { getCoorMouseClickRelativeToParent, checkModePermission } from '../../../common/utilities/common.util.js';
+import State from '../../../common/new-type-define/state.js';
 
 class MainMenu {
   constructor(props) {

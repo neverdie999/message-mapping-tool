@@ -1,7 +1,4 @@
-import * as d3 from 'd3';
-import ColorHash from 'color-hash';
-import _ from "lodash";
-import ObjectUtils from '../../../common/utilities/object.util';
+import ObjectUtils from '../../../common/utilities/object.util.js';
 
 import {
   BOUNDARY_ATTR_SIZE,
@@ -10,7 +7,7 @@ import {
   CONNECT_SIDE,
 	OBJECT_TYPE,
 	ACTION_TYPE,
-} from '../../../common/const/index';
+} from '../../../common/const/index.js';
 
 import {
   generateObjectId,
@@ -18,9 +15,9 @@ import {
   arrayMove,
   checkModePermission,
 	segmentName,
-} from '../../../common/utilities/common.util';
-import HistoryElement from '../../../common/new-type-define/historyElement';
-import State from '../../../common/new-type-define/state';
+} from '../../../common/utilities/common.util.js';
+import HistoryElement from '../../../common/new-type-define/historyElement.js';
+import State from '../../../common/new-type-define/state.js';
 
 const CONNECT_KEY = 'Connected';
 const FOCUSED_CLASS = 'focused-object';

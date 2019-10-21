@@ -1,5 +1,4 @@
-import MainMgmt from './main-mgmt/main-mgmt';
-import '../../../styles/index.scss';
+import MainMgmt from './main-mgmt/main-mgmt.js';
 
 class Starter {
   constructor() {

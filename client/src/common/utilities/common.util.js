@@ -1,12 +1,9 @@
-import * as d3 from 'd3';
-import _ from 'lodash';
-
 import {
   COMMON_DATA,
   AUTO_SCROLL_CONFIG,
   DEFAULT_CONFIG_GRAPH,
   VIEW_MODE,
-} from '../const/index';
+} from '../const/index.js';
 
 
 /**

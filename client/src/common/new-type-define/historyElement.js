@@ -1,6 +1,6 @@
-import { ACTION_TYPE, OBJECT_TYPE, CONNECT_TYPE } from '../const';
-import ObjectUtils from '../utilities/object.util';
-import { setMinBoundaryGraph } from '../utilities/common.util';
+import { ACTION_TYPE, OBJECT_TYPE, CONNECT_TYPE } from '../const/index.js';
+import ObjectUtils from '../utilities/object.util.js';
+import { setMinBoundaryGraph } from '../utilities/common.util.js';
 
 class HistoryElement {
   constructor(props = {}) {

@@ -1,8 +1,6 @@
-import _ from 'lodash';
-
-import State from '../../../common/new-type-define/state';
-import HistoryElement from '../../../common/new-type-define/historyElement';
-import { ACTION_TYPE } from '../../../common/const';
+import State from '../../../common/new-type-define/state.js';
+import HistoryElement from '../../../common/new-type-define/historyElement.js';
+import { ACTION_TYPE } from '../../../common/const/index.js';
 
 class EdgeMenu {
   constructor(props) {

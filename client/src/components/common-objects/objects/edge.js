@@ -1,13 +1,11 @@
-import _ from 'lodash';
-import * as d3 from 'd3';
-import HistoryElement from '../../../common/new-type-define/historyElement';
-import State from '../../../common/new-type-define/state';
-import ObjectUtils from '../../../common/utilities/object.util';
+import HistoryElement from '../../../common/new-type-define/historyElement.js';
+import State from '../../../common/new-type-define/state.js';
+import ObjectUtils from '../../../common/utilities/object.util.js';
 
 import {
   LINE_TYPE, OBJECT_TYPE, ACTION_TYPE, NOTE_TYPE, CONNECT_TYPE,
-} from '../../../common/const/index';
-import { generateObjectId, createPath } from '../../../common/utilities/common.util';
+} from '../../../common/const/index.js';
+import { generateObjectId, createPath } from '../../../common/utilities/common.util.js';
 
 
 class Edge {

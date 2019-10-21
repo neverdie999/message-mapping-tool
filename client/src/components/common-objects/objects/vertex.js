@@ -1,9 +1,6 @@
-import ColorHash from 'color-hash';
-import _ from 'lodash';
-import * as d3 from 'd3';
-import HistoryElement from '../../../common/new-type-define/historyElement';
-import State from '../../../common/new-type-define/state';
-import ObjectUtils from '../../../common/utilities/object.util';
+import HistoryElement from '../../../common/new-type-define/historyElement.js';
+import State from '../../../common/new-type-define/state.js';
+import ObjectUtils from '../../../common/utilities/object.util.js';
 
 import {
   VERTEX_ATTR_SIZE,
@@ -13,7 +10,7 @@ import {
   VERTEX_GROUP_TYPE,
   ACTION_TYPE,
 	OBJECT_TYPE
-} from '../../../common/const/index';
+} from '../../../common/const/index.js';
 
 import {
   generateObjectId,
@@ -23,7 +20,7 @@ import {
   getKeyPrefix,
   htmlEncode,
   segmentName,
-} from '../../../common/utilities/common.util';
+} from '../../../common/utilities/common.util.js';
 
 const CONNECT_KEY = 'Connected';
 const FOCUSED_CLASS = 'focused-object';
@@ -302,8 +299,6 @@ class Vertex {
    * Remove vertex
    */
   remove(isMenu = true, state) {
-    if (this.history && !state) state = new State();
-    
     // Remove all edge relate to vertex
     this.vertexMgmt.edgeMgmt.removeAllEdgeConnectToVertex(this, state);
 
@@ -321,6 +316,7 @@ class Vertex {
     if (this.history) {
       if (isMenu) {
         // remove vertex by menu context
+        state = new State();
         const he = new HistoryElement();
         he.actionType = ACTION_TYPE.DELETE;
         he.dataObject = this.getObjectInfo();

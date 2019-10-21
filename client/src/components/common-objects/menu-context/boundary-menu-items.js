@@ -1,5 +1,4 @@
-import _ from 'lodash';
-import { OBJECT_TYPE } from '../../../common/const';
+import { OBJECT_TYPE } from '../../../common/const/index.js';
 
 class BoundaryMenuItems {
   constructor(props) {

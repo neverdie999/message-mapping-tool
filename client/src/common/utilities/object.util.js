@@ -1,5 +1,3 @@
-import * as d3 from 'd3';
-import _ from 'lodash';
 import {
 	PADDING_POSITION_SVG,
 	VERTEX_ATTR_SIZE,
@@ -7,9 +5,9 @@ import {
 	BOUNDARY_ATTR_SIZE,
 	ACTION_TYPE,
 	OBJECT_TYPE
-} from '../const/index';
-import { setMinBoundaryGraph, checkModePermission } from './common.util';
-import HistoryElement from '../new-type-define/historyElement';
+} from '../const/index.js';
+import { setMinBoundaryGraph, checkModePermission } from './common.util.js';
+import HistoryElement from '../new-type-define/historyElement.js';
 
 class ObjectUtils {
 	/**

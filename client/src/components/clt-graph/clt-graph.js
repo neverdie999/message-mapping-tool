@@ -1,14 +1,12 @@
-import * as d3 from 'd3';
-import _ from 'lodash';
-import ObjectUtils from '../../common/utilities/object.util';
-import VertexMgmt from '../common-objects/objects/vertex-mgmt';
-import BoundaryMgmt from '../common-objects/objects/boundary-mgmt';
-import EdgeMgmt from '../common-objects/objects/edge-mgmt';
-import MainMenu from '../common-objects/menu-context/main-menu';
-import FindMenu from '../common-objects/menu-context/find-menu';
-import History from '../../common/new-type-define/history';
-import HistoryElement from '../../common/new-type-define/historyElement';
-import State from '../../common/new-type-define/state';
+import ObjectUtils from '../../common/utilities/object.util.js';
+import VertexMgmt from '../common-objects/objects/vertex-mgmt.js';
+import BoundaryMgmt from '../common-objects/objects/boundary-mgmt.js';
+import EdgeMgmt from '../common-objects/objects/edge-mgmt.js';
+import MainMenu from '../common-objects/menu-context/main-menu.js';
+import FindMenu from '../common-objects/menu-context/find-menu.js';
+import History from '../../common/new-type-define/history.js';
+import HistoryElement from '../../common/new-type-define/historyElement.js';
+import State from '../../common/new-type-define/state.js';
 
 import {
 	comShowMessage,
@@ -21,11 +19,11 @@ import {
   checkKeyMisMatch,
   checkLengthMisMatch,
   removeDuplicates,
-} from '../../common/utilities/common.util';
+} from '../../common/utilities/common.util.js';
 
 import { 
 	DEFAULT_CONFIG_GRAPH, VIEW_MODE, CONNECT_SIDE, ACTION_TYPE, OBJECT_TYPE,
-} from '../../common/const/index';
+} from '../../common/const/index.js';
 
 const ID_TAB_SEGMENT_SET = 'addressSegmentSet';
 const ID_TAB_MESSAGE_SPEC = 'addressMessageSpec';

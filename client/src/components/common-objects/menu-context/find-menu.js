@@ -1,5 +1,3 @@
-import _ from 'lodash';
-
 class FindMenu {
   constructor(props) {
     this.selector = props.selector;
