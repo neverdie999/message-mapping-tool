@@ -204,6 +204,10 @@ class HistoryElement {
       case ACTION_TYPE.UPDATE_SHOW_REDUCED_STATUS:
         this.realObject.isShowReduced = false;
         break;
+
+      case ACTION_TYPE.CREATE_NEW_VERTEX:
+        this.realObject.vertex = this.oldObject;
+        break;
     }
   }
 
@@ -393,6 +397,10 @@ class HistoryElement {
 
       case ACTION_TYPE.UPDATE_SHOW_REDUCED_STATUS:
         this.realObject.isShowReduced = true;
+        break;
+
+      case ACTION_TYPE.CREATE_NEW_VERTEX:
+        this.realObject.vertex = this.dataObject;
         break;
     }
   }

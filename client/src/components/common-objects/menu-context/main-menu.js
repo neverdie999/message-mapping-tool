@@ -22,6 +22,16 @@ class MainMenu {
       build: () => ({
         callback: (key, options) => {
           switch (key) {
+            case 'createNew':
+              const newVertexParams = {
+                x: this.opt.x,
+                y: this.opt.y,
+                isMenu: this.opt.isMenu
+              };
+          
+              this.parent.vertexMgmt.makePopupNewVertex(newVertexParams);
+              break;
+
             case 'createBoundary':
               const params = {
                 x: this.opt.x,
@@ -54,6 +64,12 @@ class MainMenu {
           }
         },
         items: {
+          createNew: {
+            name: 'Create New',
+            icon: 'fa-window-maximize',
+            disabled: !checkModePermission(this.viewMode.value, 'createNewVertex'),
+          },
+          sep1: '-',
           createVertex: {
             name: 'Create Vertex',
             icon: 'fa-window-maximize',
@@ -61,25 +77,25 @@ class MainMenu {
             type: 'sub',
             disabled: !checkModePermission(this.viewMode.value, 'createVertex'),
           },
-          sep1: '-',
+          sep2: '-',
           createBoundary: {
             name: 'Create Boundary',
             icon: 'fa-object-group',
             disabled: !checkModePermission(this.viewMode.value, 'createBoundary'),
           },
-          sep2: '-',
+          sep3: '-',
           clearAll: {
             name: 'Clear All',
             icon: 'fa-times',
             disabled: !checkModePermission(this.viewMode.value, 'clearAll'),
           },
-          sep3: '-',
+          sep4: '-',
           autoAlignment: {
             name: 'Auto Alignment',
             icon: 'fa-sort',
             disabled: !checkModePermission(this.viewMode.value, 'autoAlignment'),
           },
-          sep4: '-',
+          sep5: '-',
           showReduced: {
             name: this.parent.isShowReduced ? 'Show Full' : 'Show Reduced',
             icon: 'fa-link',

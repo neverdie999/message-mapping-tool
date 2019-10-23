@@ -75,9 +75,6 @@ class VertexMgmt {
 			history: this.history
 		});
 
-		this.initVertexPopupHtml();
-		this.bindEventForPopupVertex();
-
 		this.handleDragVertex = d3.drag()
 			.on('start', this.startDrag(this))
 			.on('drag', this.dragTo(this))
@@ -107,7 +104,7 @@ class VertexMgmt {
           </div>
 
           <div class="dialog-wrapper">
-            <form action="#" method="post">
+            <form action="#" method="post" id="vertexHeaderDataForm_${this.svgId}">
               <div class="dialog-search form-inline">
                 <table>
                   <colgroup>
@@ -118,14 +115,14 @@ class VertexMgmt {
                     <tr>
                       <th>Name</th>
                       <td>
-                        <input type="text" class="form-control" id="vertexName_${this.svgId}" name="vertexName" onfocus="this.select();">
+						            <input type="text" class="form-control" id="vertexName_${this.svgId}" name="vertexName" onfocus="this.select();">
                       </td>
                     </tr>
                     ${checkModePermission(this.viewMode.value, 'vertexRepeat') ? repeatHtml: ''}
                     <tr>
                       <th>Description</th>
                       <td class="full-width">
-                        <textarea class="form-control" id="vertexDesc_${this.svgId}" name="vertexDesc" rows="4" onfocus="this.select();"></textarea>
+						            <textarea class="form-control" id="vertexDesc_${this.svgId}" name="vertexDesc" rows="4" onfocus="this.select();"></textarea>
                       </td>
                     </tr>
                   </tbody>
@@ -139,6 +136,7 @@ class VertexMgmt {
 							</div>
 
               <div class="row text-right">
+                <button id="vertexBtnAddForCreateNew_${this.svgId}" class="btn-etc">Add</button>
                 <button id="vertexBtnAdd_${this.svgId}" class="btn-etc">Add</button>
 							</div>
 						</div>
@@ -151,6 +149,7 @@ class VertexMgmt {
 						
             <div class="dialog-button-top">
               <div class="row text-right">
+                <button id="vertexBtnConfirmForCreateNew_${this.svgId}" class="btn-etc">Confirm</button>
                 <button id="vertexBtnConfirm_${this.svgId}" class="btn-etc">Confirm</button>
                 <button id="vertexBtnCancel_${this.svgId}" class="btn-etc">Cancel</button>
               </div>
@@ -174,12 +173,16 @@ class VertexMgmt {
 
 			$(`#vertexBtnAdd_${main.svgId}`).click(() => {
 				this.addDataElement();
-			});
+      });
 
 			$(`#vertexBtnDelete_${main.svgId}`).click(() => {
 				this.removeDataElement();
 			});
-		}
+    }
+    
+    $(`#vertexBtnAddForCreateNew_${this.svgId}`).click(() => {
+      this.addDataElementForCreateNew();
+    });
 
 		$(`#vertexBtnCancel_${main.svgId}`).click(() => {
 			this.closePopVertexInfo();
@@ -212,7 +215,10 @@ class VertexMgmt {
 	}
 
 	create(sOptions, state) {
-		const {vertexType, isMenu} = sOptions;
+    const { vertexType, isMenu } = sOptions;
+    let { isCreateNewVertex } = sOptions;
+
+    if (undefined === isCreateNewVertex) isCreateNewVertex = false;
 
 		if (!vertexType)
 			return null;
@@ -225,7 +231,7 @@ class VertexMgmt {
 
 		newVertex.create(sOptions, this.handleDragVertex, this.edgeMgmt.handleDragConnection);
 
-		if (isMenu) {
+		if (isMenu && !isCreateNewVertex) {
 			if (this.history) {
 				state = new State();
 				const he = new HistoryElement();
@@ -237,7 +243,8 @@ class VertexMgmt {
 			}
 		} else {
 			if (state) {
-				// create vertex by Boundary update info popup
+        // create vertex by Boundary update info popup
+        // create vertex by Create New menu
 				const he = new HistoryElement();
 				he.actionType = ACTION_TYPE.CREATE;
 				he.dataObject = newVertex.getObjectInfo();
@@ -332,6 +339,7 @@ class VertexMgmt {
    * @param vertexId
    */
 	makePopupEditVertex(vertexId) {
+		this.initVertexPopup();
 		const {name, description, repeat, mandatory, data, id, groupType} = _.find(this.dataContainer.vertex, {'id': vertexId});
 		// Get vertex group with group type
 		const group = _.find(this.vertexDefinition.vertexGroup, {'groupType': groupType});
@@ -482,19 +490,190 @@ class VertexMgmt {
 				$(`#vertexBtnAdd_${this.svgId}`).hide();
 				$(`#vertexBtnDelete_${this.svgId}`).hide();
 			}
-			$(`#vertexBtnConfirm_${this.svgId}`).hide();
+      $(`#vertexBtnConfirm_${this.svgId}`).hide();
+      
 
 		} else {
 			if (isDynamicDataSet) {
 				$(`#vertexBtnAdd_${this.svgId}`).show();
 				$(`#vertexBtnDelete_${this.svgId}`).show();
 			}
-			$(`#vertexBtnConfirm_${this.svgId}`).show();
-		}
+      $(`#vertexBtnConfirm_${this.svgId}`).show();
+    }
+    $(`#vertexBtnConfirmForCreateNew_${this.svgId}`).hide();
+    $(`#vertexBtnAddForCreateNew_${this.svgId}`).hide();
 		
 		if (isDynamicDataSet) {
 			$(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId}`).find('tbody').sortable();
 		}
+	}
+
+		/**
+	 * Make popup create new vertex
+	 * @param param
+	 */
+	makePopupNewVertex(param) {
+    this.initVertexPopup();
+		const name = "";
+		const description = "";
+		const repeat = 1; 
+		const mandatory = false;
+		const data = [];
+		const id = null;
+		const groupType = this.vertexDefinition.vertexGroup[0]['groupType'];
+		// Get vertex group with group type
+		const group = _.find(this.vertexDefinition.vertexGroup, {'groupType': groupType});
+
+		this.currentId = id;
+		// Append content to popup
+		$(`#vertexName_${this.svgId}`).val(name);
+		$(`#vertexDesc_${this.svgId}`).val(description);
+
+		if (checkModePermission(this.viewMode.value, 'vertexRepeat')) {
+			$(`#vertexRepeat_${this.svgId}`).val(repeat);
+			$(`#isVertexMandatory_${this.svgId}`).prop('checked', mandatory);
+		}
+
+		// Generate properties vertex
+		const columnTitle = Object.keys(group.dataElementFormat);
+		const cols = columnTitle.length;
+		const rows = data.length;
+		const dataType = group.elementDataType;
+
+		const $table = $(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId}`).empty();
+		const $contentHeader = $('<thead>');
+		// Generate header table
+		const $headerRow = $('<tr>');
+		//let $colGroup = $('<colgroup>')
+		let $popWidth = 0;
+		
+		//Append hidden column 'id'
+		let $colId = $('<th>').text('id');
+		$colId.attr('class', 'col_header');
+		$colId.css('display', 'none');
+		$colId.appendTo($headerRow);
+
+		// Store column width for table data
+		let arrColumnWidth = [];
+
+		const isDynamicDataSet = true;
+		// Set show hide group button dynamic data set
+    $(`#${HTML_GROUP_BTN_DYNAMIC_DATASET}_${this.svgId}`).show();
+    
+    // Prepend col group del check
+    arrColumnWidth.push(POPUP_CONFIG.WIDTH_COL_DEL_CHECK);
+    
+    let $colHdr = this.initCellDelCheck({
+      'className': 'col_header',
+      'name': `${ATTR_DEL_CHECK_ALL}_${this.svgId}`,
+      'checked': false,
+      'colType': '<th>',
+      'isCheckAll': true,
+    });
+    $colHdr.appendTo($headerRow);
+
+		for (let i = 0; i < cols; i++) {
+			let $colHdr = $('<th>').text(this.capitalizeFirstLetter(columnTitle[i]));
+			$colHdr.attr('class', 'col_header');
+			$colHdr.appendTo($headerRow);
+
+			// Init col in col group
+			let prop = columnTitle[i];
+			let type = dataType[prop];
+			let value = group.dataElementFormat[prop];
+			let width = this.findLongestContent({data, prop, type, value});
+			$popWidth += width;
+			arrColumnWidth.push(width);
+		}
+
+		//$colGroup.appendTo($table)
+		$headerRow.appendTo($contentHeader);
+		$contentHeader.appendTo($table);
+
+		// Generate content table
+		const $contentBody = $('<tbody>');
+		for (let i = 0; i < rows; i++) {
+			const dataRow = data[i];
+			const $row = $('<tr>');
+
+			// id
+			const $colId = $('<td>');
+			$colId.attr('name', 'id');
+			$colId.text(i);
+			$colId.hide();
+			$colId.appendTo($row);
+
+      // Append del check to row
+      const $col = this.initCellDelCheck({
+        'className': 'checkbox_center',
+        'name': `${ATTR_DEL_CHECK}_${this.svgId}` ,
+        'checked': false,
+        'colType': '<td>'
+      });
+      $col.appendTo($row);
+
+			//data
+			for (let j = 0; j < cols; j++) {
+				const prop = columnTitle[j];
+				const type = dataType[prop];
+				const val = dataRow[prop];
+				let opt = [];
+
+				const $col = $('<td>')
+				// Get option if type is array
+				if (type === VERTEX_FORMAT_TYPE.ARRAY) {
+					opt = group.dataElementFormat[prop];
+				} else if (type === VERTEX_FORMAT_TYPE.BOOLEAN) {
+					$col.attr('class', 'checkbox_center');
+				}
+
+				const $control = this.generateControlByType({i, type, val, prop, opt, groupType});
+				$control.appendTo($col);
+				$col.appendTo($row);
+			}
+			
+			$row.appendTo($contentBody);
+		}
+
+		$contentBody.appendTo($table);
+
+		// Set column with for table data
+		for(let i = 0; i < arrColumnWidth.length; i += 1) {
+			if (i === arrColumnWidth.length - 1) {
+				$(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId} th:nth-child(${i+2}),td:nth-child(${i+2})`).css('width', '100%');
+			} else {
+				$(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId} th:nth-child(${i+2}),td:nth-child(${i+2})`).css('min-width', arrColumnWidth[i]);
+			}
+		}
+
+		hideFileChooser();
+
+		const options = {
+			popupId: `${HTML_VERTEX_INFO_ID}_${this.svgId}`,
+			position: 'center',
+			width: $popWidth + POPUP_CONFIG.PADDING_CHAR + 45
+		}
+		PopUtils.metSetShowPopup(options);
+
+    $(`#vertexBtnConfirm_${this.svgId}`).hide();
+    $(`#vertexBtnAdd_${this.svgId}`).hide();
+
+    $(`#vertexBtnConfirmForCreateNew_${this.svgId}`).show();
+    $(`#vertexBtnAddForCreateNew_${this.svgId}`).show();
+    $(`#vertexBtnDelete_${this.svgId}`).show();
+    
+    $(`#vertexBtnConfirmForCreateNew_${this.svgId}`).unbind();
+		$(`#vertexBtnConfirmForCreateNew_${this.svgId}`).click(() => {
+			this.confirmCreateNewVertex(param);
+		});
+    
+    $(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId}`).find('tbody').sortable();
+	}
+
+	initVertexPopup() {
+		$(`#${HTML_VERTEX_INFO_ID}_${this.svgId}`).remove();
+		this.initVertexPopupHtml();
+		this.bindEventForPopupVertex();
 	}
 
 	/**
@@ -685,6 +864,66 @@ class VertexMgmt {
 		$(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId} td:nth-child(${columnHeaderCount})`).css('width', '100%');
 	}
 
+	addDataElementForCreateNew() {
+		const groupType = this.vertexDefinition.vertexGroup[0]['groupType'];
+		const vertexGroup = _.find(this.vertexDefinition.vertexGroup, {'groupType': groupType});
+		const columnTitle = Object.keys(vertexGroup.dataElementFormat);
+		const cols = columnTitle.length;
+		const dataType = vertexGroup.elementDataType;
+		const $appendTo = $(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId} > tbody`);
+
+		const $row = $('<tr>');
+		// id
+		$('<td name="id">').hide().appendTo($row);
+
+		const group = _.find(this.vertexDefinition.vertexGroup,{'groupType': groupType});
+		const isDynamicDataSet = true;
+		if (isDynamicDataSet) {
+			// Append del check to row
+			const $col = this.initCellDelCheck({
+				'className': 'checkbox_center',
+				'name': `${ATTR_DEL_CHECK}_${this.svgId}`,
+				'checked': false,
+				'colType': '<td>'
+			});
+			$col.appendTo($row);
+		}
+
+		for (let j = 0; j < cols; j++) {
+			const prop = columnTitle[j];
+			const type = dataType[prop];
+			// let val = dataRow[prop];
+			let opt = [];
+
+			const $col = $('<td>');
+			// Get option if type is array
+			if (type === VERTEX_FORMAT_TYPE.ARRAY) {
+				opt = vertexGroup.dataElementFormat[prop];
+			} else if (type === VERTEX_FORMAT_TYPE.BOOLEAN) {
+				$col.attr('class', 'checkbox_center');
+			}
+
+			const $control = this.generateControlByType({'i': j, type, prop, opt, groupType});
+			$control.appendTo($col);
+			$col.appendTo($row);
+		}
+
+		$row.appendTo($appendTo);
+
+		// Set column with for table data
+		const main = this;
+		let columnHeaderCount = 0;
+		$(`#${HTML_VERTEX_PROPERTIES_ID}_${main.svgId} thead tr th`).each(function () {
+			columnHeaderCount += 1;
+
+			if ($(this).css('display') !== 'none') {
+				$(`#${HTML_VERTEX_PROPERTIES_ID}_${main.svgId} td:nth-child(${columnHeaderCount})`).css('min-width', parseInt($(this).css('min-width').replace('px','')));
+			}
+		});
+
+		$(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId} td:nth-child(${columnHeaderCount})`).css('width', '100%');
+	}
+
 	removeDataElement() {
 		$(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId} > tbody`).find(`input[name=${ATTR_DEL_CHECK}_${this.svgId}]`).each(function () {
 			if ($(this).is(':checked')) {
@@ -799,6 +1038,67 @@ class VertexMgmt {
 		}
 
 		this.closePopVertexInfo();
+	}
+
+	confirmCreateNewVertex(param) {
+    if (!this.validateDataElementTable()) return;
+
+		if ($(`#vertexHeaderDataForm_${this.svgId}`).valid()) {
+			// Get data on form
+			const vertexInfo = {};
+			vertexInfo.vertexType = $(`#vertexName_${this.svgId}`).val();
+			vertexInfo.description = $(`#vertexDesc_${this.svgId}`).val();
+
+			if (checkModePermission(this.viewMode.value, 'vertexRepeat')) {
+				vertexInfo.repeat = $(`#vertexRepeat_${this.svgId}`).val();
+				vertexInfo.mandatory = $(`#isVertexMandatory_${this.svgId}`).prop('checked');
+			}
+
+			const groupType = this.vertexDefinition.vertexGroup[0]['groupType'];
+
+			const dataType = _.find(this.vertexDefinition.vertexGroup, {'groupType': groupType}).elementDataType;
+			const elements = [];
+			$(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId}`).find('tr').each(function (rowIndex) {
+				// Skip for header row
+				if (rowIndex > 0) {
+					const row = {};
+
+					$(this).find('td input:text, td input:checkbox, td select').each(function () {
+						const prop = $(this).attr('name');
+						const type = dataType[prop];
+						if (prop != `${ATTR_DEL_CHECK}_${this.svgId}`) {
+							row[prop] = type === VERTEX_FORMAT_TYPE.BOOLEAN ? ($(this).is(':checked') ? true : false) : this.value;
+						}
+					});
+					elements.push(row);
+				}
+      });
+      
+      // For histrory
+      const state = new State();
+
+			vertexInfo.data = elements;
+      vertexInfo.groupType = groupType;
+      const oldVertexList = _.clone(this.vertexDefinition.vertex);
+			this.vertexDefinition.vertex.push(vertexInfo);
+      param['vertexType'] = vertexInfo.vertexType;
+      param.isCreateNewVertex = true;
+      this.create(param, state);
+
+      // Create history
+      if (this.history) {
+        const he = new HistoryElement();
+        he.actionType = ACTION_TYPE.CREATE_NEW_VERTEX;
+        he.oldObject = oldVertexList;
+        he.dataObject = _.clone(this.vertexDefinition.vertex);
+        he.realObject = this.vertexDefinition;
+
+        state.add(he);
+        this.history.add(state);
+      }
+
+			this.closePopVertexInfo();
+		}
 	}
 
 	/**
@@ -997,6 +1297,40 @@ class VertexMgmt {
 		$(window).on('mouseup', function(e) {
 			$(`#${HTML_VERTEX_INFO_ID}_${main.svgId} .draggable`).removeClass('draggable')
 		})
+  }
+  
+  validateDataElementTable() {
+    const vertexName = $(`#vertexName_${this.svgId}`).val().trim();
+
+    if (vertexName === '') {
+			comShowMessage('Please enter Name.');
+			$(`#vertexName_${this.svgId}`).focus();
+			return false;
+    }
+
+    const duplicate = _.find(this.vertexDefinition.vertex, {vertexType: vertexName});
+    if (duplicate) {
+      comShowMessage('Duplicate vertex type.');
+      $(`#vertexName_${this.svgId}`).focus();
+			return false;
+    }
+    
+		const $tr = $(`#${HTML_VERTEX_PROPERTIES_ID}_${this.svgId}`).find('tr');
+
+		const rowCount = $tr.length;
+
+		if (rowCount <= 1) return true;
+
+		for(let i = 1; i < rowCount; i++) {
+			const $name = $($tr[i]).find('td input:text[name=\'name\']');
+			if ($name.val() == '') {
+				comShowMessage('Enter name.');
+				$name.focus();
+				return false;
+			}
+		}
+		
+		return true;
 	}
 }
 

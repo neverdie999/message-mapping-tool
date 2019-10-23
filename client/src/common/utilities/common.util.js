@@ -246,14 +246,14 @@ export function checkModePermission(viewMode, type) {
   ];
 
   data[VIEW_MODE.EDIT] = [
-    'createVertex', 'createBoundary', 'clearAll', 'showReduced',
+    'createNewVertex', 'createVertex', 'createBoundary', 'clearAll', 'showReduced',
     'editVertex', 'copyVertex', 'removeVertex', 'vertexBtnConfirm', 'vertexBtnAdd', 'vertexBtnDelete', 'isEnableDragVertex', 'vertexRepeat', 'isVertexMandatory',
     'editBoundary', 'removeBoundary', 'copyAllBoundary', 'deleteAllBoundary', 'boundaryBtnConfirm', 'isEnableDragBoundary', 'isEnableItemVisibleMenu', 'maxBoundaryRepeat', 'isBoundaryMandatory',
     'nameSuffix', 'horizontalScroll', 'mandatoryCheck',
   ];
 
   data[VIEW_MODE.OPERATIONS] = [
-    'createVertex', 'createBoundary', 'clearAll',
+    'createNewVertex', 'createVertex', 'createBoundary', 'clearAll',
     'editVertex', 'copyVertex', 'removeVertex', 'vertexBtnConfirm', 'vertexBtnAdd', 'vertexBtnDelete', 'isEnableDragVertex',
     'editBoundary', 'removeBoundary', 'copyAllBoundary', 'deleteAllBoundary', 'boundaryBtnConfirm', 'isEnableDragBoundary', 'isEnableItemVisibleMenu',
     'horizontalScroll', 'autoAlignment', 'history',
