@@ -1,10 +1,10 @@
-const { MessageSpecTree } = require('./message_spec_tree');
-const CodeUtil = require('./code_util');
-const {
+import { MessageSpecTree } from './message_spec_tree.js';
+import CodeUtil from './code_util.js';
+import {
   SegmentGroup,
   Segment,
   DataElement,
-} = require('./message_spec_element');
+} from './message_spec_element.js';
 
 class MessageSpecReader {
   static read(messageSpec) {
@@ -78,4 +78,4 @@ class MessageSpecReader {
   }
 }
 
-module.exports = MessageSpecReader;
+export default MessageSpecReader;

@@ -1,4 +1,4 @@
-const { MessageSpecElementType } = require('./data_types');
+import { MessageSpecElementType } from './data_types.js';
 
 class MessageSpecTreeItem {
   /**
@@ -190,7 +190,7 @@ class MessageSpecTree {
   }
 }
 
-module.exports = {
+export {
   MessageSpecTreeItem,
   MessageSpecTree,
 };

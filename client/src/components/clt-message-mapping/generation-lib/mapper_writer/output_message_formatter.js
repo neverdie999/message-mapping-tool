@@ -1,4 +1,4 @@
-const { MessageSpecElementType } = require('../message_spec/data_types');
+import { MessageSpecElementType } from '../message_spec/data_types.js';
 
 /**
  * A class to express a print format of a segment, a segment group begin or a segment group end.
@@ -221,7 +221,7 @@ class OutputMessageFormatter {
   }
 }
 
-module.exports = {
+export {
   OutputMessageFormat,
   OutputMessageFormatter,
 };

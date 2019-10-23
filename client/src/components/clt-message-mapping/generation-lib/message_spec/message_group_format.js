@@ -86,4 +86,4 @@ class MessageGroupFormat {
   }
 }
 
-module.exports = MessageGroupFormat;
+export default MessageGroupFormat;

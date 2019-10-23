@@ -1,6 +1,6 @@
-const MessageGroupFormatFactory = require('../message_spec/message_group_format_factory');
+import MessageGroupFormatFactory from '../message_spec/message_group_format_factory.js';
 
-const ScannerWriter = require('./scanner_writer');
+import ScannerWriter from './scanner_writer.js';
 
 class ScannerWriterFactory {
   static createFixedLengthByLine(config = {}) {
@@ -81,4 +81,4 @@ class ScannerWriterFactory {
   }
 }
 
-module.exports = ScannerWriterFactory;
+export default ScannerWriterFactory;

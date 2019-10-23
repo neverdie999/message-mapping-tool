@@ -287,4 +287,4 @@ class DataMappingRoutesMaker {
   }
 }
 
-module.exports = DataMappingRoutesMaker;
+export default DataMappingRoutesMaker;

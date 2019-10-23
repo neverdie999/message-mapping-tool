@@ -1,8 +1,8 @@
-const {
+import {
   MessageElementType,
   SegmentGroupIndexMap,
   IdMap,
-} = require('./message_structure_util');
+} from './message_structure_util.js';
 
 class InputMessageStructure {
   make(inputMessageSpec, bizVariableSetter) {
@@ -55,4 +55,4 @@ class InputMessageStructure {
   }
 }
 
-module.exports = InputMessageStructure;
+export default InputMessageStructure;

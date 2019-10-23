@@ -132,7 +132,7 @@ class ElementaryDataType {
   }
 }
 
-module.exports = {
+export {
   MessageGroupFormatType,
   MessageSpecElementType,
   ElementaryDataType,

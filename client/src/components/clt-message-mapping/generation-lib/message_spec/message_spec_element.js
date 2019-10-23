@@ -1,7 +1,7 @@
-const {
+import {
   MessageSpecElementType,
   ElementaryDataType,
-} = require('./data_types');
+} from './data_types.js';
 
 /**
  * @class
@@ -237,7 +237,7 @@ class DataElement {
   }
 }
 
-module.exports = {
+export {
   SegmentGroup,
   Segment,
   DataElement,

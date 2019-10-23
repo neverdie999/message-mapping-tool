@@ -1,5 +1,5 @@
-const { MessageGroupFormatType } = require('./data_types');
-const MessageGroupFormat = require('./message_group_format');
+import { MessageGroupFormatType } from './data_types.js';
+import MessageGroupFormat from './message_group_format.js';
 
 /**
  * @class
@@ -70,4 +70,4 @@ class MessageGroupFormatFactory {
   }
 }
 
-module.exports = MessageGroupFormatFactory;
+export default MessageGroupFormatFactory;

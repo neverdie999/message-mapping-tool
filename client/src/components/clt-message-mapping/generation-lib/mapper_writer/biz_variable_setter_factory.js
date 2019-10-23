@@ -1,6 +1,6 @@
-const FlatFileBizVariableSetter = require('./flatfile_biz_variable_setter');
-const EdifactBizVariableSetter = require('./edifact_biz_variable_setter');
-const { MessageGroupFormatType } = require('../message_spec/data_types');
+import FlatFileBizVariableSetter from './flatfile_biz_variable_setter.js';
+import EdifactBizVariableSetter from './edifact_biz_variable_setter.js';
+import { MessageGroupFormatType } from '../message_spec/data_types.js';
 
 /**
  * A factory class for BizVariableSetter
@@ -74,4 +74,4 @@ class BizVariableSetterFactory {
   }
 }
 
-module.exports = BizVariableSetterFactory;
+export default BizVariableSetterFactory;

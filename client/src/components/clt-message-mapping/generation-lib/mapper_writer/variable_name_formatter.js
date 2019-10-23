@@ -50,4 +50,4 @@ class VariableNameFormatter {
   }
 }
 
-module.exports = VariableNameFormatter;
+export default VariableNameFormatter;

@@ -32,4 +32,4 @@ class LoopType {
   }
 }
 
-module.exports = LoopType;
+export default LoopType;

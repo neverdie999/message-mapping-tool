@@ -1,18 +1,18 @@
-import MainMenu from '../../common-objects/menu-context/main-menu';
-import VertexMgmt from '../../common-objects/objects/vertex-mgmt';
-import BoundaryMgmt from '../../common-objects/objects/boundary-mgmt';
-import ObjectUtils from '../../../common/utilities/object.util';
-import FindMenu from '../../common-objects/menu-context/find-menu';
-import State from '../../../common/new-type-define/state';
-import { setSizeGraph, isPopupOpen } from '../../../common/utilities/common.util';
-import HistoryElement from '../../../common/new-type-define/historyElement';
+import MainMenu from '../../common-objects/menu-context/main-menu.js';
+import VertexMgmt from '../../common-objects/objects/vertex-mgmt.js';
+import BoundaryMgmt from '../../common-objects/objects/boundary-mgmt.js';
+import ObjectUtils from '../../../common/utilities/object.util.js';
+import FindMenu from '../../common-objects/menu-context/find-menu.js';
+import State from '../../../common/new-type-define/state.js';
+import { setSizeGraph, isPopupOpen } from '../../../common/utilities/common.util.js';
+import HistoryElement from '../../../common/new-type-define/historyElement.js';
 
 import {
 	CONNECT_SIDE,
 	DEFAULT_CONFIG_GRAPH,
 	VIEW_MODE,
 	ACTION_TYPE,
-} from '../../../common/const/index';
+} from '../../../common/const/index.js';
 
 class InputMgmt {
 	constructor(props) {

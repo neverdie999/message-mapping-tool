@@ -1,6 +1,6 @@
-const {
+import {
   SegmentGroupIndexMap,
-} = require('./message_structure_util');
+} from './message_structure_util.js';
 
 class OutputMessageLinker {
   constructor(outputSegmentDataMap, outputSegmentGroupDataMap) {
@@ -116,4 +116,4 @@ class OutputMessageLinker {
   }
 }
 
-module.exports = OutputMessageLinker;
+export default OutputMessageLinker;

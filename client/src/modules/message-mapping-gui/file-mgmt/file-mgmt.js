@@ -1,5 +1,5 @@
-import {readDataFileJson, hideFileChooser, initDialogDragEvent} from '../../../common/utilities/common.util';
-import popupUtil from '../../../common/utilities/popup.util';
+import {readDataFileJson, hideFileChooser, initDialogDragEvent} from '../../../common/utilities/common.util.js';
+import popupUtil from '../../../common/utilities/popup.util.js';
 
 const ID_FOLDER_OPEN_FILE_MGMT = 'folderOpenFileMgmt';
 const ID_CONTAINER_FILE_MGMT = 'containerFileMgmt';

@@ -1,7 +1,7 @@
-const InputMessageStructure = require('./input_message_structure');
-const DataMappingRoutesMaker = require('./data_mapping_routes_maker');
-const OutputMessageLinker = require('./output_message_linker');
-const { IdMap } = require('./message_structure_util');
+import InputMessageStructure from './input_message_structure.js';
+import DataMappingRoutesMaker from './data_mapping_routes_maker.js';
+import OutputMessageLinker from './output_message_linker.js';
+import { IdMap } from './message_structure_util.js';
 
 class MappingDefinitionReader {
   static read(inputMessage, outputMessage, operations, edges, bizVariableSetter) {
@@ -16,4 +16,4 @@ class MappingDefinitionReader {
   }
 }
 
-module.exports = MappingDefinitionReader;
+export default MappingDefinitionReader;

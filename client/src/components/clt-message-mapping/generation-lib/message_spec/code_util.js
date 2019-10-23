@@ -1,7 +1,7 @@
-const {
+import {
   MessageSpecElementType,
   ElementaryDataType,
-} = require('./data_types');
+} from './data_types.js';
 
 class CodeUtil {
   static toMessageSpecElementType(typeCode) {
@@ -50,4 +50,4 @@ class CodeUtil {
   }
 }
 
-module.exports = CodeUtil;
+export default CodeUtil;

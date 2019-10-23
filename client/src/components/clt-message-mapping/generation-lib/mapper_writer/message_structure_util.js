@@ -90,7 +90,7 @@ class SegmentGroupIndexMap {
   }
 }
 
-module.exports = {
+export {
   MessageElementType,
   SegmentGroupIndexMap,
   IdMap,

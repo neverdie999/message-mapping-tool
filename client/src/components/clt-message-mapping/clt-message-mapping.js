@@ -1,14 +1,12 @@
-import * as d3 from 'd3';
-import _ from 'lodash';
-import InputMgmt from './input-mgmt/input-mgmt';
-import OutputMgmt from './output-mgmt/output-mgmt';
-import OperationsMgmt from './operations-mgmt/operations-mgmt';
-import ConnectMgmt from './connect-mgmt/connect-mgmt';
-import ObjectUtils from '../../common/utilities/object.util';
-const ScannerWriterFactory = require('./generation-lib/scanner_writer/scanner_writer_factory');
-const MessageSpecReader = require('./generation-lib/message_spec/message_spec_reader');
-const MapperWriter = require('./generation-lib/mapper_writer/mapper_writer');
-import History from '../../common/new-type-define/history';
+import InputMgmt from './input-mgmt/input-mgmt.js';
+import OutputMgmt from './output-mgmt/output-mgmt.js';
+import OperationsMgmt from './operations-mgmt/operations-mgmt.js';
+import ConnectMgmt from './connect-mgmt/connect-mgmt.js';
+import ObjectUtils from '../../common/utilities/object.util.js';
+import ScannerWriterFactory from './generation-lib/scanner_writer/scanner_writer_factory.js';
+import MessageSpecReader from './generation-lib/message_spec/message_spec_reader.js';
+import MapperWriter from './generation-lib/mapper_writer/mapper_writer.js';
+import History from '../../common/new-type-define/history.js';
 
 import {
 	comShowMessage,
@@ -21,14 +19,14 @@ import {
   checkKeyMisMatch,
   checkLengthMisMatch,
   removeDuplicates
-} from '../../common/utilities/common.util';
+} from '../../common/utilities/common.util.js';
 
 import { 
 	VERTEX_ATTR_SIZE, BOUNDARY_ATTR_SIZE, CONNECT_TYPE, ACTION_TYPE, OBJECT_TYPE
-} from '../../common/const/index';
+} from '../../common/const/index.js';
 
-import State from '../../common/new-type-define/state';
-import HistoryElement from '../../common/new-type-define/historyElement';
+import State from '../../common/new-type-define/state.js';
+import HistoryElement from '../../common/new-type-define/historyElement.js';
 
 const ID_TAB_INPUT_MESSAGE = 'addressInputMessage';
 const ID_TAB_OUTPUT_MESSAGE = 'addressOutputMessage';

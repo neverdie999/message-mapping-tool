@@ -1,12 +1,12 @@
-const { MessageGroupFormatType } = require('../message_spec/data_types');
-const MessageGroupFormatFactory = require('../message_spec/message_group_format_factory');
-const MessageSpecReader = require('../message_spec/message_spec_reader');
+import { MessageGroupFormatType } from '../message_spec/data_types.js';
+import MessageGroupFormatFactory from '../message_spec/message_group_format_factory.js';
+import MessageSpecReader from '../message_spec/message_spec_reader.js';
 
-const MappingDefinitionReader = require('./mapping_definition_reader');
-const BizVariableSetterFactory = require('./biz_variable_setter_factory');
-const { OutputMessageFormatter } = require('./output_message_formatter');
-const OutputMessageWriter = require('./output_message_writer');
-const VariableNameFormatter = require('./variable_name_formatter');
+import MappingDefinitionReader from './mapping_definition_reader.js';
+import BizVariableSetterFactory from './biz_variable_setter_factory.js';
+import { OutputMessageFormatter } from './output_message_formatter.js';
+import OutputMessageWriter from './output_message_writer.js';
+import VariableNameFormatter from './variable_name_formatter.js';
 
 class MessageGroupFormatCode {
   static from(name) {
@@ -116,4 +116,4 @@ class MapperWriter {
   }
 }
 
-module.exports = MapperWriter;
+export default MapperWriter;

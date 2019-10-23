@@ -76,4 +76,4 @@ class FunctionMap {
   }
 }
 
-module.exports = FunctionMap;
+export default FunctionMap;

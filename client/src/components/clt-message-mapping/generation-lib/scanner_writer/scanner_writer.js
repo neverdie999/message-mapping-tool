@@ -1,7 +1,7 @@
-const {
+import {
   MessageGroupFormatType,
   MessageSpecElementType,
-} = require('../message_spec/data_types');
+} from '../message_spec/data_types.js';
 
 class VariableName {
   static forLengthList(segmentName) {
@@ -168,4 +168,4 @@ class ScannerWriter {
   }
 }
 
-module.exports = ScannerWriter;
+export default ScannerWriter;

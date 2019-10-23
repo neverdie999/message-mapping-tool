@@ -1,5 +1,5 @@
-const VariableNameFormatter = require('./variable_name_formatter');
-const { MessageSpecElementType } = require('../message_spec/data_types');
+import VariableNameFormatter from './variable_name_formatter.js';
+import { MessageSpecElementType } from '../message_spec/data_types.js';
 
 /**
  * @class
@@ -202,4 +202,4 @@ class OutputMessageWriter {
   }
 }
 
-module.exports = OutputMessageWriter;
+export default OutputMessageWriter;

@@ -1,6 +1,6 @@
 
-import ObjectUtils from '../../../common/utilities/object.util';
-import EdgeMgmt from '../../common-objects/objects/edge-mgmt';
+import ObjectUtils from '../../../common/utilities/object.util.js';
+import EdgeMgmt from '../../common-objects/objects/edge-mgmt.js';
 
 class ConnectMgmt {
   constructor(props) {

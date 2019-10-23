@@ -1,5 +1,5 @@
-import FileMgmt from '../file-mgmt/file-mgmt';
-import CltMessageMapping from '../../../components/clt-message-mapping/clt-message-mapping';
+import FileMgmt from '../file-mgmt/file-mgmt.js';
+import CltMessageMapping from '../../../components/clt-message-mapping/clt-message-mapping.js';
 
 class MainMgmt {
 	constructor(props) {

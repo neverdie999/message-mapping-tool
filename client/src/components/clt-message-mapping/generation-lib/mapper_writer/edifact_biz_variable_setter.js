@@ -1,6 +1,6 @@
-const LoopType = require('./loop_type');
-const VariableNameFormatter = require('./variable_name_formatter');
-const FunctionMap = require('./function_map');
+import LoopType from './loop_type.js';
+import VariableNameFormatter from './variable_name_formatter.js';
+import FunctionMap from './function_map.js';
 
 const inputVariableNameFormatter = new VariableNameFormatter('Input');
 const outputVariableNameFormatter = new VariableNameFormatter('Output');
@@ -401,4 +401,4 @@ class EdifactBizVariableSetter {
   }
 }
 
-module.exports = EdifactBizVariableSetter;
+export default EdifactBizVariableSetter;
