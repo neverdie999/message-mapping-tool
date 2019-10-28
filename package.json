@@ -11,12 +11,22 @@
     "watch": "webpack --watch",
     "package-win": "electron-packager . algeta-mapping-tool --overwrite --asar --platform=win32 --arch=ia32 --icon=client/assets/icons/win/icon.ico --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"Algeta Mapping Tool\"",
     "create-installer-win": "node installers/windows/createinstaller.js",
-    "eslint": "eslint ./client/src"
+    "eslint": "eslint ./client/src",
+    "dev": "nodemon --inspect app.js",
+    "start": "node app.js"
   },
   "dependencies": {
+    "body-parser": "^1.19.0",
+    "chalk": "^2.4.2",
     "color-hash": "^1.0.3",
+    "compression": "^1.7.4",
     "d3": "^5.9.1",
-    "lodash": "^4.17.4"
+    "errorhandler": "^1.5.1",
+    "express": "^4.17.1",
+    "lodash": "^4.17.4",
+    "method-override": "^3.0.0",
+    "morgan": "^1.9.1",
+    "pug": "^2.0.4"
   },
   "devDependencies": {
     "babel-core": "^6.26.0",
